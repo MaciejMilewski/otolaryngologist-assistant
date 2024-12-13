@@ -1,0 +1,137 @@
+
+.dark-theme {
+   --primary-color: #ffcc00;
+   --secondary-color: #616161;
+}
+.light-theme {
+	--primary-color: #fff3e0;
+    --secondary-color: #616161;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+#theme-icon {
+    width:80px;
+   height:80px;
+   cursor:pointer;
+  z-index:0;
+
+  -webkit-transition-duration: 1.0s;
+  -moz-transition-duration: 1.0s;
+  -o-transition-duration: 1.0s;
+  transition-duration: 1.0s;
+
+  -webkit-transition-property: -webkit-transform;
+  -moz-transition-property: -moz-transform;
+  -o-transition-property: -o-transform;
+  transition-property: transform;
+  overflow:hidden;
+}
+
+#theme-icon:hover {
+    -webkit-transform:rotate(360deg);
+    -moz-transform:rotate(360deg);
+    -o-transform:rotate(360deg);
+}
+
+@media (prefers-color-scheme: ciemny) {
+	:root {
+	    --primary-color: #996600;
+        --secondary-color: #fff0b3;
+	}
+}
+
+.navbar {
+   background-color: --primary-color;
+}
+
+.modal-dialog {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  min-height: calc(100vh - 60px);
+  @media (max-width: 767px) {
+    min-height: calc(100vh - 20px);
+  }
+}
+.modal-header {
+    background-color: #C49F0F;
+    padding:9px 15px;
+    color:#FFF;
+    font-family:Verdana, sans-serif;
+    border-bottom:1px solid #eee;
+ }
+ .modal-body {
+    background-color: #F8E69E;
+    padding:9px 15px;
+    color:#000;
+    font-family:Verdana, sans-serif;
+    border-bottom:4px solid #C49F0F;
+ }
+ .modal-footer {
+    color:#FFF;
+ }
+
+@mixin cross($size: 20px, $color: currentColor, $thickness: 1px) {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  position: relative;
+  width: $size;
+  height: $size;
+
+  &:before,
+  &:after {
+    content: '';
+    position: absolute;
+    top: ($size - $thickness) / 2;
+    left: 0;
+    right: 0;
+    height: $thickness;
+    background: $color;
+    border-radius: $thickness;
+  }
+
+  &:before {
+    transform: rotate(45deg);
+  }
+
+  &:after {
+    transform: rotate(-45deg);
+  }
+
+  span {
+    display: block;
+  }
+
+}
+
+.close {
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: hsl(216, 100, 50);
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 150ms;
+
+  .icon-cross {
+    @include cross(40px, #fff, 6px);
+  }
+
+  &:hover,
+  &:focus {
+    transform: rotateZ(90deg);
+    background: hsl(216, 100, 40);
+  }

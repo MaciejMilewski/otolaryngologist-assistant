@@ -1,8 +1,13 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, abort
+from jinja2 import TemplateNotFound
 
 auth_bp = Blueprint('auth', __name__)
 
 
 @auth_bp.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except TemplateNotFound:
+        return abort(404)
+

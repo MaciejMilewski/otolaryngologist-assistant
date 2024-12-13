@@ -1,0 +1,97 @@
+
+.dark-theme {
+   --primary-color: #AACCCC;
+   --secondary-color: #616161;
+}
+.light-theme {
+	--primary-color: #99FFCC;
+    --secondary-color: #616161;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+    overflow-y: hidden; /* Hide vertical scrollbar */
+}
+
+#theme-icon {
+    width:60px;
+   height:60px;
+   cursor:pointer;
+  z-index:0;
+
+  -webkit-transition-duration: 1.0s;
+  -moz-transition-duration: 1.0s;
+  -o-transition-duration: 1.0s;
+  transition-duration: 1.0s;
+
+  -webkit-transition-property: -webkit-transform;
+  -moz-transition-property: -moz-transform;
+  -o-transition-property: -o-transform;
+  transition-property: transform;
+  overflow:hidden;
+}
+
+#theme-icon:hover {
+    -webkit-transform:rotate(360deg);
+    -moz-transform:rotate(360deg);
+    -o-transform:rotate(360deg);
+}
+
+@media (prefers-color-scheme: ciemny) {
+	:root {
+	    --primary-color: #996600;
+        --secondary-color: #fff0b3;
+	}
+}
+
+
+h2
+{
+  font-size: 4.0em;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1em;
+  text-transform: uppercase;
+}
+
+.btn
+{
+	color: grey;
+	background-color: white;
+}
+
+.form-group
+{
+	margin-bottom: 6px;
+	height: 50px;
+}
+
+input {
+  border-style: solid;
+  border-color: #eee;
+  border-width: 3px;
+}
+
+.form-control
+{
+	margin-bottom:16px;
+	height: 50px;
+}
+
+#group_inputs_medial_report .form-floating{
+	margin-bottom: 8px;
+	height:70px;
+}
+
+.medical-report-items {
+	flex-direction: column;
+}
+
+.medical-report-items *{
+	margin-bottom: 7px;
+}
+
+.medical-report-order *{
+	margin-bottom:6px;
+}

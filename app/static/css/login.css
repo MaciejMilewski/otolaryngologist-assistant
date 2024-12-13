@@ -1,0 +1,82 @@
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'arial', sans-serif;
+}
+
+.background {
+  position: absolute;
+  display: block;
+  z-index: -1;
+}
+
+.dark-theme {
+   --primary-color: #ffcc00;
+   --secondary-color: #616161;
+}
+.light-theme {
+	--primary-color: #fff3e0;
+    --secondary-color: #616161;
+}
+
+body {
+    background-color: var(--primary-color);
+    color: var(--secondary-color);
+}
+
+#theme-icon {
+    width:80px;
+   height:80px;
+   cursor:pointer;
+  z-index:0;
+
+  -webkit-transition-duration: 1.0s;
+  -moz-transition-duration: 1.0s;
+  -o-transition-duration: 1.0s;
+  transition-duration: 1.0s;
+
+  -webkit-transition-property: -webkit-transform;
+  -moz-transition-property: -moz-transform;
+  -o-transition-property: -o-transform;
+  transition-property: transform;
+  overflow:hidden;
+}
+
+#theme-icon:hover {
+    -webkit-transform:rotate(360deg);
+    -moz-transform:rotate(360deg);
+    -o-transform:rotate(360deg);
+}
+
+@media (prefers-color-scheme: ciemny) {
+	:root {
+	    --primary-color: #996600;
+        --secondary-color: #fff0b3;
+	}
+}
+
+@media (prefers-color-scheme: jasny) {
+	:root {
+		--primary-color: #FFF3E0;
+        --secondary-color: #616161;
+	}
+}
+
+header{
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 40px 100px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.form-signin
+{
+      padding-top: 60px;
+}
