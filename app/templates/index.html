@@ -1,9 +1,68 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="pl">
+
 <head>
-    <title>Flask App</title>
+
+  <meta http-equiv="content-type" content="application/json; charset=UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="{{url_for('static',filename='img/logo.png')}}">
+
+  <title>Asystent laryngologa</title>
+
+  <meta name="description" content="Asystent laryngologa">
+  <meta name="keywords" content="laryngologia, dokumentacja medyczna">
+  <meta http-equiv="X-Ua-Compatible" content="IE=edge">
+
+  <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
+  <link rel="stylesheet" href="{{url_for('static',filename='css/start.css')}}">
 </head>
 <body>
-    <h1>Welcome to Flask App</h1>
+{#  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+  <nav class="navbar fixed-top navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">
+        <img src="{{url_for('static',filename='img/logo.png')}}" alt="" width="60" height="50"
+             class="d-inline-block align-text-top">
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+              aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="btn btn-outline-primary" type="button" href="{{url_for('auth.login')}}">Logowanie</a>
+          </li>
+        </ul>
+{#        <form action="{{url_for('reject')}}"  method="POST" class="d-flex">#}
+{#          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+{#          <button class="btn btn-danger" type="submit">Wyjście</button>#}
+{#        </form>#}
+      </div>
+    </div>
+  </nav>
+
+  <section class="showcase">
+    <header>
+      <h4 class="logo">LARYNGOLOG</h4>
+      <div class="toggle"></div>
+    </header>
+
+    <video src="{{url_for('static',filename='img/video.mov')}}" muted loop autoplay></video>
+
+    <div class="overlay"></div>
+
+    <div class="text">
+      <h3>
+          Dokumentacja Medyczna
+      </h3>
+        <h6 class="w_gabinecie">w gabinecie laryngologa</h6>
+        <div>
+          <br>
+          <br>
+        </div>
+    </div>
+  </section>
 </body>
 </html>
