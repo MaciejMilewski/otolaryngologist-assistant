@@ -24,8 +24,14 @@ class User(db.Model):
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
     date_joined = db.Column(db.DateTime)
-    is_active = db.Column(db.Boolean, default=True)
+    isActive = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return '<User %r>' % self.login
+
+    def is_active(self):
+        return self.isActive
 
 
 class Visit(db.Model):
