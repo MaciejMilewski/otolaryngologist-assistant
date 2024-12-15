@@ -29,7 +29,7 @@
 
   <div class="form-signin justify-content-md-center">
 
-    <form action="{{url_for('auth.login')}}" method="post">
+    <form action="{{ url_for('auth.login') }}" method="post">
 
 {#        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
 
@@ -66,7 +66,7 @@
                         </div>
                         <br>
                         <div class="form-floating">
-                            <input type="password" class="form-control" id="pwd" name="pwd"
+                            <input type="password" class="form-control mb-3" id="pwd" name="pwd"
                                    placeholder="hasło" required>
                             <label for="pwd">Hasło</label>
                         </div>
@@ -77,13 +77,13 @@
                         </div>
                     </div>
                     <br>
-                    <button class="w-100 btn btn-lg btn-primary" type="submit">Zaloguj się</button>
-
+                    <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">Zaloguj się</button>
+                    <br>
                     <p><a href="{{url_for('start.home')}}">Strona główna</a></p>
                 </div>
                 <div class="col">
 
-                    <img align="right" src="{{url_for('static',filename='img/moon.png')}}" id="theme-icon">
+{#                    <img align="right" src="{{url_for('static',filename='img/moon.png')}}" id="theme-icon">#}
 
                 </div>
             </div>

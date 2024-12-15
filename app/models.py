@@ -1,5 +1,8 @@
+from flask_login import UserMixin
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Index
 
+# db = SQLAlchemy()
 from app import db
 
 
@@ -16,7 +19,7 @@ class Patient(db.Model):
     apartment_number = db.Column(db.String(10))
 
 
-class User(db.Model):
+class User(db.Model, UserMixin):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(50), unique=True, nullable=False)
