@@ -32,6 +32,14 @@ class User(db.Model, UserMixin):
     isActive = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
 
+    def __init__(self, login, name, pwd, email, is_admin, is_active):
+        self.login = login
+        self.name = name
+        self.pwd = pwd
+        self.email = email
+        self.is_admin = is_admin
+        self.isActive = is_active
+
     def __repr__(self):
         return '<User %r>' % self.login
 

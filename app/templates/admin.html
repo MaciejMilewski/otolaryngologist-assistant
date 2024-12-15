@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Asystent laryngologa</title>
+    <meta name="description" content="Asystent laryngologa">
+    <meta name="keywords" content="laryngologia, dokumentacja medyczna">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+
+    <style>
+
+        table {
+            border-collapse: collapse;
+            display: block;
+            width: 100vw;
+            height: 485px;
+            overflow: auto;
+            padding-top: 0px; /* margines wewnętrzny */
+            margin: 15px auto 15px auto; /* margines zewnętrzny- tabela zostaje wyśrodkowana */
+            background-color: palegoldenrod;
+            -webkit-border-radius: 15px;
+            -moz-border-radius: 15px;
+            border-radius: 15px; /* określa zaokrąglenie rogów tabeli za pomocą CSS3*/
+            box-shadow: 5px 5px 50px grey; /* określa oceniowanie tabeli za pomocą CSS3*/
+            -moz-box-shadow: 5px 5px 50px grey;
+            -webkit-box-shadow: 5px 5px 50px grey;
+        }
+
+        thead {
+            z-index: 10;
+            height: 40px;
+            position: sticky;
+            background: #7F8C8D;
+            color: #FCF3CF;
+            top: 0;
+        }
+
+        tbody td, tr {
+            margin: 30px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #a3b4c6;
+        }
+
+    </style>
+
+</head>
+<body>
+
+{% block body %}
+
+    <div class="container-xxl">
+        <div class="row col-12">
+            {#      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+            <nav class="navbar navbar-expand">
+                <div class="container-fluid">
+                    <a class="navbar-brand">
+                        <img src="{{ url_for('static',filename='img/logo.png') }}" alt="" width="80" height="80"
+                             class="d-inline-block">
+                    </a>
+                    <a class="navbar-brand"><h1>PANEL ADMINISTRACYJNY</h1></a>
+                    <div class="container-fluid">
+                        <div class="collapse navbar-collapse justify-content-end" id="navbarNavTheme">
+                            <form action="{{ url_for('auth.logout') }}" class="d-flex">
+                                <button class="btn btn-primary btn-lg" type="submit">Wyloguj się</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </div>
+        <div class="row">
+            <hr>
+            <div class="col-12">
+                <br>
+                <h3>Lista użytkowników
+                    <button type="button" class="btn btn-success btn-sm float-end"
+                            data-bs-toggle="modal" data-bs-target="#NowyUser">Dodaj nowego
+                    </button>
+                </h3>
+                {% with messages = get_flashed_messages(with_categories=True) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible text-center" role="alert">
+                                {{ message }}
+                                <button type="button" class="close float-end" data-bs-dismiss="alert"
+                                        aria-label="close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <table class="table strip-table text-center">
+                            <thead>
+                            <tr>
+                                <th class="col-lg-1">Numer</th>
+                                <th class="col-lg-2">Login</th>
+                                <th class="col-lg-1">Nazwisko Imię</th>
+                                <th class="col-lg-2">E-mail</th>
+                                <th class="col-lg-1">Data zapisu</th>
+                                <th class="col-lg-1">Administrator</th>
+                                <th class="col-lg-1">Aktywny</th>
+                                <th class="col-lg-3">AKCJA</th>
+                            </tr>
+                            </thead>
+
+                            {% for row in users %}
+
+                                <tbody>
+                                <tr>
+                                    <td class="col-lg-1"><h5><span class="badge bg-success">{{ row.id }}</span></h5>
+                                    </td>
+                                    <td class="col-lg-1">{{ row.login }}</td>
+                                    <td class="col-lg-2">{{ row.name }}</td>
+                                    <td class="col-lg-2">{{ row.email }}</td>
+                                    <td class="col-lg-1">{{ row.date_joined }}</td>
+                                    <td class="col-lg-1">{% if row.is_admin == 1 %}
+                                        <input class="form-check-input" type="checkbox" value="1" id="is_admin" checked
+                                               disabled>
+                                    {% else %}
+                                        <input class="form-check-input" type="checkbox" id="noAdmin" disabled>
+                                    {% endif %}
+                                    </td>
+                                    <td class="col-lg-1">{% if row.isActive == 1 %}
+                                        <input class="form-check-input" type="checkbox" value="1" id="isActive" checked
+                                               disabled>
+                                    {% else %}
+                                        <input class="form-check-input" type="checkbox" id="noActive" disabled>
+                                    {% endif %}
+                                    </td>
+                                    <td class="col-lg-2">
+                                        <a href="/admin_user_update/{{ row.id }}" class="btn btn-warning btn-xs"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#modaledit{{ row.id }}">Edycja
+                                        </a>
+                                        <a href="/users/delete/{{ row.id }}" class="btn btn-danger btn-xs"
+                                           onclick="return confirm('UWAGA !\n Czy jesteś pewny - usuwasz użytkownika {{ row.login }} ?')">Usuń
+                                        </a>
+                                    </td>
+                                </tr>
+                                <div id="modaledit{{ row.id }}" class="modal fade" role="dialog">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header text-center">
+                                                <img src="{{ url_for('static',filename='img/logo.png') }}"
+                                                     class="float-start" width="80" height="80">
+                                                <h4 style="align-text: center;">Aktualizacja danych &nbsp;&nbsp;</h4>
+                                                <button type="button" class="close" data-bs-dismiss="modal">&times;
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <form action="{{ url_for('admin.user_update') }}" method="POST">
+                                                    {#                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                                    <input type="hidden" name="id" id="id" value="{{ row.id }}">
+                                                    <input type="hidden" name="surname" id="surname"
+                                                           value="{{ row.name }}">
+                                                    <input type="hidden" name="pwd" id="pwd" value="{{ row.pwd }}">
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control" name="name_new"
+                                                               value="{{ row.name }}" required>
+                                                        <label>Nazwisko i imię:</label>
+                                                    </div>
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control" name="login_new"
+                                                               value="{{ row.login }}" required>
+                                                        <label>Login:</label>
+                                                    </div>
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control" name="email_new"
+                                                               value="{{ row.email }}" required>
+                                                        <label>Adres e-mail:</label>
+                                                    </div>
+                                                    <div class="form-floating">
+                                                        <input type="text" class="form-control" id="actual_password"
+                                                               name="actual_password" required>
+                                                        <label>Hasło:</label>
+                                                    </div>
+                                                    <div class="d-flex flex-wrap justify-content-center">
+                                                        <div class="form-check form-check-inline justify-content-center">
+                                                            <label class="form-check-label" for="admin_new">
+                                                                {% if row.is_admin == 1 %}
+                                                                    <input type="checkbox" name="admin_new"
+                                                                           id="admin_new_checked"
+                                                                           value="{{ row.is_admin }}" checked>&nbsp;
+                                                                    &nbsp;Administrator
+                                                                {% else %}
+                                                                    <input type="checkbox" name="admin_new"
+                                                                           id="admin_new" value="{{ row.is_admin }}">
+                                                                    &nbsp;&nbsp;Administrator
+                                                                {% endif %}
+                                                            </label>
+                                                        </div>
+                                                        <div class="form-check form-check-inline justify-content-center">
+                                                            <label class="form-check-label" for="aktywny_new">
+                                                                {% if row.isActive == 1 %}
+                                                                    <input type="checkbox" name="aktywny_new"
+                                                                           id="aktywny_new_checked"
+                                                                           value="{{ row.isActive }}" checked>&nbsp;
+                                                                    &nbsp;Aktywny
+                                                                {% else %}
+                                                                    <input type="checkbox" name="aktywny_new"
+                                                                           id="aktywny_new"
+                                                                           value="{{ row.isActive }}">&nbsp;&nbsp;
+                                                                    Aktywny
+                                                                {% endif %}
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <hr>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-outline-danger">ZAPISZ
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-success"
+                                                                data-bs-dismiss="modal">ANULUJ
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            {% endfor %}
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="NowyUser" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header text-center">
+                            <img src="{{ url_for('static',filename='img/logo.png') }}" class="float-start" width="80"
+                                 height="80">
+                            <h4>Nowy użytkownik</h4>
+                            <button type="button" class="close" data-bs-dismiss="modal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+
+                            <form action="{{ url_for('admin.user_insert') }}" method="POST">
+                                {#                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="surname_new" name="surname_new"
+                                           required>
+                                    <label>Nazwisko i imię:</label>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="login" name="login" required>
+                                    <label>Login:</label>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="email" name="email" required>
+                                    <label>Adres e-mail:</label>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="password" name="password" required>
+                                    <label>Hasło:</label>
+                                </div>
+                                <div class="d-flex flex-wrap justify-content-center">
+                                    <div class="form-check form-check-inline justify-content-center">
+                                        <label class="form-check-label" for="admin">
+                                            <input type="checkbox" id="admin" name="admin" value="0">&nbsp;&nbsp;Administrator
+                                        </label>
+                                    </div>
+                                    <div class="form-check form-check-inline justify-content-center">
+                                        <label class="form-check-label" for="aktywny">
+                                            <input type="checkbox" id="aktywny" name="aktywny" value="1" checked>&nbsp;&nbsp;Aktywny
+                                        </label>
+                                    </div>
+                                </div>
+                                <hr>
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-outline-danger">ZAPISZ</button>
+                                    <button type="button" class="btn btn-outline-success" data-bs-dismiss="modal">
+                                        ANULUJ
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+<script type="text/javascript" src="{{ url_for('static',filename='js/jquery-3.6.0.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script>
+<script src="{{ url_for('static',filename='js/theme-switcher.js') }}"></script>
+
+</body>
+</html>
