@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Index
@@ -26,7 +28,7 @@ class User(db.Model, UserMixin):
     pwd = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
-    date_joined = db.Column(db.DateTime)
+    date_joined = db.Column(db.Date, default=datetime.utcnow())
     isActive = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
 
