@@ -10,7 +10,7 @@
 
 body {
     padding-top: 20px;
-    font-family: 'Tahoma';
+    font-family: system-ui;
     background-color: var(--primary-color);
     color: var(--secondary-color);
 }
