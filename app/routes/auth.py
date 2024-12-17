@@ -28,7 +28,7 @@ def login():
             flash('Zalogowano pomyślnie!', 'success')
             if user.is_admin:
                 return redirect(url_for('admin.users'))
-            return redirect(url_for('visit.main_form'))  # Zmień 'main.home' na endpoint Twojej głównej strony
+            return render_template('home.html')  # Zmień 'main.home' na endpoint Twojej głównej strony
         else:
             flash('Nieprawidłowy login lub hasło.', 'danger')
     return render_template('login.html')

@@ -40,5 +40,23 @@ def create_app():
     from app.routes.admin import admin_bp
     app.register_blueprint(admin_bp)
 
+    from app.routes.medical_certificate import medical_certificate_bp
+    app.register_blueprint(medical_certificate_bp)
+
+    from app.routes.antibiotic import antibiotic_bp
+    app.register_blueprint(antibiotic_bp)
+
+    from app.routes.patient import patient_bp
+    app.register_blueprint(patient_bp)
+
+    from app.routes.instruction import instruction_bp
+    app.register_blueprint(instruction_bp)
+
+    from app.routes.procedure import procedure_bp
+    app.register_blueprint(procedure_bp)
+
+    from app.routes.schedule import schedule_bp
+    app.register_blueprint(schedule_bp)
+
     return app
 
