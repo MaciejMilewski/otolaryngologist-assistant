@@ -9,7 +9,7 @@
 
     <title>Terminarz</title>
 
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+    {#    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">#}
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
 
@@ -24,6 +24,434 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.0.3/index.global.min.js'></script>
+    <script src='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.0.3/locales-all.global.min.js'></script>
+
+    <style>
+
+        html, body {
+            margin-top: 15px;
+            background: Goldenrod;
+            font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        #calendar {
+            width: 100%;
+            font-size: 16px;
+            box-shadow: 0px 0px 15px #000;
+            padding: 15px;
+            background: Mintcream;
+        }
+
+        #calendar-container {
+            position: fixed;
+            top: 10%;
+            text-align: center;
+            left: 10%;
+            right: 10%;
+            bottom: 10%;
+        }
+
+        .fc-myMenuExitButton-button {
+            background-color: red !important;
+        }
+
+        .fc-day-disabled {
+            background-color: silver !important;
+        }
+
+        .fc-today-button {
+            background-color: Darkgoldenrod !important;
+        }
+
+        .fc-prev-button, .fc-next-button, .fc-dayGridMonth-button, .fc-timeGridWeek-button, .fc-timeGridDay-button {
+            background-color: Sienna !important;
+        }
+
+        .popper,
+        .tooltip {
+            position: absolute;
+            z-index: 9999;
+            background: #FFC107;
+            color: black;
+            width: 150px;
+            border-radius: 3px;
+            box-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .style5 .tooltip {
+            background: #1E252B;
+            color: #FFFFFF;
+            max-width: 200px;
+            width: auto;
+            font-size: .8rem;
+            padding: .5em 1em;
+        }
+
+        .popper .popper__arrow,
+        .tooltip .tooltip-arrow {
+            width: 0;
+            height: 0;
+            border-style: solid;
+            position: absolute;
+            margin: 5px;
+        }
+
+        .tooltip .tooltip-arrow,
+        .popper .popper__arrow {
+            border-color: #FFC107;
+        }
+
+        .style5 .tooltip .tooltip-arrow {
+            border-color: #1E252B;
+        }
+
+        .popper[x-placement^="top"],
+        .tooltip[x-placement^="top"] {
+            margin-bottom: 5px;
+        }
+
+        .popper[x-placement^="top"] .popper__arrow,
+        .tooltip[x-placement^="top"] .tooltip-arrow {
+            border-width: 5px 5px 0 5px;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+            bottom: -5px;
+            left: calc(50% - 5px);
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .popper[x-placement^="bottom"],
+        .tooltip[x-placement^="bottom"] {
+            margin-top: 5px;
+        }
+
+        .tooltip[x-placement^="bottom"] .tooltip-arrow,
+        .popper[x-placement^="bottom"] .popper__arrow {
+            border-width: 0 5px 5px 5px;
+            border-left-color: transparent;
+            border-right-color: transparent;
+            border-top-color: transparent;
+            top: -5px;
+            left: calc(50% - 5px);
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+
+        .tooltip[x-placement^="right"],
+        .popper[x-placement^="right"] {
+            margin-left: 5px;
+        }
+
+        .popper[x-placement^="right"] .popper__arrow,
+        .tooltip[x-placement^="right"] .tooltip-arrow {
+            border-width: 5px 5px 5px 0;
+            border-left-color: transparent;
+            border-top-color: transparent;
+            border-bottom-color: transparent;
+            left: -5px;
+            top: calc(50% - 5px);
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .popper[x-placement^="left"],
+        .tooltip[x-placement^="left"] {
+            margin-right: 5px;
+        }
+
+        .popper[x-placement^="left"] .popper__arrow,
+        .tooltip[x-placement^="left"] .tooltip-arrow {
+            border-width: 5px 0 5px 5px;
+            border-top-color: transparent;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+            right: -5px;
+            top: calc(50% - 5px);
+            margin-left: 0;
+            margin-right: 0;
+        }
+
+        .modal-header {
+            background-color: #C49F0F;
+            padding: 9px 15px;
+            color: #FFF;
+            font-family: Verdana, sans-serif;
+            border-bottom: 2px solid #eee;
+        }
+
+        .modal-body {
+            background-color: #F5DEB3;
+            padding: 9px 15px;
+            color: #000;
+            font-family: Verdana, sans-serif;
+            border-bottom: 4px solid #C49F0F;
+        }
+
+        .modal-footer {
+            background-color: #FAEDBC;
+            color: #FFF;
+        }
+
+        .select {
+            background-color: #FAEDBC;
+            color: #FFF;
+        }
+
+        .fc-event-title {
+            margin: 1px;
+            padding: 1px;
+            white-space: normal;
+        }
+
+        .fc-event-time {
+            margin: 1px;
+            padding: 1px;
+            white-space: normal;
+            font-size: .9em;
+            width: 3em;
+        }
+
+    </style>
+
+    <script type="text/javascript">
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var initialLocaleCode = 'pl';
+            var localeSelectorEl = document.getElementById('locale-selector');
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+
+
+                themeSystem: 'jquery-ui',
+                initialView: '{{ calendar_view }}',   // 'dayGridMonth'
+                initialDate: new Date(),
+                timeZone: 'UTC',
+                locale: initialLocaleCode,            //  'pl',
+                weekNumbers: false,                   //  numer of week
+                dayMaxEvents: false,                  //  allow "more" link when too many events
+                buttonText: {
+                    today: 'dzisiaj',
+                    month: 'miesiąc',
+                    week: 'tydzień',
+                    day: 'dzień',
+                    list: 'lista',
+                    prev: 'poprzedni',
+                    next: 'następny'
+                },
+                headerToolbar: {
+                    left: 'prev, next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay, myMenuExitButton'
+                },
+
+                buttonIcons: true,     // show the prev/next text
+                navLinks: true,        // can click day/week names to navigate views
+                editable: true,
+
+                dayHeaderFormat: {weekday: 'long'},
+                showNonCurrentDates: false,
+                fixedWeekCount: false,
+                firstDay: 1,
+                aspectRatio: 2.2,
+                selectable: true,
+                unselectAuto: true,
+                nowIndicator: true,
+
+                events: [
+                    {
+                        id: 0,
+                        daysOfWeek: [0],    //  Sundays
+                        rendering: "background",
+                        color: "#ffcccc",
+                        display: 'background',
+                        overLap: false,
+                        allDay: true
+                    },
+                    {
+                        id: 0,
+                        daysOfWeek: [6],    // Saturdays
+                        rendering: "background",
+                        color: "#ccebff",
+                        display: 'background',
+                        overLap: false,
+                        allDay: true
+                    },
+                    {% for event in events %}
+                        {
+                            title: '{{event.title}}',
+                            start: '{{event.start_date}} {{event.start_time}}+00:00',
+                            end: '{{event.end_date}} {{event.end_time}}+00:00',
+                            url: '{{event.url}}',
+                            id: '{{event.id}}',
+                            extendedProps: {
+                                description: '{{event.description}}',
+                            },
+                            backgroundColor: '{{event.color_back}}',
+                            textColor: '{{event.color_fore}}',
+                            borderColor: "#ff80ff",
+                        },
+                    {% endfor %}
+                ],
+
+                eventDidMount: function (info) {
+
+                    if (info.event.title && info.event.end != null) {
+                        $(info.el).popover({
+                            title: 'od ' + info.event.start.toISOString().slice(11, 16) + ' dnia ' + info.event.start.toISOString().slice(0, 10),
+                            placement: 'top',
+                            trigger: 'hover',
+                            content: 'do godz ' + info.event.end.toISOString().slice(11, 16) + ' dnia ' + info.event.end.toISOString().slice(0, 10),
+                            container: 'body'
+                        });
+                    }
+                },
+                eventResize: function (info) {
+                    $('#Modaldrop').modal('show');
+                    document.getElementById("modal_drop_id").value = info.event.id;
+                    document.getElementById("modal_drop_title").innerHTML = info.event.title;
+                    let result_start = info.event.start.toISOString().slice(0, 10);
+                    let result_end = info.event.end.toISOString().slice(0, 10);
+                    document.getElementById("modal_drop_start").value = result_start;
+                    document.getElementById("modal_drop_end").value = result_end;
+                    let result_start_time = info.event.start.toISOString().slice(11, 16);
+                    let result_end_time = info.event.end.toISOString().slice(11, 16);
+                    document.getElementById("modal_drop_start_time").value = result_start_time;
+                    document.getElementById("modal_drop_end_time").value = result_end_time;
+                    var view = calendar.view;
+                    document.getElementById("modal_drop_view").value = view.type;
+                },
+
+                eventTimeFormat: {  // like '14:30'
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    meridiem: false
+                },
+
+                eventDrop: function (info) {
+                    // Pobierz dane przesuniętego eventu
+                    const eventData = {
+                        id: info.event.id,
+                        start: info.event.start.toISOString().slice(0, 10), // Data rozpoczęcia
+                        end: info.event.end ? info.event.end.toISOString().slice(0, 10) : null, // Data zakończenia
+                        start_time: info.event.start.toISOString().slice(11, 16), // Czas rozpoczęcia
+                        end_time: info.event.end ? info.event.end.toISOString().slice(11, 16) : null // Czas zakończenia
+                    };
+
+                    // Wyślij żądanie AJAX do serwera
+                    $.ajax({
+                        url: '/schedule/drop', // Endpoint backendu dla drag and drop
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(eventData), // Przekaż dane jako JSON
+                        success: function (response) {
+                            console.log('Wydarzenie zostało zaktualizowane.');
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Błąd podczas aktualizacji:', error);
+                            alert('Nie udało się zaktualizować wydarzenia.');
+                            info.revert(); // Przywróć wydarzenie na pierwotne miejsce w przypadku błędu
+                        }
+                    });
+
+                },
+
+                eventContent: function (arg) {
+                    let divEl = document.createElement('div');
+                    divEl.classList.add("fc-event-title")
+                    let htmlDescription = arg.event.extendedProps['description'];
+                    let view = calendar.view;
+                    if ('dayGridMonth' === view.type) {
+                        if (arg.event.start.toISOString().slice(11, 16) != '00:00') {
+                            divEl.innerHTML = arg.event.start.toISOString().slice(11, 16) + ' ' + arg.event.title;
+                        }
+                    } else {
+                        if (htmlDescription != null) {
+                            divEl.innerHTML = arg.event.title + '<br>' + htmlDescription;
+                        }
+                    }
+                    let arrayOfDomNodes = [divEl];
+                    return {domNodes: arrayOfDomNodes}
+                },
+
+                eventClick: function (info) {
+                    console.log(info.event);
+                    info.jsEvent.preventDefault(); // Zapobiegaj domyślnemu działaniu przeglądarki
+
+                    // Otwórz modal edycji
+                    $('#Modal_edit').modal('show');
+
+                    // Ustaw wartości w modal edycji
+                    $('#modal_edit_id').val(info.event.id);
+                    $('#edittitle').val(info.event.title || '');
+                    $('#editstart').val(info.event.start.toISOString().slice(0, 10));
+                    $('#editstart_time').val(info.event.start.toISOString().slice(11, 16));
+                    if (info.event.end) {
+                        $('#editend').val(info.event.end.toISOString().slice(0, 10));
+                        $('#editend_time').val(info.event.end.toISOString().slice(11, 16));
+                    }
+                    $('#editurl').val(info.event.url || '');
+                    $('#editsetcolor').val(info.event.backgroundColor || '#563d7c');
+                    $('#editsetlitery').val(info.event.textColor || '#fffafa');
+
+                    // Obsługa usuwania wydarzenia
+                    $('#delete_event_btn').off('click').on('click', function () {
+
+                        $.ajax({
+                            url: '/schedule/delete', // Endpoint do usuwania
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({id: info.event.id}), // Wysyłanie ID wydarzenia
+                            success: function (response) {
+                                info.event.remove(); // Usuń wydarzenie z kalendarza
+                                $('#Modal_edit').modal('hide'); // Zamknij modal
+                            },
+                            error: function (xhr, status, error) {
+                                console.error('Błąd podczas usuwania:', error);
+                                alert('Wystąpił problem podczas usuwania wydarzenia.');
+                            }
+                        });
+
+                    });
+                },
+
+                select: function (info) {
+                    $('#Modaldodaj').modal('show');
+                    document.getElementById("start").valueAsDate = info.start;
+                    document.getElementById("start_time").value = '08:00';
+                    document.getElementById("url").value = 'http://';
+                    var view = calendar.view;
+                    document.getElementById("modal_dodaj_view").value = view.type;
+
+                },
+
+            });
+            calendar.render();
+
+            // build the locale selector's options
+            calendar.getAvailableLocaleCodes().forEach(function (localeCode) {
+                var optionEl = document.createElement('option');
+                optionEl.value = localeCode;
+                optionEl.selected = localeCode == initialLocaleCode;
+                optionEl.innerText = localeCode;
+                localeSelectorEl.appendChild(optionEl);
+            });
+
+            // when the selected option changes, dynamically change the calendar option
+            localeSelectorEl.addEventListener('change', function () {
+                if (this.value) {
+                    calendar.setOption('locale', this.value);
+                }
+            });
+        });
+
+    </script>
 </head>
 <body>
 
@@ -98,6 +526,301 @@
                     </div>
                 </div>
             </nav>
+        </div>
+
+
+        <label id="label-locale-selector">lokalizacja:</label>
+
+        <select id='locale-selector'></select>
+
+        <script type="text/javascript">
+
+            $(document).ready(function () {
+                $('#label-locale-selector').appendTo($(".fc-header-toolbar .fc-toolbar-chunk")[0]);
+                $('#locale-selector').appendTo($(".fc-header-toolbar .fc-toolbar-chunk")[0]);
+            });
+
+            var defaultThemeMode = "light";
+            var themeMode;
+
+            if (document.documentElement) {
+                if (document.documentElement.hasAttribute("data-theme-mode")) {
+                    themeMode = document.documentElement.getAttribute("data-theme-mode");
+                } else {
+                    if (localStorage.getItem("data-theme") !== null) {
+                        themeMode = localStorage.getItem("data-theme");
+                    } else {
+                        themeMode = defaultThemeMode;
+                    }
+                }
+
+                if (themeMode === "system") {
+                    themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+                }
+                document.documentElement.setAttribute("data-theme", themeMode);
+            }
+
+        </script>
+
+        <div class="row ">
+
+            {% if (get_flashed_messages(with_categories=True)) %}
+
+                <script type="text/javascript">
+                    $(document).ready(function () {
+                        $('#flashModal').modal('show');
+                    });
+                </script>
+
+            {% endif %}
+
+            <!-- Modal flash -->
+            <div class="modal" id="flashModal" tabindex="-1" aria-labelledby="flashModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="flashModalLabel">UWAGA !</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            {% with messages = get_flashed_messages(with_categories=True) %}
+                                {% if messages %}
+                                    {% for category, message in messages %}
+                                        <div class="alert alert-{{ category }} alert-dismissible text-center"
+                                             role="alert">
+                                            {{ message }}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="modal-footer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-center" style="margin-top: 96px">
+                <div id="calendar"></div>
+            </div>
+
+            <!-- Modal dodaj -->
+            <div class="modal" id="Modaldodaj" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <form action="{{ url_for('schedule.schedule_insert') }}" method="POST">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModalLabel">DODAJ ZDARZENIE</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="input-group">
+                                    <span class="input-group-text">TŁO</span>
+                                    <input type="color" class="form-control form-control-color" name="setcolor"
+                                           title="setcolor" id="setcolor" value="#563d7c">
+                                    <span class="input-group-text">LITERY</span>
+                                    <input type="color" class="form-control form-control-color" id="setlitery"
+                                           name="setlitery"
+                                           title="setlitery" value="#FFFAFA">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">TYTUŁ</span>
+                                    <input type="text" aria-label="title" name="title" id="title" class="form-control">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">OPIS</span>
+                                    <input type="text" aria-label="desc" name="desc" id="desc" class="form-control">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">START</span>
+                                    <input type="date" name="start" id="start" class="form-control" title="start"
+                                           placeholder="" maxlength="10" size="10" style="text-align: center;">
+                                    <span class="input-group-text">OD</span>
+                                    <input type="time" aria-label="start_time" class="form-control"
+                                           name="start_time" id="start_time" placeholder="hh:mm">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">KONIEC</span>
+                                    <input type="date" name="end" id="end" class="form-control" title="end"
+                                           placeholder=""
+                                           maxlength="10" size="10" style="text-align: center;">
+                                    <span class="input-group-text">DO</span>
+                                    <input type="time" aria-label="end_time" class="form-control"
+                                           name="end_time" id="end_time" placeholder="hh:mm">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">URL</span>
+                                    <input type="url" aria-label="url" class="form-control" name="url" id="url"
+                                           placeholder="">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="text" id="modal_dodaj_view" name="modal_dodaj_view"
+                                       title="modal_dodaj_view" hidden>
+                                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Wyjdź
+                                </button>
+                                {#                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                <button type="submit" class="btn btn-success">ZAPISZ</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal usuwa-->
+            <div class="modal" id="Modalusuwa" data-bs-backdrop="static" data-bs-keyboard="false"
+                 tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="staticBackdropLabel">USUWANIE ZDARZEŃ</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <i>Czy to zdarzenie ma być usunięte ?</i>
+                            <h4 id="modal_delete_body" style="text-align: center;">
+                                <span id="modal_delete_title" class="badge bg-danger"></span>
+                            </h4>
+                        </div>
+                        <div class="modal-footer">
+                            <form action="{{ url_for('schedule.schedule_delete') }}" method="POST">
+                                <input type="text" id="modal_delete" name="modal_delete" title="modal_delete" hidden>
+                                <input type="text" id="modal_delete_view" name="modal_delete_view"
+                                       title="modal_delete_view" hidden>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Wyjdź</button>
+                                {#                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                <button type="submit" class="btn btn-primary">USUWANIE</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal drop -->
+            <div class="modal" id="Modaldrop" data-bs-backdrop="static" data-bs-keyboard="false"
+                 tabindex="-1" aria-labelledby="staticBackdrop" aria-hidden="true">
+                <form action="{{ url_for('schedule.schedule_drop') }}" method="POST">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="staticBackdrop">PRZENIESIENIE ZDARZENIA</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <i>Czy to zdarzenie ma być przesunięte ?</i>
+                                <h2 id="modal_drop_body" style="text-align: center; color: blue;">
+                                    <span id="modal_drop_title" class="badge bg-danger"></span>
+                                </h2>
+                                <div style="text-align: center;">
+                                    <span>od dnia :</span>
+                                    <input type="text" id="modal_drop_start" name="modal_drop_start"
+                                           title="modal_drop_start" maxlength="10" size="10"
+                                           style="text-align: center;">
+                                    <span>od godziny :</span>
+                                    <input type="text" id="modal_drop_start_time" name="modal_drop_start_time"
+                                           title="modal_drop_start_time" maxlength="6" size="6"
+                                           style="text-align: center;">
+                                    <br>
+                                    <span>do dnia :</span>
+                                    <input type="text" id="modal_drop_end" name="modal_drop_end" title="modal_drop_end"
+                                           style="text-align: center;" maxlength="10" size="10">
+                                    <span>do godziny :</span>
+                                    <input type="text" id="modal_drop_end_time" name="modal_drop_end_time"
+                                           title="modal_drop_end_time" maxlength="6" size="6"
+                                           style="text-align: center;">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="text" id="modal_drop_id" name="modal_drop_id" title="modal_drop_id" hidden>
+                                <input type="text" id="modal_drop_view" name="modal_drop_view" title="modal_drop_view"
+                                       hidden>
+                                {#                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                <button type="submit" class="btn btn-primary">PRZENIESIENIE</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal edit -->
+            <div class="modal" id="Modal_edit" tabindex="-1" aria-labelledby="exampleModaledit" aria-hidden="true">
+                <form action="{{ url_for('schedule.schedule_update') }}" method="POST">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h1 class="modal-title fs-5" id="exampleModaledit">EDYTUJ ZDARZENIE</h1>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="input-group">
+                                    <span class="input-group-text">TŁO</span>
+                                    <input type="color" class="form-control form-control-color" name="editsetcolor"
+                                           title="editsetcolor" id="editsetcolor" value="#563d7c">
+                                    <span class="input-group-text">LITERY</span>
+                                    <input type="color" class="form-control form-control-color" id="editsetlitery"
+                                           name="editsetlitery" title="editsetlitery" value="#FFFAFA">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">TYTUŁ</span>
+                                    <input type="text" aria-label="edittitle" name="edittitle" id="edittitle"
+                                           class="form-control">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">OPIS</span>
+                                    <input type="text" aria-label="editklasa" name="editklasa" id="editklasa"
+                                           title="editklasa" class="form-control">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">START</span>
+                                    <input type="text" name="editstart" id="editstart" class="form-control"
+                                           title="editstart" placeholder="" data-date-format='yyyy-mm-dd'>
+                                    <span class="input-group-text">OD</span>
+                                    <input type="text" aria-label="editstart_time" class="form-control"
+                                           name="editstart_time" id="editstart_time" placeholder="hh:mm">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">KONIEC</span>
+                                    <input type="text" name="editend" id="editend" class="form-control" title="editend"
+                                           placeholder="" data-date-format='yyyy-mm-dd'>
+                                    <span class="input-group-text">DO</span>
+                                    <input type="text" aria-label="editend_time" class="form-control"
+                                           name="editend_time" id="editend_time" placeholder="hh:mm">
+                                </div>
+                                <br>
+                                <div class="input-group">
+                                    <span class="input-group-text">URL</span>
+                                    <input type="url" aria-label="editurl" class="form-control" name="editurl"
+                                           id="editurl"
+                                           placeholder="">
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="text" id="modal_edit_id" name="modal_edit_id" title="modal_edit_id" hidden>
+                                <input type="text" id="modal_edit_view" name="modal_edit_view" title="modal_edit_view"
+                                       hidden>
+                                <button type="button" class="btn btn-outline-danger" data-bs-dismiss="modal">Wyjdź
+                                </button>
+                                {#                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                <button type="submit" class="btn btn-success">ZAPISZ</button>
+                                <button type="button" class="btn btn-danger" id="delete_event_btn">USUŃ</button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
