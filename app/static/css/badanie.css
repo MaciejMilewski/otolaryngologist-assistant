@@ -1,6 +1,6 @@
 
 .dark-theme {
-   --primary-color: #AACCCC;
+   --primary-color: Aliceblue;
    --secondary-color: #616161;
 }
 .light-theme {
@@ -15,31 +15,7 @@ body {
     color: var(--secondary-color);
 }
 
-#theme-icon {
-    width:50px;
-   height:50px;
-   cursor:pointer;
-  z-index:0;
-
-  -webkit-transition-duration: 1.0s;
-  -moz-transition-duration: 1.0s;
-  -o-transition-duration: 1.0s;
-  transition-duration: 1.0s;
-
-  -webkit-transition-property: -webkit-transform;
-  -moz-transition-property: -moz-transform;
-  -o-transition-property: -o-transform;
-  transition-property: transform;
-  overflow:hidden;
-}
-
-#theme-icon:hover {
-    -webkit-transform:rotate(360deg);
-    -moz-transform:rotate(360deg);
-    -o-transform:rotate(360deg);
-}
-
-@media (prefers-color-scheme: ciemny) {
+@media (prefers-color-scheme: dark) {
 	:root {
 	    --primary-color: #996600;
         --secondary-color: #fff0b3;
@@ -47,7 +23,7 @@ body {
 }
 
 #wywiad{
-    background-color:azure;
+    background-color: Snow;
     color: navy;
     font-family:"Times New Roman", Times, serif;
     font-size: 24px;
@@ -59,10 +35,12 @@ body {
   justify-content: center;
   overflow-y: auto;
   min-height: calc(100vh - 60px);
-  @media (max-width: 767px) {
+}
+
+@media (max-width: 767px) {
     min-height: calc(100vh - 20px);
   }
-}
+
 .modal-header {
     background-color: #C49F0F;
     padding:9px 15px;
@@ -85,4 +63,21 @@ body {
     background-color: #FAEDBC;
     color:#FFF;
  }
+ .select-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.select-wrapper i {
+    position: absolute;
+    top: 50%;
+    left: 10px; /* Dostosuj pozycję ikony */
+    transform: translateY(-50%);
+    pointer-events: none; /* Zapobiega interakcji z ikoną */
+    color: #007bff; /* Kolor ikony */
+}
+
+.select-wrapper select {
+    padding-left: 30px; /* Zwiększamy padding na lewo, by zrobić miejsce dla ikony */
+}
 

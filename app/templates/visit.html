@@ -3,7 +3,7 @@
 <html lang="pl">
 
 <head>
-    <meta http-equiv="content-type" content="application/json; charset=UTF-8"/>
+    <meta charset=UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
 
@@ -16,8 +16,6 @@
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css">
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-
     <script src="{{ url_for('static',filename='js/jquery-3.6.0.js') }}"></script>
 
     <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
@@ -27,7 +25,7 @@
     <link rel="stylesheet" href="{{ url_for('static',filename='css/badanie.css') }}">
 
 </head>
-<body>
+<body class="dark-theme">
 
 <div class="col-12 text-center">
     <div class="row">
@@ -75,7 +73,7 @@
                             </li>
                             &ensp;
                             <li class="nav-item">
-                                <a class="btn btn-outline-warning" type="button"
+                                <a class="btn btn-outline-danger" type="button"
                                    href="{{ url_for('patient.patient_main') }}">Szukaj
                                     pacjenta</a>
                             </li>
@@ -103,6 +101,2743 @@
         </div>
     </div>
 </div>
+
+// POCZĄTEK FORMULARZA
+<div class="container">
+    <form action="/formularz" method="post">
+        <div class="row">
+            <div class="col-12 border border-white shadow min-vh-20 py-2 text-color: text-success">
+                WYWIAD
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <textarea class="col-12 form-control" title="wywiad" id="wywiad" placeholder="" name="wywiad" rows="6"
+                      style="height:100%; resize: none; " autofocus></textarea>
+            <br>
+            <hr>
+            <br>
+        </div>
+
+        <div class="row border border-white shadow min-vh-30 py-2">
+
+            <div class="col-md-12 d-flex justify-content-center bg-primary border border-white text-center report-order">
+
+                <div aria-label="funkcje" class="btn-group btn-group-sm" role="group">
+                    <button type="reset" id="menu_clear" name="menu_clear" class="btn btn-primary"
+                            onclick="clear_all_tags()">
+                        <i class="bi bi-trash"></i> CZYŚĆ
+                    </button>
+                    <button type="button" id="menu_template" name="menu_template" class="btn btn-primary"
+                            data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                        <i class="bi bi-window-stack"></i> SZABLONY
+                    </button>
+                </div>
+
+                <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false"
+                     tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="staticBackdropLabel">EKSPLORUJ SZABLONY</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <label for="szablon" class="form-label"></label>
+                                <textarea class="form-control" id="szablon" name="szablon" rows="6"></textarea>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-primary" title="download" id="download"
+                                            name="download">Zapisz szablon
+                                    </button>
+                                    <label for="filename" class="form-label"></label>
+                                    <input id="filename" name="filename" type="text" class="form-control mt-2"
+                                           placeholder="Podaj nazwę szablonu..."/>
+                                </div>
+                                <button type="button" class="btn btn-primary mt-2" title="modal_open_btn"
+                                        onclick="openFile()">Otwórz szablon
+                                </button>
+                                <input id="inp" type="file" style="visibility:hidden;" accept=".txt"
+                                       onchange="readFile(event)"/>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-danger" title="modal_copy_btn"
+                                        onclick="copyDane()">Kopiuj do wywiadu
+                                </button>
+                                <button type="button" class="btn btn-success" title="modal_close_btn"
+                                        data-bs-dismiss="modal">Zamknij
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="select-wrapper">
+                    <i class="bi bp3-icon-diagnosis"></i>
+                    <select class="selectpicker show-tick" multiple title="ZABIEGI" data-size="10" id="selectZabiegi"
+                            name="selectZabiegi" data-style="btn-primary" data-selected-text-format="static"
+                            aria-label="Zabiegi">
+                        {% if zabiegi %}
+                            {% for item in zabiegi %}
+                                {% if item.title and item.group and item.icd9 and item.description %}
+                                    <option value="{{ (item.title | e) + ', ' + (item.group | e) + ' - ' + (item.icd9 | e) + '. ' + (item.description | e) }}">
+                                        {{ item.title | e }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <option disabled>Brak dostępnych zabiegów</option>
+                        {% endif %}
+                    </select>
+                </div>
+                <select class="selectpicker show-tick" multiple title="ZALECENIA" data-actions-box="true" data-size="10"
+                        id="selectZalecenia" name="selectZalecenia" data-style="btn-primary"
+                        data-selected-text-format="static" aria-label="Zalecenia">
+                    <option style="background: #7ACE26; color: #fff;" data-icon="bi bi-house" value="1" selected
+                            disabled>Okresowa kontrola w Poradni Laryngologicznej
+                    </option>
+                    <option value="2">zakaz palenia tytoniu i pochodnych</option>
+                    <option value="3">oszczędzający głos tryb życia</option>
+                    <option value="4">dieta niedrażniąca przewodu pokarmowego</option>
+                    <option value="5">dieta zbilansowana</option>
+                    <option value="6">zakaz czyszczenia uszu patyczkami</option>
+                    <option value="7">ochrona uszu przed wodą</option>
+                    <option value="8">unikanie większego wysiłku fizycznego</option>
+                    <option value="9">unikanie osób zainfekowanych</option>
+                    <option value="10">ochrona okolicy operowanej przed urazem</option>
+                    <option value="11">unikanie nadmiernego nasłonecznienia</option>
+                    <option value="12">przez 30 minut po zabiegu nie jeść i nie pić</option>
+                    <option value="13">kontrola po zabiegu celem zdjęcia szwów</option>
+                    <option value="14">kontrola po zabiegu</option>
+                    <option value="15">kontrola celem usunięcia tamponady</option>
+                    <option value="16">kontrola z wynikiem badania słuchu</option>
+                    <option value="17">kontrola z wynikiem badania MRI GŁOWY</option>
+                    <option value="18">kontrola z wynikiem badania TK ZATOK</option>
+                    <option value="19">kontrola z wynikiem badania TK KOŚCI SKRONIOWYCH</option>
+                    <option value="20">kontrola z wynikiem badania USG</option>
+                    <option value="21">kontrola z wynikiem badania BACC</option>
+                    <option value="22">kontrola z wynikiem GASTROSKOPII</option>
+                    <option value="23">kontrola z wynikiem badania VNG</option>
+                    <option value="24">kontrola z wynikiem badania POLISOMNOGRAFICZNEGO</option>
+                    <option value="25">kontrola z wynikiem zleconych badań laboratoryjnych</option>
+                    <option value="26">konsultacja i leczenie stomatologiczne</option>
+                    <option value="27">diagnostyka alergologiczna (testy)</option>
+                    <option value="28">konsultacja neurologiczna</option>
+                    <option value="29">konsultacja okulistyczna</option>
+                    <option value="30">konsultacja foniatryczna</option>
+                    <option value="31">konsultacja reumatologiczna</option>
+                    <option value="32">konsultacja chirurgiczna</option>
+                    <option value="33">skierowano do szpitala w trybie ostrym</option>
+                    <option value="34">skierowano do szpitala na planowy zabieg</option>
+                </select>
+                <button type="submit" id="menu_generic" onclick="location.href='{{ url_for('visit.generuj') }}'"
+                        name="menu_generic" class="btn btn-primary"><i class="bi bi-vector-pen"></i> GENERUJ
+                </button>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="text-color: text-success">
+            SCHORZENIA OGÓLNE
+        </div>
+
+        <hr>
+
+        <div class="row">
+
+            <div class="col bd-highlight mb-4" id="groups_inputs_report_1">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox1" name="diabetes"
+                           value="cukrzyca i nadciśnienie tętnicze">
+                    <label class="form-check-label" for="Checkbox1"><small>cukrzyca i nadciśnienie
+                        tętnicze</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox2" name="hipertensio"
+                           value="nadciśnienie tętnicze">
+                    <label class="form-check-label" for="Checkbox2"><small>nadciśnienie tętnicze</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox3" name="arytmia"
+                           value="arytmia serca">
+                    <label class="form-check-label" for="Checkbox3"><small>arytmia serca</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox4" name="infarctus"
+                           value="stan po zawale serca">
+                    <label class="form-check-label" for="Checkbox4"><small>stan po zawale serca</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox5" name="heart failure"
+                           value="niewydolność serca">
+                    <label class="form-check-label" for="Checkbox5"><small>niewydolność serca</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox6" name="pacemaker"
+                           value="wszczepiony stymulator serca">
+                    <label class="form-check-label" for="Checkbox6"><small>wszczepiony stymulator
+                        serca</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox7" name="udar"
+                           value="stan po przebytym udarze mózgu">
+                    <label class="form-check-label" for="Checkbox7"><small>stan po przebytym udarze
+                        mózgu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox8" name="antykoagulanty"
+                           value="przewlekłe leczenie przeciwzakrzepowe">
+                    <label class="form-check-label" for="Checkbox8"><small>przewlekłe leczenie
+                        przeciwzakrzepowe</small></label>
+                </div>
+            </div>
+
+            <!-- II kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_2">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox9" name="lipemia"
+                           value="podwyższony poziom cholesterolu">
+                    <label class="form-check-label" for="Checkbox9"><small>podwyższony poziom
+                        cholesterolu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox10" name="sterydy"
+                           value="przewlekła terapia sterydowa">
+                    <label class="form-check-label" for="Checkbox10"><small>przewlekła
+                        sterydoterapia</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox11" name="astma"
+                           value="astma oskrzelowa / POCHP">
+                    <label class="form-check-label" for="Checkbox11"><small>astma ostrzelowa / POCHP</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox12" name="tarczyca"
+                           value="niedoczynność tarczycy">
+                    <label class="form-check-label" for="Checkbox12"><small>niedoczynność tarczycy</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox13" name="kidney failure"
+                           value="niewydolność nerek">
+                    <label class="form-check-label" for="Checkbox13"><small>niewydolność nerek</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox14" name="dna"
+                           value="dna moczanowa">
+                    <label class="form-check-label" for="Checkbox14"><small>dna moczanowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox15" name="zakrzepica"
+                           value="zakrzepica">
+                    <label class="form-check-label" for="Checkbox15"><small>zakrzepica</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox16" name="psoriasis"
+                           value="łuszczyca">
+                    <label class="form-check-label" for="Checkbox16"><small>łuszczyca</small></label>
+                </div>
+            </div>
+
+            <!-- III kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_3">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox17" name="alergia" value="alergia">
+                    <label class="form-check-label" for="Checkbox17"><small>alergia</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox18" name="smokers"
+                           value="nikotynizm">
+                    <label class="form-check-label" for="Checkbox18"><small>nikotynizm</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox19" name="rzs" value="RZS">
+                    <label class="form-check-label" for="Checkbox19"><small>RZS</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox20" name="gerd" value="GERD">
+                    <label class="form-check-label" for="Checkbox20"><small>GERD</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox21" name="epilepsja"
+                           value="padaczka">
+                    <label class="form-check-label" for="Checkbox21"><small>padaczka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox22" name="migrena" value="migrena">
+                    <label class="form-check-label" for="Checkbox22"><small>migrena</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox23" name="depresja"
+                           value="depresja">
+                    <label class="form-check-label" for="Checkbox23"><small>depresja</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox24" name="schizofrenia"
+                           value="schizofrenia">
+                    <label class="form-check-label" for="Checkbox24"><small>schizofrenia</small></label>
+                </div>
+            </div>
+
+            <!-- IV kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_4">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox25" name="parkinson"
+                           value="choroba Parkinsona">
+                    <label class="form-check-label" for="Checkbox25"><small>choroba Parkinsona</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox26" name="sm"
+                           value="stwardnienie rozsiane">
+                    <label class="form-check-label" for="Checkbox26"><small>stwardnienie rozsiane</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox27" name="alzheimer"
+                           value="choroba Alzheimera">
+                    <label class="form-check-label" for="Checkbox27"><small>choroba Alzheimera</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox28" name="uczulenie"
+                           value="uczulenia na leki">
+                    <label class="form-check-label" for="Checkbox28"><small>uczulenia na leki</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox29" name="prostata"
+                           value="przerost prostaty">
+                    <label class="form-check-label" for="Checkbox29"><small>przerost prostaty</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox30" name="guz_prostaty"
+                           value="nowotwór prostaty">
+                    <label class="form-check-label" for="Checkbox30"><small>nowotwór prostaty</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox31" name="guz_piersi"
+                           value="rak piersi">
+                    <label class="form-check-label" for="Checkbox31"><small>rak piersi</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox32" name="guz_pulmonum"
+                           value="rak płuca">
+                    <label class="form-check-label" for="Checkbox32"><small>rak płuca</small></label>
+                </div>
+            </div>
+
+            <!-- V kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_5">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox33" name="guz_jelit"
+                           value="rak jelita grubego">
+                    <label class="form-check-label" for="Checkbox33"><small>rak jelita grubego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox34" name="anaemia"
+                           value="przewlekła białaczka szpikowa">
+                    <label class="form-check-label" for="Checkbox34"><small>przewlekła białaczka
+                        szpikowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox35" name="przeszczep"
+                           value="stan po przeszczepie narządu">
+                    <label class="form-check-label" for="Checkbox35"><small>stan po przeszczepie
+                        narządu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox36" name="radio-chemia"
+                           value="stan po radio-chemio-terapii">
+                    <label class="form-check-label" for="Checkbox36"><small>stan po
+                        radio-chemio-terapii</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox38" name="cancer"
+                           value="przebyta choroba nowotworowa">
+                    <label class="form-check-label" for="Checkbox38"><small>przebyta choroba
+                        nowotworowa</small></label>
+                </div>
+            </div>
+        </div>
+        <div class="text-color: text-success">
+            SCHORZENIA LARYNGOLOGICZNE
+        </div>
+
+        <hr>
+
+        <div class="row">
+
+            <!-- I kolumna -->
+
+            <div class="col bd-highlight mb-4" id="groups_inputs_report_6">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox39" name="hypoacusis"
+                           value="niedosłuch odbiorczy">
+                    <label class="form-check-label" for="Checkbox39"><small>niedosłuch odbiorczy</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox40" name="tinnitus"
+                           value="subiektywne szumy uszne">
+                    <label class="form-check-label" for="Checkbox40"><small>subiektywne szumy uszne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox41" name="glue_ear"
+                           value="glue ear">
+                    <label class="form-check-label" for="Checkbox41"><small>wysiękowe zapalenie uszu
+                        środkowych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox42" name="otitis"
+                           value="ostre zapalenia uszu środkowych">
+                    <label class="form-check-label" for="Checkbox42"><small>ostre zapalenia uszu
+                        środkowych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox43" name="otosclerosis"
+                           value="otoskleroza">
+                    <label class="form-check-label" for="Checkbox43"><small>otoskleroza</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox44" name="menier"
+                           value="choroba Meniere'a">
+                    <label class="form-check-label" for="Checkbox44"><small>choroba Meniere'a</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox45" name="otitis_chronica"
+                           value="przewlekłe zapalenie ucha środkowego">
+                    <label class="form-check-label" for="Checkbox45"><small>przewlekłe zapalenie ucha
+                        środkowego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox46" name="perlak"
+                           value="perlak ucha środkowego">
+                    <label class="form-check-label" for="Checkbox46"><small>perlak ucha środkowego</small></label>
+                </div>
+            </div>
+
+            <!-- II kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_7">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox47" name="post_pistons"
+                           value="stan po drenażu wentylacyjnym">
+                    <label class="form-check-label" for="Checkbox47"><small>stan po drenażu
+                        wentylacyjnym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox48" name="operatio_auris"
+                           value="przebyta operacja ucha środkowego">
+                    <label class="form-check-label" for="Checkbox48"><small>przebyta operacja ucha
+                        środkowego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox49" name="otitis_reccurens"
+                           value="nawracające zapalenia uszu zewnętrznych">
+                    <label class="form-check-label" for="Checkbox49"><small>nawracające zapalenia uszu
+                        zewnęrznych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox50" name="rinithis"
+                           value="idiopatyczny nieżyt nosa">
+                    <label class="form-check-label" for="Checkbox50"><small>idiopatyczny nieżyt nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox51" name="polekowy"
+                           value="polekowy nieżyt nosa">
+                    <label class="form-check-label" for="Checkbox51"><small>polekowy nieżyt nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox52" name="epistaxis"
+                           value="nawracające krwawienia z nosa">
+                    <label class="form-check-label" for="Checkbox52"><small>nawracające krwawienia z
+                        nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox53" name="deviatio_septi"
+                           value="skrzywienie przegrody nosa">
+                    <label class="form-check-label" for="Checkbox53"><small>skrzywienie przegrody
+                        nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox54" name="polypus_nasi"
+                           value="polipy jamy nosowej i zatok">
+                    <label class="form-check-label" for="Checkbox54"><small>polipy jamy nosowej i
+                        zatok</small></label>
+                </div>
+            </div>
+
+            <!-- III kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_8">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox55" name="sinusitis"
+                           value="przewlekłe zapalenie nosa i zatok">
+                    <label class="form-check-label" for="Checkbox55"><small>przewlekłe zapalenie nosa i
+                        zatok</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox56" name="post_polipectomii"
+                           value="stan po polipektomii wewnątrznosowej">
+                    <label class="form-check-label" for="Checkbox56"><small>stan po polipektomii
+                        wewnątrznosowej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox57" name="post_muko"
+                           value="stan po mukotomii / konchoplastyce">
+                    <label class="form-check-label" for="Checkbox57"><small>stan po mukotomii /
+                        konchoplastyce</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox58" name="post_septi"
+                           value="stan po septoplastyce">
+                    <label class="form-check-label" for="Checkbox58"><small>stan po septoplastyce</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox59" name="post_fess"
+                           value="stan po operacji FESS">
+                    <label class="form-check-label" for="Checkbox59"><small>stan po operacji FESS</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox60" name="post_sinuses"
+                           value="przebyta operacja zatok">
+                    <label class="form-check-label" for="Checkbox60"><small>przebyta operacja zatok</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox61" name="adenoid"
+                           value="przerost III migdałka">
+                    <label class="form-check-label" for="Checkbox61"><small>przerost III migdałka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox62" name="tonsilitis"
+                           value="przerost migdałków podniebiennych">
+                    <label class="form-check-label" for="Checkbox62"><small>przerost migdałków
+                        podniebiennych</small></label>
+                </div>
+            </div>
+
+            <!-- IV kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_9">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox63" name="hypertonsilitis"
+                           value="przerost migdałków bocznych i gardłowego">
+                    <label class="form-check-label" for="Checkbox63"><small>przerost migdałków bocznych i
+                        gardłowego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox64" name="tonsilitis_chronica"
+                           value="przewlekłe zapalenie migdałków podniebiennych">
+                    <label class="form-check-label" for="Checkbox64"><small>przewlekłe zapalenie migdałków
+                        podniebiennych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox65" name="post_adenotomii"
+                           value="stan po adenotomii">
+                    <label class="form-check-label" for="Checkbox65"><small>stan po adenotomii</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox66" name="post_adenotonsils"
+                           value="stan po adenotonsillotomii">
+                    <label class="form-check-label" for="Checkbox66"><small>stan po
+                        adenotonsillotomii</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox67" name="post_tonsils"
+                           value="stan po tonsylektomii obustronnej">
+                    <label class="form-check-label" for="Checkbox67"><small>stan po tonsylektomii
+                        obustronnej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox68" name="sleep_apnea"
+                           value="chrapanie i bezdechy senne">
+                    <label class="form-check-label" for="Checkbox68"><small>chrapanie i bezdechy
+                        senne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox69" name="rinithis_chronica"
+                           value="przewlekły nieżyt nosa, gardła i krtani">
+                    <label class="form-check-label" for="Checkbox69"><small>przewlekły nieżyt nosa, gardła i
+                        krtani</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox70" name="sjogren"
+                           value="zespół Sjogrena">
+                    <label class="form-check-label" for="Checkbox70"><small>zespół Sjogrena</small></label>
+                </div>
+            </div>
+
+            <!-- V kolumna -->
+
+            <div class="col d-flex flex-column bd-highlight mb-1" id="group_inputs_medial_report_10">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox71" name="torbiel"
+                           value="torbiel zastoinowa w gardle">
+                    <label class="form-check-label" for="Checkbox71"><small>torbiel zastoinowa w
+                        gardle</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox72" name="noduli_vocali"
+                           value="guzki śpiewacze">
+                    <label class="form-check-label" for="Checkbox72"><small>guzki śpiewacze</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox73" name="polypus_vocale"
+                           value="polip / guzek fałdu głosowego">
+                    <label class="form-check-label" for="Checkbox73"><small>polip / guzek fałdu
+                        głosowego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox74" name="paresis_vacales"
+                           value="niedowład fałdów głosowych">
+                    <label class="form-check-label" for="Checkbox74"><small>niedowład fałdów
+                        głosowych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox75" name="paresis_iatrogenic"
+                           value="porażenie jatrogenne połowy krtani">
+                    <label class="form-check-label" for="Checkbox75"><small>porażenie jatrogenne połowy
+                        krtani</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox76" name="occupational_disease"
+                           value="orzeczona choroba zawodowa">
+                    <label class="form-check-label" for="Checkbox76"><small>orzeczona choroba
+                        zawodowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox77" name="post_larynx"
+                           value="stan po operacji raka krtani">
+                    <label class="form-check-label" for="Checkbox77"><small>stan po operacji raka
+                        krtani</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox78" name="cleft_palate"
+                           value="stan po rozszczepie podniebienia">
+                    <label class="form-check-label" for="Checkbox78"><small>stan po rozszczepie
+                        podniebienia</small></label>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+
+            <div class="col bd-highlight mb-10" id="groups_inputs_report_A">
+
+                <div class="text-color: text-success">
+                    <br>
+                    STAN OGÓLNY
+                </div>
+                <hr>
+                <div id="groups_inputs_report-7">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="general_condition" id="radio1"
+                               value="dobry"
+                               checked>
+                        <label class="form-check-label" for="radio1"><small>dobry</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="general_condition" id="radio2"
+                               value="średni">
+                        <label class="form-check-label" for="radio2"><small>średni</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="general_condition" id="radio3"
+                               value="ciężki">
+                        <label class="form-check-label" for="radio3"><small>ciężki</small></label>
+                    </div>
+                </div>
+
+                <div class="text-color: text-success">
+                    <br>
+                    MIMIKA TWARZY
+                </div>
+                <hr>
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_8">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="facial_expressions" id="radio4"
+                               value="zachowana" checked>
+                        <label class="form-check-label" for="radio4"><small>zachowana</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="facial_expressions" id="radio5"
+                               value="niedowład prawego nerwu twarzowego">
+                        <label class="form-check-label" for="radio5"><small>niedowład prawego nerwu
+                            twarzowego</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="facial_expressions" id="radio6"
+                               value="niedowład lewego nerwu twarzowego">
+                        <label class="form-check-label" for="radio6"><small>niedowład lewego nerwu
+                            twarzowego</small></label>
+                    </div>
+                </div>
+
+                <div class="text-color: text-success">
+                    <br>
+                    OCZOPLĄS SAMOISTNY
+                </div>
+                <hr>
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_9">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="spontaneous_nystagmus" id="radio7"
+                               value="nieobecny" checked>
+                        <label class="form-check-label" for="radio7"><small>nieobecny</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="spontaneous_nystagmus" id="radio8"
+                               value="obecny, skierowany w prawo">
+                        <label class="form-check-label" for="radio8"><small>obecny, skierowany w
+                            prawo</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="spontaneous_nystagmus" id="radio9"
+                               value="obecny, skierowany w lewo">
+                        <label class="form-check-label" for="radio9"><small>obecny, skierowany w
+                            lewo</small></label>
+                    </div>
+                </div>
+
+                <div class="text-color: text-success">
+                    <br>
+                    SKÓRA
+                </div>
+                <hr>
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_10">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="skin" id="radio10" value="czysta"
+                               checked>
+                        <label class="form-check-label" for="radio10"><small>czysta</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="skin" id="radio11" value="z wykwitami">
+                        <label class="form-check-label" for="radio11"><small>z wykwitami</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="skin" id="radio12" value="nieczysta">
+                        <label class="form-check-label" for="radio12"><small>nieczysta</small></label>
+                    </div>
+                </div>
+
+                <div class="text-color: text-success">
+                    <br>
+                    WĘZŁY CHŁONNE
+                </div>
+                <hr>
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_11">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="lymph_nodes_general_condition"
+                               id="radio13"
+                               value="niewyczuwalne i niebolesne" checked>
+                        <label class="form-check-label" for="radio13"><small>niewyczuwalne i
+                            niebolesne</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="lymph_nodes_general_condition"
+                               id="radio14"
+                               value="powiększone twarde, niebolesne">
+                        <label class="form-check-label" for="radio14"><small>powiększone twarde,
+                            niebolesne</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="lymph_nodes_general_condition"
+                               id="radio15"
+                               value="powiększone miękkie i tkliwe">
+                        <label class="form-check-label" for="radio15"><small>powiększone miękkie i
+                            tkliwe</small></label>
+                    </div>
+                </div>
+                <div class="text-color: text-success">
+                    <br>
+                    strona lewa
+                </div>
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_12">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_I"
+                               id="Checkbox79"
+                               value="I">
+                        <label class="form-check-label" for="Checkbox79"><small>I</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_II"
+                               id="Checkbox80"
+                               value="II">
+                        <label class="form-check-label" for="Checkbox80"><small>II</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_III"
+                               id="Checkbox81"
+                               value="III">
+                        <label class="form-check-label" for="Checkbox81"><small>III</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_IV"
+                               id="Checkbox82"
+                               value="IV">
+                        <label class="form-check-label" for="Checkbox82"><small>IV</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_V"
+                               id="Checkbox83"
+                               value="V">
+                        <label class="form-check-label" for="Checkbox83"><small>V</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_VI"
+                               id="Checkbox84"
+                               value="VI">
+                        <label class="form-check-label" for="Checkbox84"><small>VI</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_VII"
+                               id="Checkbox85"
+                               value="VII">
+                        <label class="form-check-label" for="Checkbox85"><small>VII</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_left_side_VIII"
+                               id="Checkbox86"
+                               value="VIII">
+                        <label class="form-check-label" for="Checkbox86"><small>VIII</small></label>
+                    </div>
+                </div>
+                <div class="text-color: text-success">
+                    <br>
+                    strona prawa
+                </div>
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_13">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_I"
+                               id="Checkbox87"
+                               value="I">
+                        <label class="form-check-label" for="Checkbox87"><small>I</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_II"
+                               id="Checkbox88"
+                               value="II">
+                        <label class="form-check-label" for="Checkbox88"><small>II</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_III"
+                               id="Checkbox89"
+                               value="III">
+                        <label class="form-check-label" for="Checkbox89"><small>III</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_IV"
+                               id="Checkbox90"
+                               value="IV">
+                        <label class="form-check-label" for="Checkbox90"><small>IV</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_V"
+                               id="Checkbox91"
+                               value="V">
+                        <label class="form-check-label" for="Checkbox91"><small>V</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_VI"
+                               id="Checkbox92"
+                               value="VI">
+                        <label class="form-check-label" for="Checkbox92"><small>VI</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_VII"
+                               id="Checkbox93"
+                               value="VII">
+                        <label class="form-check-label" for="Checkbox93"><small>VII</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" name="lymph_nodes_right_side_VIII"
+                               id="Checkbox94"
+                               value="VIII">
+                        <label class="form-check-label" for="Checkbox94"><small>VIII</small></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-5 border border-white d-flex shadow min-vh-20 py-2">
+                <br>
+                <img class="img-fluid float-end" src="{{ url_for('static', filename='img/szyja.jpg') }}" alt="neck"
+                     width="800">
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="text-color: text-success">
+                ŚLINIANKI
+            </div>
+
+            <hr>
+
+            <div class="col bd-highlight mb-3" id="groups_inputs_report_14">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox96" name="parotis_good"
+                           value="niepowiększone i niewyczuwalne" checked>
+                    <label class="form-check-label" for="Checkbox96"><small>niepowiększone i
+                        niewyczuwalne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox97"
+                           name="parotis_left_submandibularis_big"
+                           value="powiększona lewa ślinianka podżuchwowa">
+                    <label class="form-check-label" for="Checkbox97"><small>powiększona lewa ślinianka
+                        podżuchwowa</small></label>
+                </div>
+            </div>
+            <div class="col d-flex flex-column bd-highlight mb-3" id="group_inputs_medial_report_15">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox98" name="ranula_left"
+                           value="żabka w lewej okolicy podjęzykowej">
+                    <label class="form-check-label" for="Checkbox98"><small>żabka w lewej okolicy
+                        podjęzykowej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox99" name="mumps"
+                           value="nagminne zapalenie przyusznic - świnka">
+                    <label class="form-check-label" for="Checkbox99"><small>nagminne zapalenie przyusznic -
+                        świnka</small></label>
+                </div>
+            </div>
+            <div class="col d-flex flex-column bd-highlight mb-3" id="group_inputs_medial_report_16">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox100" name="ranula_right"
+                           value="żabka w prawej okolicy podjęzykowej">
+                    <label class="form-check-label" for="Checkbox100"><small>żabka w prawej okolicy
+                        podjęzykowej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox101" name="parotis_left_tumor"
+                           value="guzowata zmiana w lewej śliniance przyusznej">
+                    <label class="form-check-label" for="Checkbox101"><small>guzowata zmiana w lewej śliniance
+                        przyusznej</small></label>
+                </div>
+            </div>
+            <div class="col d-flex flex-column bd-highlight mb-3" id="group_inputs_medial_report_17">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox102"
+                           name="parotis_right_submandibularis_big"
+                           value="powiększona prawa ślinianka podżuchwowa">
+                    <label class="form-check-label" for="Checkbox102"><small>powiększona prawa ślinianka
+                        podżuchwowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox103" name="parotis_right_tumor"
+                           value="guzowata zmiana w prawej śliniance przyusznej">
+                    <label class="form-check-label" for="Checkbox103"><small>guzowata zmiana w prawej śliniance
+                        przyusznej</small></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_18">
+                <div class="text-color: text-success">
+                    GARDŁO
+                    <hr>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox104" name="throat"
+                           value="czyste, bez wykwitów" checked>
+                    <label class="form-check-label" for="Checkbox104"><small>czyste, bez wykwitów</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox105" name="throat_infection"
+                           value="ostry stan zapalny gardła">
+                    <label class="form-check-label" for="Checkbox105"><small>ostry stan zapalny
+                        gardła</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox106" name="throat_chronica"
+                           value="przewlekły nieżyt gardła">
+                    <label class="form-check-label" for="Checkbox106"><small>przewlekły nieżyt
+                        gardła</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox107" name="throat_afty"
+                           value="aftowe zapalenie gardła">
+                    <label class="form-check-label" for="Checkbox107"><small>aftowe zapalenie gardła</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox108" name="throat_fungis"
+                           value="grzybica jamy ustnej">
+                    <label class="form-check-label" for="Checkbox108"><small>grzybica jamy ustnej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox109" name="throat_leukoplakia"
+                           value="leukoplakia">
+                    <label class="form-check-label" for="Checkbox109"><small>leukoplakia</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox110" name="throat_tumor"
+                           value="guz języka">
+                    <label class="form-check-label" for="Checkbox110"><small>guz języka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox111" name="throat_frenulum_tongue"
+                           value="skrócone wędzidełko języka">
+                    <label class="form-check-label" for="Checkbox111"><small>skrócone wędzidełko
+                        języka</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_19">
+                <div class="text-color: text-success">
+                    MIGDAŁKI PODNIEBIENNE
+                    <hr>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox112" name="tonsils"
+                           value="prawidłowe, symetryczne" checked>
+                    <label class="form-check-label" for="Checkbox112"><small>prawidłowe, symetryczne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox113" name="tonsils_infection"
+                           value="ostre zapalenie migdałków">
+                    <label class="form-check-label" for="Checkbox113"><small>ostre zapalenie
+                        migdałków</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox114" name="tonsils_hypertrofia"
+                           value="symetryczny przerost migdałków podniebiennych">
+                    <label class="form-check-label" for="Checkbox114"><small>symetryczny przerost
+                        migdałków</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox115"
+                           name="tonsils_hypertrofia_asymetria"
+                           value="powiększone, asymetryczne migdałki podniebienne">
+                    <label class="form-check-label" for="Checkbox115"><small>powiększone,
+                        asymetryczne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox116" name="tonsils_angin"
+                           value="naloty anginowe na migdałkach">
+                    <label class="form-check-label" for="Checkbox116"><small>naloty anginowe na
+                        migdałkach</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox117" name="tonsils_chronica"
+                           value="przewlekłe zapalenie migdałków podniebiennych">
+                    <label class="form-check-label" for="Checkbox117"><small>przewlekłe zapalenie
+                        migdałków</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox118" name="mononukleoza"
+                           value="mononukleoza">
+                    <label class="form-check-label" for="Checkbox118"><small>mononukleoza</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox119" name="tonsils_cancer"
+                           value="rak migdałka">
+                    <label class="form-check-label" for="Checkbox119"><small>rak migdałka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox120" name="tonsils_cysta"
+                           value="torbiel zastoinowa na migdałku podniebiennym">
+                    <label class="form-check-label" for="Checkbox120"><small>torbiel zastoinowa na
+                        migdałku</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox121" name="tonsils_brodawczak"
+                           value="brodawczak na migdałku podniebiennym">
+                    <label class="form-check-label" for="Checkbox121"><small>brodawczak migdałka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox122" name="tonsils_post_excisio"
+                           value="stan po przebytej tonsylektomii obustronnej">
+                    <label class="form-check-label" for="Checkbox122"><small>stan po usunięciu
+                        migdałków</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-6 bd-highlight" id="groups_inputs_report_20">
+
+                <div class="row">
+
+                    <div class="col bd-highlight" id="groups_inputs_report_20_1">
+
+                        <div class="text-color: text-success">
+                            PODNIEBIENIE TWARDE
+                            <hr>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox123" name="palate_dura"
+                                   value="niezmienione, prawidłowe, symetryczne" checked>
+                            <label class="form-check-label" for="Checkbox123"><small>prawidłowe,
+                                symetryczne</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox124"
+                                   name="palate_dura_gothic"
+                                   value="wysokie gotyckie podniebienie twarde">
+                            <label class="form-check-label" for="Checkbox124"><small>wysokie
+                                gotyckie</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox125"
+                                   name="palate_dura_cleft"
+                                   value="po operacji rozszczepu podniebienia">
+                            <label class="form-check-label" for="Checkbox125"><small>po operacji
+                                rozszczepu</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox126"
+                                   name="palate_dura_tumor"
+                                   value="guzek podniebienia twardego">
+                            <label class="form-check-label" for="Checkbox126"><small>guzek
+                                podniebienia</small></label>
+                        </div>
+
+                    </div>
+
+                    <div class="col bd-highlight" id="groups_inputs_report_21_2">
+
+                        <div class="text-color: text-success">
+                            PODNIEBIENIE MIĘKKIE
+                            <hr>
+                        </div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox127" name="palate_soft"
+                                   value="niezmienione, prawidłowe, symetryczne" checked>
+                            <label class="form-check-label" for="Checkbox127"><small>prawidłowe,
+                                symetryczne</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox128"
+                                   name="palate_soft_ulvula"
+                                   value="przerośnięty języczek podniebienia miękkiego">
+                            <label class="form-check-label" for="Checkbox128"><small>z przerośniętym
+                                języczkiem</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox129"
+                                   name="palate_soft_post_operatio"
+                                   value="przebyta plastyka podniebienia miękkiego">
+                            <label class="form-check-label" for="Checkbox129"><small>po plastyce
+                                podniebienia</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox130"
+                                   name="palate_soft_brodawczak"
+                                   value="brodawczak podniebienia miękkiego">
+                            <label class="form-check-label" for="Checkbox130"><small>brodawczak
+                                podniebienia</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox131"
+                                   name="palate_soft_infiltratio"
+                                   value="naciek okołomigdałkowy">
+                            <label class="form-check-label" for="Checkbox131"><small>naciek
+                                okołomigdałkowy</small></label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="Checkbox132"
+                                   name="palate_soft_abscesus"
+                                   value="ropień okołomigdałkowy">
+                            <label class="form-check-label" for="Checkbox132"><small>ropień
+                                okołomigdałkowy</small></label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <br>
+
+                <div class="row text-center">
+
+                    <div class="col border border-white shadow min-vh-20 py-2 bd-highlight"
+                         id="groups_inputs_report_22">
+
+                        <div class="text-color: text-success">
+                            UZĘBIENIE
+                            <hr>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="Checkbox133" name="tooth"
+                                   value="uporządkowane" checked>
+                            <label class="form-check-label" for="Checkbox133"><small>uporządkowane</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="Checkbox134" name="tooth_paradontic"
+                                   value="uzębienie paradontyczne">
+                            <label class="form-check-label" for="Checkbox134"><small>paradontyczne</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="Checkbox135" name="tooth_decay"
+                                   value="próchnica zębów">
+                            <label class="form-check-label" for="Checkbox135"><small>próchnicze</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" id="Checkbox136" name="tooth_artificial"
+                                   value="uzębienie protetyczne">
+                            <label class="form-check-label" for="Checkbox136"><small>protetyczne</small></label>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <br>
+
+        <div class="row">
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_23_1">
+
+                <div class="text-color: text-success">
+                    KRTAŃ GŁOŚNIA
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox137" name="larynx"
+                           value="prawidłowa" checked>
+                    <label class="form-check-label" for="Checkbox137"><small>prawidłowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox138" name="larynx_leukoplakia"
+                           value="leukoplakia na fałdach głosowych">
+                    <label class="form-check-label" for="Checkbox138"><small>lekoplakia</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox139" name="larynx_nodules"
+                           value="guzki śpiewacze">
+                    <label class="form-check-label" for="Checkbox139"><small>guzki śpiewacze</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox140" name="larynx_Reinke"
+                           value="obrzęki typu Reinkego">
+                    <label class="form-check-label" for="Checkbox140"><small>obrzęki Reinkego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox141" name="larynx_cancer"
+                           value="rak krtani">
+                    <label class="form-check-label" for="Checkbox141"><small>rak krtani</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox142" name="larynx_polypus_left"
+                           value="polip lewego fałdu głosowego">
+                    <label class="form-check-label" for="Checkbox142"><small>polip lewego fałdu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox143" name="larynx_polypus_right"
+                           value="polip prawego fałdu głosowego">
+                    <label class="form-check-label" for="Checkbox143"><small>polip prawego fałdu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox144" name="larynx_infection"
+                           value="ostre zapalenie krtani">
+                    <label class="form-check-label" for="Checkbox144"><small>ostre zapalenie krtani</small></label>
+                </div>
+
+            </div>
+
+            <div class="col bd-highlight" id="groups_inputs_report_23_2">
+
+                <div class="text-color: text-success">
+                    <br>
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox145" name="larynx_pachydermia"
+                           value="pachydermia">
+                    <label class="form-check-label" for="Checkbox145"><small>pachydermia</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox146" name="larynx_gerd"
+                           value="refluksowe zapalenie krtani">
+                    <label class="form-check-label" for="Checkbox146"><small>GERD</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox147" name="larynx_paresis_left"
+                           value="niedowład lewego fałdu głosowego">
+                    <label class="form-check-label" for="Checkbox147"><small>niedowład lewego fałdu
+                        głosowego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox148" name="larynx_paresis_right"
+                           value="niedowład prawego fałdu głosowego">
+                    <label class="form-check-label" for="Checkbox148"><small>niedowład prawego fałdu
+                        głosowego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox149" name="larynx_fungis"
+                           value="grzybica krtani">
+                    <label class="form-check-label" for="Checkbox149"><small>grzybica krtani</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox150" name="larynx_paresis"
+                           value="obustronny niedowład fałdów głosowych">
+                    <label class="form-check-label" for="Checkbox150"><small>obustronny niedowład fałdów
+                        głosowych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox151" name="larynx_hypertrofia"
+                           value="przerost fałdów rzekomych krtani">
+                    <label class="form-check-label" for="Checkbox151"><small>przerost fałdów
+                        rzekomych</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox152"
+                           name="larynx_infection_chronica"
+                           value="przewlekły nieżyt krtani">
+                    <label class="form-check-label" for="Checkbox152"><small>przewlekły nieżyt
+                        krtani</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_24">
+
+                <div class="text-color: text-success">
+                    ZACHYŁKI GRUSZKOWATE
+                    <hr>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox153" name="larynx_recessus"
+                           value="symetryczne, wolne" checked>
+                    <label class="form-check-label" for="Checkbox153"><small>symetryczne wolne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox154" name="larynx_recessus_glue"
+                           value="asymetryczne z treścią śluzową">
+                    <label class="form-check-label" for="Checkbox154"><small>asymetryczne z treścią
+                        śluzową</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox155" name="larynx_recessus_pus"
+                           value="asymetryczne z treścią ropną">
+                    <label class="form-check-label" for="Checkbox155"><small>asymetryczne z treścią
+                        ropną</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox156" name="larynx_recessus_blood"
+                           value="widoczna treść krwista">
+                    <label class="form-check-label" for="Checkbox156"><small>z widoczną treścią
+                        krwistą</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox157" name="larynx_recessus_cysta"
+                           value="z widoczną torbielką zastoinową">
+                    <label class="form-check-label" for="Checkbox157"><small>z tobielą zastoinową</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox158"
+                           name="larynx_recessus_tumor_right"
+                           value="z guzowatą zmianą po stronie prawej">
+                    <label class="form-check-label" for="Checkbox158"><small>z guzowatą zmianą po stronie
+                        prawej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox159"
+                           name="larynx_recessus_tumor_left"
+                           value="z guzowatą zmianą po stronie lewej">
+                    <label class="form-check-label" for="Checkbox159"><small>z guzowatą zmianą po stronie
+                        lewej</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox160"
+                           name="larynx_recessus_corpus_alienum"
+                           value="z widocznym ciałem obcym">
+                    <label class="form-check-label" for="Checkbox160"><small>widoczne ciało obce</small></label>
+                </div>
+
+            </div>
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_25">
+
+                <div class="text-color: text-success">
+                    OKOLICA PODGŁOŚNIOWA
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox161" name="subglotis"
+                           value="wolna, niezmieniona" checked>
+                    <label class="form-check-label" for="Checkbox161"><small>wolna, niezmieniona</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox162" name="subglotis_null"
+                           value="niewidoczna w badaniu">
+                    <label class="form-check-label" for="Checkbox162"><small>niewidoczna w badaniu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox163" name="subglotis_stenosis"
+                           value="zwężenie tchawicy w głębi">
+                    <label class="form-check-label" for="Checkbox163"><small></small>zwężenie tchawicy w
+                        głębi</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox164" name="subglotis_tumor"
+                           value="guz w okolicy podgłośniowej">
+                    <label class="form-check-label" for="Checkbox164"><small>guz podgłośniowy</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox165" name="subglotis_corpus_alienum"
+                           value="ciało obce w okolicy podgłośniowej">
+                    <label class="form-check-label" for="Checkbox165"><small></small>ciało obce w okolicy
+                        podgłośniowej</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox166" name="subglotis_polypus"
+                           value="polip balotujący w okolicy podgłośniowej">
+                    <label class="form-check-label" for="Checkbox166"><small>polip balotujący w okolicy
+                        podgłośniowej</small></label>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-6 bd-highlight" id="groups_inputs_report_26">
+
+                <div class="text-color: text-success">
+                    <br>
+                    NOS ZEWNĘTRZNY
+                    <hr>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox167" name="nose"
+                           value="prawidłowy, symetryczny" checked>
+                    <label class="form-check-label" for="Checkbox167"><small>prawidłowy</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox168" name="nose_post_trauma"
+                           value="nos zewnętrzny zmieniony pourazowo">
+                    <label class="form-check-label" for="Checkbox168"><small>zmieniony pourazowo</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox169"
+                           name="nose_congenital_malformation"
+                           value="wada wrodzona nosa zewnętrznego">
+                    <label class="form-check-label" for="Checkbox169"><small>wada wrodzona</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox170" name="nose_nostril_asymetry"
+                           value="nos zewnętrzny z asymetrycznymi nozdrzami przednimi">
+                    <label class="form-check-label" for="Checkbox170"><small>asymetryczne nozdrza</small></label>
+                </div>
+
+            </div>
+
+            <div class="col-md-6 bd-highlight" id="groups_inputs_report_27">
+
+                <div class="text-color: text-success">
+                    <br>
+                    PRZEDSIONEK NOSA
+                    <hr>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox171" name="nasal_vestibule"
+                           value="niezmieniony" checked>
+                    <label class="form-check-label" for="Checkbox171"><small>niezmieniony</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox172" name="nasal_vestibule_pus"
+                           value="z ropnymi strupami">
+                    <label class="form-check-label" for="Checkbox172"><small>z ropnymi strupami</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox173" name="nasal_vestibule_boil"
+                           value="z widocznym czyrakiem">
+                    <label class="form-check-label" for="Checkbox173"><small>widoczny czyrak</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox174" name="nasal_vestibule_blood"
+                           value="ze skrzepami krwi">
+                    <label class="form-check-label" for="Checkbox174"><small>ze skrzepami krwi</small></label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-6 bd-highlight" id="groups_inputs_report_28">
+
+                <div class="text-color: text-success">
+                    <br>
+                    PRZEWODY NOSOWE
+                    <hr>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox175" name="nasal_duct"
+                           value="wolne, drożne" checked>
+                    <label class="form-check-label" for="Checkbox175"><small>wolne, drożne</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox176" name="nasal_duct_glue"
+                           value="zalega treść śluzowa">
+                    <label class="form-check-label" for="Checkbox176"><small>zalega treść śluzowa</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox177" name="nasal_duct_pus"
+                           value="zalega treść śluzowo ropna">
+                    <label class="form-check-label" for="Checkbox177"><small>zalega treść
+                        śluzowo-ropna</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox178" name="nasal_duct_blood"
+                           value="zalega krew">
+                    <label class="form-check-label" for="Checkbox178"><small>z treścią krwistą</small></label>
+                </div>
+
+            </div>
+
+            <div class="col-md-6 bd-highlight" id="groups_inputs_report_29">
+
+                <div class="text-color: text-success">
+                    <br>
+                    PRZEGRODA NOSA
+                    <hr>
+                </div>
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox179" name="nasal_septum"
+                           value="nie upośledza drożności nosa" checked>
+                    <label class="form-check-label" for="Checkbox179"><small>prosta</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox180" name="nasal_septum_right"
+                           value="jest skrzywiona w prawo">
+                    <label class="form-check-label" for="Checkbox180"><small>skrzywiona w prawo</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox181" name="nasal_septum_left"
+                           value="jest skrzywiona w lewo">
+                    <label class="form-check-label" for="Checkbox181"><small>skrzywiona w lewo</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox182" name="nasal_septum_all"
+                           value="upośledza oddychanie obustronnie">
+                    <label class="form-check-label" for="Checkbox182"><small>skrzywiona w obie
+                        strony</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox183"
+                           name="nasal_septum_post_operationem"
+                           value="po przebytym zabiegu operacyjnym">
+                    <label class="form-check-label" for="Checkbox183"><small>po zabiegu operacyjnym</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox184" name="nasal_septum_perforation"
+                           value="widoczna perforacja przegrody w przednim odcinku">
+                    <label class="form-check-label" for="Checkbox184"><small>perforacja w przednim
+                        odcinku</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox185" name="nasal_septum_button"
+                           value="z założonym korkiem 'nasal button'">
+                    <label class="form-check-label" for="Checkbox185"><small>'nasal button' w
+                        perforacji</small></label>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_30_1">
+
+                <div class="text-color: text-success">
+                    <br>
+                    BŁONA ŚLUZOWA NOSA
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox186" name="nasal_mucosa"
+                           value="prawidłowa" checked>
+                    <label class="form-check-label" for="Checkbox186"><small>prawidłowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox187" name="nasal_mucosa_hyperemia"
+                           value="przekrwiona">
+                    <label class="form-check-label" for="Checkbox187"><small>przekrwiona</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox188" name="nasal_mucosa_oedema"
+                           value="obrzęknięta">
+                    <label class="form-check-label" for="Checkbox188"><small>obrzęknięta</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox189" name="nasal_mucosa_adhesions"
+                           value="ze zrostami pomiędzy przegrodą a małżowinami nosowymi">
+                    <label class="form-check-label" for="Checkbox189"><small>obecne zrosty</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox190"
+                           name="nasal_mucosa_morbus_Rendu"
+                           value="ze zmianami wybroczynowymi w przebiegu choroby Rendu-Oslera">
+                    <label class="form-check-label" for="Checkbox190"><small>choroba Rendu-Oslera</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox191" name="nasal_mucosa_infection"
+                           value="ostra infekcja błony śluzowej nosa">
+                    <label class="form-check-label" for="Checkbox191"><small>ostry nieżyt nosa</small></label>
+                </div>
+            </div>
+
+            <div class="col bd-highlight" id="groups_inputs_report_30_2">
+
+                <div class="text-color: text-success">
+                    <br>
+                    <br>
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox192" name="nasal_mucosa_chronica"
+                           value=" przewlekły nieżyt błony śluzowej nosa" checked>
+                    <label class="form-check-label" for="Checkbox192"><small>przewlekły nieżyt nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox193" name="nasal_mucosa_atrofica"
+                           value="zanikowy nieżyt nosa">
+                    <label class="form-check-label" for="Checkbox193"><small>nieżyt zanikowy nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox194" name="nasal_mucosa_ozena"
+                           value="nieżyt nosa w przebiegu ozeny">
+                    <label class="form-check-label" for="Checkbox194"><small>ozena</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox195" name="nasal_mucosa_polyposa"
+                           value="przewlekły przerostowy nieżyt nosa z polipami">
+                    <label class="form-check-label" for="Checkbox195"><small>polipy nosa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox196" name="nasal_mucosa_fungis"
+                           value="przewlekły nieżyt nosa z grzybicą">
+                    <label class="form-check-label" for="Checkbox196"><small>grzybica</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox197" name="nasal_mucosa_tumor"
+                           value="przewlekły nieżyt nosa z widocznym guzem">
+                    <label class="form-check-label" for="Checkbox197"><small>guz błony śluzowej nosa</small></label>
+                </div>
+            </div>
+
+            <div class="col bd-highlight" id="groups_inputs_report_31">
+
+                <div class="text-color: text-success">
+                    <br>
+                    NOSOGARDŁO
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox198" name="nasopharynx"
+                           value="wolne" checked>
+                    <label class="form-check-label" for="Checkbox198"><small>wolne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox199" name="nasopharynx_adenoid"
+                           value="powiększony migdałek gardłowy">
+                    <label class="form-check-label" for="Checkbox199"><small>adenoid</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox200" name="nasopharynx_polypus"
+                           value="w nosowej części gardła polip choanalny">
+                    <label class="form-check-label" for="Checkbox200"><small>polip choanalny</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox201" name="nasopharynx_tumor"
+                           value="w nosowej części gardła widoczny guzek">
+                    <label class="form-check-label" for="Checkbox201"><small>guzek</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox202" name="nasopharynx_glue"
+                           value="nosowa część gardła z zalegającą treścią śluzową">
+                    <label class="form-check-label" for="Checkbox202"><small>zalega treść śluzowa</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox203" name="nasopharynx_pus"
+                           value="nosowa część gardła z zalegającą treścią śluzowo ropną">
+                    <label class="form-check-label" for="Checkbox203"><small>zalega treść ropna</small></label>
+                </div>
+            </div>
+
+            <div class="col bd-highlight" id="groups_inputs_report_32">
+
+                <div class="text-color: text-success">
+                    <br>
+                    BADANIE WĘCHU
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox204" name="olfaction"
+                           value="prawidłowy" checked>
+                    <label class="form-check-label" for="Checkbox204"><small>prawidłowy</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox205" name="olfaction_weakness"
+                           value="osłabienie węchu">
+                    <label class="form-check-label" for="Checkbox205"><small>osłabiony</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox206" name="olfaction_opaque"
+                           value="węch opaczny">
+                    <label class="form-check-label" for="Checkbox206"><small>opaczny</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox207" name="olfaction_null"
+                           value="brak węchu">
+                    <label class="form-check-label" for="Checkbox207"><small>brak</small></label>
+                </div>
+            </div>
+
+        </div>
+
+        <br>
+
+        <div class="row shadow border border-white min-vh-20 py-2">
+
+            <div class="text-color: text-success text-center">
+                <br>
+                PRZEDMUCH TRĄBEK SŁUCHOWYCH EUSTACHIUSZA
+                <hr>
+            </div>
+
+            <div class="col-12 d-flex justify-content-center text-center" id="groups_inputs_report_33">
+
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox208" name="tuba_auditiva"
+                           value="prawidłowy" checked>
+                    <label class="form-check-label" for="Checkbox208"><small>obustronnie prawidłowy</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox209" name="tuba_auditiva_left_null"
+                           value="przedmuch jest nieobecny po stronie lewej">
+                    <label class="form-check-label" for="Checkbox209"><small>nieobecny po lewej
+                        stronie</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox210" name="tuba_auditiva_right_null"
+                           value="przedmuch jest nieobecny po stronie prawej">
+                    <label class="form-check-label" for="Checkbox210"><small>nieobecny po prawej
+                        stronie</small></label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="Checkbox211" name="tuba_auditiva_null"
+                           value="przedmuch trąbek słuchowych jest nieobecny">
+                    <label class="form-check-label" for="Checkbox211"><small>brak przedmuchu</small></label>
+                </div>
+            </div>
+
+        </div>
+
+        <br>
+
+        <div class="text-color: text-success">
+            MAŁŻOWINY USZNE
+        </div>
+
+        <hr>
+
+        <div class="row">
+
+            <div class="col bd-highlight mb-3" id="groups_inputs_report_34">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox212" name="auris"
+                           value="prawidłowe" checked>
+                    <label class="form-check-label" for="Checkbox212"><small>prawidłowe</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox213" name="auris_injury_left"
+                           value="rana lewej małżowiny usznej">
+                    <label class="form-check-label" for="Checkbox213"><small>rana ucha lewego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox214" name="auris_tumor_left"
+                           value="guzek lewej małżowiny usznej">
+                    <label class="form-check-label" for="Checkbox214"><small>guzek lewego małżowiny
+                        usznej</small></label>
+                </div>
+            </div>
+            <div class="col d-flex flex-column bd-highlight mb-3" id="group_inputs_medial_report_35">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox215" name="auris_infectionis"
+                           value="małżowiny uszne w stanie zapalnym">
+                    <label class="form-check-label" for="Checkbox215"><small>w stanie zapalnym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox216" name="auris_injury_right"
+                           value="rana prawej małżowiny usznej">
+                    <label class="form-check-label" for="Checkbox216"><small>rana ucha prawego</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox217" name="auris_tumor_right"
+                           value="guzek prawej małżowiny usznej">
+                    <label class="form-check-label" for="Checkbox217"><small>guzek lewego małżowiny
+                        usznej</small></label>
+                </div>
+            </div>
+            <div class="col d-flex flex-column bd-highlight mb-3" id="group_inputs_medial_report_36">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox218" name="auris_pain_left"
+                           value="bolesny skrawej lewego ucha">
+                    <label class="form-check-label" for="Checkbox218"><small>bolesny skrawek lewego
+                        ucha</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox219" name="auris_alata"
+                           value="odstające uszy">
+                    <label class="form-check-label" for="Checkbox219"><small>odstające uszy</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox220" name="auris_abscesus"
+                           value="krwiak/ropień lewej małżowiny usznej">
+                    <label class="form-check-label" for="Checkbox220"><small>krwiak/ropień lewej małżowiny
+                        usznej</small></label>
+                </div>
+            </div>
+            <div class="col d-flex flex-column bd-highlight mb-3" id="group_inputs_medial_report_37">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox221" name="auris_pain_right"
+                           value="bolesny skrawek prawego ucha">
+                    <label class="form-check-label" for="Checkbox221"><small>bolesny skrawek prawego
+                        ucha</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox222"
+                           name="auris_congenital_anormaly"
+                           value="wada wrodzona uszu">
+                    <label class="form-check-label" for="Checkbox222"><small>wada wrodzona uszu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox223" name="auris_abscesus_right"
+                           value="krwiak/ropień prawej małżowiny usznej">
+                    <label class="form-check-label" for="Checkbox223"><small>krwiak/ropień prawej małżowiny
+                        usznej</small></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_38">
+
+                <div class="text-color: text-success">
+                    <br>
+                    USZY ZEWNĘTRZNE
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox234" name="auris_externa"
+                           value="prawidłowe, symetryczne" checked>
+                    <label class="form-check-label" for="Checkbox234"><small>prawidłowe, symetryczne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox235"
+                           name="auris_externa_post_operation"
+                           value="blizna po przebytym zabiegu operacyjnym">
+                    <label class="form-check-label" for="Checkbox235"><small>blizna po przebytym zabiegu
+                        operacyjnym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox236"
+                           name="auris_externa_infectio_right"
+                           value="prawy wyrostek sutkowaty w stanie zapalnym">
+                    <label class="form-check-label" for="Checkbox236"><small>prawy wyrostek sutkowaty w stanie
+                        zapalnym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox237"
+                           name="auris_externa_infectio_left"
+                           value="lewy wyrostek sutkowaty w stanie zapalnym">
+                    <label class="form-check-label" for="Checkbox237"><small>lewy wyrostek sutkowaty w stanie
+                        zapalnym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox238"
+                           name="auris_externa_tumor_right"
+                           value="guzek za prawym uchem">
+                    <label class="form-check-label" for="Checkbox238"><small>guzek za prawym uchem</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox239" name="auris_externa_tumor_left"
+                           value="guzek za lewym uchem">
+                    <label class="form-check-label" for="Checkbox239"><small>guzek za lewym uchem</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_39">
+
+                <div class="text-color: text-success">
+                    <br>
+                    PRZEWODY SŁUCHOWE
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox240" name="aural_duct"
+                           value="prawidłowe, wolne" checked>
+                    <label class="form-check-label" for="Checkbox240"><small>prawidłowe, wolne</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox241" name="aural_duct_wax_left"
+                           value="woskowina w uchu lewym">
+                    <label class="form-check-label" for="Checkbox241"><small>woskowina w uchu lewym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox242" name="aural_duct_wax_right"
+                           value="woskowina w uchu prawym">
+                    <label class="form-check-label" for="Checkbox242"><small>woskowina w uchu prawym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox243" name="aural_duct_tumor"
+                           value="guzek w przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox243"><small>guzek w przewodzie
+                        słuchowym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox244"
+                           name="aural_duct_granulation_left"
+                           value="ziarnina w lewym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox244"><small>ziarnina w uchu lewym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox245"
+                           name="aural_duct_granulation_right"
+                           value="ziarnina w prawym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox245"><small>ziarnina w uchu prawym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox246" name="aural_duct_egzostozy"
+                           value="egzostozy w przewodach słuchowych">
+                    <label class="form-check-label" for="Checkbox246"><small>egzostozy</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox247" name="aural_duct_oedema_right"
+                           value="obrzęk zapalny w prawym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox247"><small>obrzęk zapalny w uchu
+                        prawym</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_40">
+
+                <div class="text-color: text-success">
+                    <br>
+                    <br>
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox248" name="aural_duct_oedema_left"
+                           value="obrzęk zapalny w lewym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox248"><small>obrzęk zapalny w uchu
+                        lewym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox249" name="aural_duct_oedema_all"
+                           value="obrzęk zapalny przewodów słuchwych">
+                    <label class="form-check-label" for="Checkbox249"><small>obrzęk zapalny
+                        przewodów</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox250" name="aural_duct_mycosis_right"
+                           value="grzybica prawego przewodu słuchowego">
+                    <label class="form-check-label" for="Checkbox250"><small>grzybica prawego
+                        przewodu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox251" name="aural_duct_mycosis_left"
+                           value="grzybica lewego przewodu słuchowego">
+                    <label class="form-check-label" for="Checkbox251"><small>grzybica lewego
+                        przewodu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox252" name="aural_duct_blood_left"
+                           value="krew i skrzep w lewym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox252"><small>krew i skrzep w lewym
+                        przewodzie</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox253" name="aural_duct_blood_right"
+                           value="krew i skrzep w prawym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox253"><small>krew i skrzep w prawym
+                        przewodzie</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox254"
+                           name="aural_duct_corpus_alienum_left"
+                           value="ciało obce w lewym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox254"><small>ciało obce w lewym
+                        przewodzie</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox255"
+                           name="aural_duct_corpus_alienum_right"
+                           value="ciało obce w prawym przewodzie słuchowym">
+                    <label class="form-check-label" for="Checkbox255"><small>ciało obce w prawym
+                        przewodzie</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-3 bd-highlight" id="groups_inputs_report_41">
+
+                <div class="text-color: text-success">
+                    <br>
+                    BŁONY BĘBENKOWE
+                    <hr>
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox256" name="aural_membrana"
+                           value="prawidłowe, z prawidłowymi refleksami świetlnymi" checked>
+                    <label class="form-check-label" for="Checkbox256"><small>prawidłowe z refleksami</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox257"
+                           name="aural_membrana_perforatio_left"
+                           value="centralna perforacja lewego bębenka">
+                    <label class="form-check-label" for="Checkbox257"><small>centralna perforacja lewego
+                        bębenka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox258"
+                           name="aural_membrana_perforatio_right"
+                           value="centralna perforacja prawego bębenka">
+                    <label class="form-check-label" for="Checkbox258"><small>centralna perforacja prawego
+                        bębenka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox259"
+                           name="aural_membrana_hyperemia_left"
+                           value="przekrwiona lewa błona bębenkowa">
+                    <label class="form-check-label" for="Checkbox259"><small>przekrwiony lewy
+                        bębenek</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox260"
+                           name="aural_membrana_hyperemia_right"
+                           value="przekrwiona prawa błona bębenkowa">
+                    <label class="form-check-label" for="Checkbox260"><small>przekrwiony prawy
+                        bębenek</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox261"
+                           name="aural_membrana_glue_ear_left"
+                           value="glue ear w lewym uchu">
+                    <label class="form-check-label" for="Checkbox261"><small>glue ear w uchu lewym</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox262"
+                           name="aural_membrana_glue_ear_right"
+                           value="glue ear w prawym uchu">
+                    <label class="form-check-label" for="Checkbox262"><small>glue ear w prawym uchu</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox263"
+                           name="aural_membrana_myringocslerosis_right"
+                           value="myringosclerosis prawego ucha">
+                    <label class="form-check-label" for="Checkbox263"><small>myringosclerosis prawego
+                        ucha</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox264"
+                           name="aural_membrana_myringocslerosis_left"
+                           value="myringosclerosis lewego ucha">
+                    <label class="form-check-label" for="Checkbox264"><small>myringosclerosis lewego
+                        ucha</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox265"
+                           name="aural_membrana_ventylation_left"
+                           value="drenaż wentylacyjny lewego ucha">
+                    <label class="form-check-label" for="Checkbox265"><small>drenaż lewego ucha</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox266"
+                           name="aural_membrana_ventylation_right"
+                           value="drenaż wentylacyjny prawego ucha">
+                    <label class="form-check-label" for="Checkbox266"><small>drenaż prawego ucha</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox267"
+                           name="aural_membrana_perforatio_post_trauma_left"
+                           value="pourazowa perforacja lewego bębenka">
+                    <label class="form-check-label" for="Checkbox267"><small>pourazowa perforacja lewego
+                        bębenka</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox268"
+                           name="aural_membrana_perforatio_post_trauma_right"
+                           value="pourazowa perforacja prawego bębenka">
+                    <label class="form-check-label" for="Checkbox268"><small>pourazowa perforacja prawego
+                        bębenka</small></label>
+                </div>
+            </div>
+        </div>
+
+        <br>
+
+        <div class="row border border-white shadow min-vh-20 py-2">
+
+            <div class="text-color: text-success text-center">
+                BADANIE NARZĄDU RÓWNOWAGI
+                <hr>
+            </div>
+
+            <div class="col-md-4 bd-highlight" id="groups_inputs_report_42">
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox269" name="balance"
+                           value="próby statyczne i dynamiczne w normie" checked>
+                    <label class="form-check-label" for="Checkbox269"><small>próby statyczno dynamiczne w
+                        normie</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox270" name="balance_Romberg_right"
+                           value="próba Romberga dodatnia - na prawą stronę">
+                    <label class="form-check-label" for="Checkbox270"><small>próba Romberga dodatnia - na prawą
+                        stronę</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox271" name="balance_Romberg_left"
+                           value="próba Romberga dodatnia - na lewą stronę">
+                    <label class="form-check-label" for="Checkbox271"><small>próba Romberga dodatnia - na lewą
+                        stronę</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox272" name="balance_Romberg_back"
+                           value="próba Romberga dodatnia - do tyłu">
+                    <label class="form-check-label" for="Checkbox272"><small>próba Romberga dodatnia - do
+                        tyłu</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-4 bd-highlight" id="groups_inputs_report_43">
+
+                <div class="text-color: text-success">
+
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox273" name="balance_Unterberger"
+                           value="próba Unterbergera w normie">
+                    <label class="form-check-label" for="Checkbox273"><small>próba Unterbergera w
+                        normie</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox274" name="balance_Unterberger_left"
+                           value="próba Unterbergera - patologiczny obrót w lewo">
+                    <label class="form-check-label" for="Checkbox274"><small>próba Unterbergera - patologiczny obrót
+                        w
+                        lewo</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox275"
+                           name="balance_Unterberger_right"
+                           value="próba Unterbergera - patologiczny obrót w prawo">
+                    <label class="form-check-label" for="Checkbox275"><small>próba Unterbergera - patologiczny obrót
+                        w
+                        prawo</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox276" name="balance_Dix_Hallpike"
+                           value="próba Dix-Hallpikea (BPPV) ujemna - oczopląs jest nieobecny" checked>
+                    <label class="form-check-label" for="Checkbox276"><small>próba Dix-Hallpikea (BPPV) ujemna -
+                        oczopląs jest nieobecny</small></label>
+                </div>
+            </div>
+
+            <div class="col-md-4 bd-highlight" id="groups_inputs_report_44">
+
+                <div class="text-color: text-success">
+
+                </div>
+
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox277"
+                           name="balance_Dix_Hallpike_left"
+                           value="próba Dix-Hallpikea (BPPV) dodatnia - oczopląs na lewym boku">
+                    <label class="form-check-label" for="Checkbox277"><small>próba Dix-Hallpikea (BPPV) dodatnia -
+                        oczopląs na lewym boku</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox278"
+                           name="balance_Dix_Hallpike_right"
+                           value="próba Dix-Hallpikea (BPPV) dodatnia - oczopląs na prawym boku">
+                    <label class="form-check-label" for="Checkbox278"><small>próba Dix-Hallpikea (BPPV) dodatnia -
+                        oczopląs na prawym boku</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox279" name="balance_Dix_Hallpike_all"
+                           value="próba Dix-Hallpikea (BPPV) jest obustronnie dodatnia">
+                    <label class="form-check-label" for="Checkbox279"><small>próba Dix-Hallpikea (BPPV) jest
+                        obustronnie
+                        dodatnia</small></label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="Checkbox280"
+                           name="balance_Dix_Hallpike_central_disorder"
+                           value="próba Dix-Hallpikea (BPPV) oczopląs jest obecny, postać ośrodkowa">
+                    <label class="form-check-label" for="Checkbox280"><small>próba Dix-Hallpikea (BPPV) oczopląs
+                        obecny,
+                        postać ośrodkowa</small></label>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="text-color: text-success">
+                <br>
+                BADANIE NARZĄDU SŁUCHU
+                <hr>
+            </div>
+
+            <div class="col-md-4 bd-highlight text-center" id="groups_inputs_report_45">
+
+                <div class="row">
+
+                    <div class="text-color: text-success">
+                        RINNE ucho lewe
+                    </div>
+
+                    <div class="col bd-highlight mb-10" id="groups_inputs_report_45_1">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Rinne_left" id="radio16"
+                                   value="nie badano" checked>
+                            <label class="form-check-label" for="radio16"><small>nie badano</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Rinne_left" id="radio17"
+                                   value="dodatni">
+                            <label class="form-check-label" for="radio17"><small>dodatni</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Rinne_left" id="radio18"
+                                   value="ujemny">
+                            <label class="form-check-label" for="radio18"><small>ujemny</small></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+
+                    <div class="text-color: text-success">
+                        <br>
+                        BING ucho lewe
+                    </div>
+
+                    <div class="col bd-highlight mb-10" id="groups_inputs_report_45_2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Bing_left" id="radio19"
+                                   value="nie badano" checked>
+                            <label class="form-check-label" for="radio19"><small>nie badano</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Bing_left" id="radio20"
+                                   value="prawidłowy">
+                            <label class="form-check-label" for="radio20"><small>prawidłowy</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Bing_left" id="radio21"
+                                   value="patologiczny">
+                            <label class="form-check-label" for="radio21"><small>patologiczny</small></label>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="col-md-4 border border-white shadow min-vh-30 py-2 bd-highlight text-center"
+                 id="groups_inputs_report_46">
+
+                <div class="text-color: text-success text-center">
+                    WEBER
+                    <br>
+                    <hr>
+                </div>
+
+                <div class="col bd-highlight mb-10" id="groups_inputs_report_46_1">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Weber" id="radio22"
+                               value="nie badano" checked>
+                        <label class="form-check-label" for="radio22"><small>nie badano</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Weber" id="radio23"
+                               value="na środku głowy">
+                        <label class="form-check-label" for="radio23"><small>na środku</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Weber" id="radio24"
+                               value="lateralizuje w lewo">
+                        <label class="form-check-label" for="radio24"><small>w lewo</small></label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="Weber" id="radio25"
+                               value="lateralizuje w prawo">
+                        <label class="form-check-label" for="radio25"><small>w prawo</small></label>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="col-md-4 bd-highlight text-center" id="groups_inputs_report_47">
+
+                <div class="row">
+                    <div class="text-color: text-success">
+                        RINNE ucho prawe
+                        <br>
+                    </div>
+
+                    <div class="col bd-highlight mb-10" id="groups_inputs_report_47_1">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Rinne_right" id="radio26"
+                                   value="nie badano" checked>
+                            <label class="form-check-label" for="radio26"><small>nie badano</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Rinne_right" id="radio27"
+                                   value="dodatni">
+                            <label class="form-check-label" for="radio27"><small>dodatni</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Rinne_right" id="radio28"
+                                   value="ujemny">
+                            <label class="form-check-label" for="radio28"><small>ujemny</small></label>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="text-color: text-success">
+                        <br>
+                        BING ucho prawe
+                    </div>
+
+                    <div class="col bd-highlight mb-10" id="groups_inputs_report_47_2">
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Bing_right" id="radio29"
+                                   value="nie badano" checked>
+                            <label class="form-check-label" for="radio29"><small>nie badano</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Bing_right" id="radio30"
+                                   value="prawidłowy">
+                            <label class="form-check-label" for="radio30"><small>prawidłowy</small></label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="Bing_right" id="radio31"
+                                   value="patologiczny">
+                            <label class="form-check-label" for="radio31"><small>patologiczny</small></label>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="row">
+
+            <div class="col-md-4 bd-highlight" id="groups_inputs_report_48">
+
+                <div class="text-color: text-success">
+                    <br>
+                    BADANIE SZEPTEM
+                    <hr>
+                </div>
+                <div class="row border border-white shadow min-vh-30 py-2">
+
+                    <div class="input-group mb-3">
+                        <label for="startDate"><br>DATA BADANIA&nbsp;&nbsp;&nbsp;</label>
+                        <input id="startDate" name="data_badania" class="form-control text-center" type="date"/>
+                        <span id="startDateSelected"></span>
+                    </div>
+
+                    <label for="basic-url_ul" class="form-label"></label>
+                    <div class="input-group mb-3"><br>
+                        <span class="input-group-text" id="basic-addon3">Ucho lewe [m]&nbsp;&nbsp;</span>
+                        <input type="text" name="szept_UL" class="form-control text-center" id="basic-url_ul"
+                               aria-describedby="basic-addon3">
+                    </div>
+
+                    <label for="basic-url_up" class="form-label"></label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text" id="basic-addon31">Ucho prawe [m]</span>
+                        <input type="text" name="szept_UP" class="form-control text-center" id="basic-url_up"
+                               aria-describedby="basic-addon3">
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="col-md-8 bd-highlight" id="groups_inputs_report_49">
+
+                <div class="text-color: text-success">
+                    <br>
+                    AUDIOGRAM
+                    <hr>
+                </div>
+                <br>
+                <table class="table table-bordered text-center">
+
+                    <thead>
+                    <tr class="table-danger">
+                        <th>
+                            <div class="d-flex align-items-center">
+                                <button type="button" class="btn btn-success" id="setAudiogramBtn"
+                                        data-bs-toggle="modal" data-bs-target="#myModal">
+                                    X
+                                </button>
+                                &nbsp;&nbsp;
+                                <label for="startDateAudiogram" class="form-label"></label>
+                                <input id="startDateAudiogram" name="data_badania_audiogramu"
+                                       class="form-control text-center" type="date"/>
+                                <span id="startDateSelectedAudiogram"></span>
+                            </div>
+                        </th>
+                        <th>250 Hz</th>
+                        <th>500 Hz</th>
+                        <th>1 kHz</th>
+                        <th>2 kHz</th>
+                        <th>3 kHz</th>
+                        <th>4 kHz</th>
+                        <th>6 kHz</th>
+                        <th>8 kHz</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="table-warning">
+                        <td>Ucho lewe</td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_250" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_250" name="UL_250"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_500" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_500" name="UL_500"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_1000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_1000" name="UL_1000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_2000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_2000" name="UL_2000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_3000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_3000" name="UL_3000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_4000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_4000" name="UL_4000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_6000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_6000" name="UL_6000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UL_8000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UL_8000" name="UL_8000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr class="table-warning">
+                        <td>Ucho prawe</td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_250" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_250" name="UP_250"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_500" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_500" name="UP_500"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_1000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_1000" name="UP_1000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_2000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_2000" name="UP_2000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_3000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_3000" name="UP_3000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_4000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_4000" name="UP_4000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_6000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_6000" name="UP_6000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex aligns-items-center justify-content-center">
+                                <label for="UP_8000" class="form-label"></label>
+                                <input type="text" class="form-control text-center" id="UP_8000" name="UP_8000"
+                                       value=""
+                                       style="width: 50px;" maxlength="3"/>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+
+                <!-- The Modal -->
+                <div class="modal border border-danger text-center" id="myModal">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+
+                            <!-- Modal Header -->
+                            <div class="modal-header">
+                                <h5 class="modal-title">AUDIOGRAM</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+
+                            <!-- Modal body -->
+                            <div class="modal-body d-flex aligns-items-center justify-content-center text-primary text-center">
+                                <div class="row">
+                                    <div class="col">
+                                        <i><strong>
+                                            Podaj wartość domyślną dla wszystkich badanych częstotliwości.
+                                        </strong></i>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col d-flex aligns-items-center justify-content-center"
+                                         style="height:40px;">
+                                        <label for="Hz_default" class="form-label"></label>
+                                        <input type="text" class="form-control input-lg text-center"
+                                               name="Hz_default"
+                                               id="Hz_default" value="20" maxlength="3"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal footer -->
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-success" id="modalSubmitBtn"
+                                        data-bs-dismiss="modal">Wypełnij
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                    <script type="text/javascript">
+
+                        let modalSubmitBtn = document.getElementById("modalSubmitBtn");
+                        modalSubmitBtn.addEventListener("click", setAudiogramValue, false);
+
+                        function setAudiogramValue() {
+                            let Hz = document.getElementById("Hz_default");
+
+                            let ul250 = document.getElementById("UL_250");
+                            ul250.value = Hz.value;
+                            let ul500 = document.getElementById("UL_500");
+                            ul500.value = Hz.value;
+                            let ul1000 = document.getElementById("UL_1000");
+                            ul1000.value = Hz.value;
+                            let ul2000 = document.getElementById("UL_2000");
+                            ul2000.value = Hz.value;
+                            let ul3000 = document.getElementById("UL_3000");
+                            ul3000.value = Hz.value;
+                            let ul4000 = document.getElementById("UL_4000");
+                            ul4000.value = Hz.value;
+                            let ul6000 = document.getElementById("UL_6000");
+                            ul6000.value = Hz.value;
+                            let ul8000 = document.getElementById("UL_8000");
+                            ul8000.value = Hz.value;
+                            let up250 = document.getElementById("UP_250");
+                            up250.value = Hz.value;
+                            let up500 = document.getElementById("UP_500");
+                            up500.value = Hz.value;
+                            let up1000 = document.getElementById("UP_1000");
+                            up1000.value = Hz.value;
+                            let up2000 = document.getElementById("UP_2000");
+                            up2000.value = Hz.value;
+                            let up3000 = document.getElementById("UP_3000");
+                            up3000.value = Hz.value;
+                            let up4000 = document.getElementById("UP_4000");
+                            up4000.value = Hz.value;
+                            let up6000 = document.getElementById("UP_6000");
+                            up6000.value = Hz.value;
+                            let up8000 = document.getElementById("UP_8000");
+                            up8000.value = Hz.value;
+                        }
+                    </script>
+                </div>
+            </div>
+
+        </div>
+
+        <hr>
+
+    </form>
+
+
+</div>
+
+<script>
+    function clear_all_tags() {
+        window.location.reload();
+    }
+
+    function copyDane() {
+        const source = document.getElementById('szablon'); // Element źródłowy
+        const destination = document.getElementById('wywiad'); // Element docelowy
+
+        if (source && destination) {
+            destination.value = source.value; // Przekopiowanie wartości
+        } else {
+            console.error('Nie znaleziono elementów szablon lub wywiad w DOM.');
+        }
+    }
+
+    function openFile() {
+        document.getElementById('inp').click();
+    }
+
+    function readFile(e) {
+        if (!window.FileReader) {
+            alert('Twoja przeglądarka nie obsługuje FileReader.');
+            return;
+        }
+        let file = e.target.files[0]; // Pobranie pierwszego wybranego pliku
+        if (!file) return;
+
+        let reader = new FileReader();
+        reader.onload = function (event) {
+            const textarea = document.getElementById('szablon'); // Użycie elementu "szablon" zamiast "wywiad"
+            if (textarea) {
+                textarea.value = event.target.result; // Wczytanie zawartości pliku do textarea
+            } else {
+                console.error('Nie znaleziono elementu szablon w DOM.');
+            }
+        };
+        reader.onerror = function () {
+            alert('Błąd podczas otwierania pliku.');
+        };
+        reader.readAsText(file); // Odczytanie pliku jako tekstu
+    }
+
+    function downloadFile(content, fileName, mimeType) {
+        mimeType = mimeType || "text/plain"; // Domyślny typ pliku
+        const blob = new Blob([content], {type: mimeType});
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = fileName; // Ustaw dynamiczną nazwę pliku
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+
+    // Pobieranie treści z textarea, pytanie o nazwę pliku i zapisywanie pliku
+    document.getElementById("download").addEventListener("click", function () {
+        const textAreaContent = document.getElementById("szablon").value; // Pobranie wartości z textarea
+
+        if (textAreaContent.trim() === "") { // Walidacja treści textarea
+            alert("Szablon nie może być pusty! Wpisz coś przed zapisaniem.");
+            return;
+        }
+
+        // Pytaj użytkownika o nazwę pliku (bez rozszerzenia)
+        const fileName = prompt("Podaj nazwę pliku (bez rozszerzenia)", "szablon");
+        if (!fileName || fileName.trim() === "") { // Jeśli użytkownik wpisał pustą nazwę
+            alert("Nazwa pliku nie może być pusta!");
+            return;
+        }
+        downloadFile(textAreaContent, `${fileName}.txt`); // Dodawanie rozszerzenia .txt
+    });
+
+</script>
 
 </body>
 </html>
