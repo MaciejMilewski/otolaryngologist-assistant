@@ -2,13 +2,14 @@ import sqlite3
 from datetime import date, timedelta, datetime
 from sqlite3 import connect
 
-from flask import Blueprint, render_template, abort, flash, request, redirect, url_for
+from flask import Blueprint, render_template, abort, flash, request, redirect, url_for, jsonify
 from flask_login import current_user, login_required
 from jinja2 import TemplateNotFound
 from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
 from app.models import Schedule
+from app.utils import validate_event_collision
 
 schedule_bp = Blueprint('schedule', __name__)
 
@@ -39,22 +40,6 @@ def get_schedule_events(user_id, start, end):
     except SQLAlchemyError as e:
         flash(f"Błąd bazy danych: {str(e)}", 'danger')
         return []
-
-
-# def get_sqlite_json(start, ends):
-#     result = []
-#     try:
-#         data_range = (current_user.id, start, ends)
-#         query = "SELECT * FROM terminarz WHERE id_user = ? AND start_date BETWEEN ? AND ? "
-#         connect.row_factory = sqlite3.Row
-#         events_sqlite_data = connect.execute(query, data_range).fetchall()
-#         result = [{key: item[key] for key in item.keys()} for item in events_sqlite_data]
-#     except SQLAlchemyError as e:
-#         flash(e.__dict__['orig'], 'danger')
-#     finally:
-#         if connect:
-#             connect.close()
-#     return result
 
 
 @schedule_bp.route('/schedule', methods=['GET'])
@@ -88,8 +73,20 @@ def schedule_insert():
         start_time = request.form.get('start_time', "00:00").strip()
         end_time = request.form.get('end_time', "23:59").strip()
 
+        # Tworzenie obiektów datetime
         try:
-            # Konwersja dat na obiekty datetime.date
+            start_date = datetime.strptime(f"{start} {start_time}", "%Y-%m-%d %H:%M")
+            end_date = datetime.strptime(f"{end} {end_time}", "%Y-%m-%d %H:%M")
+        except ValueError as e:
+            flash("Nieprawidłowy format daty lub czasu.", "danger")
+            return redirect(url_for('schedule.schedule_main'))
+
+        event_collision, error_message = validate_event_collision(current_user.id, start_date, end_date)
+        if not event_collision:
+            flash(error_message, "danger")
+            return redirect(url_for('schedule.schedule_main'))
+
+        try:
             start_date = datetime.strptime(start, "%Y-%m-%d").date()
             end_date = datetime.strptime(end, "%Y-%m-%d").date()
 
@@ -157,21 +154,30 @@ def schedule_delete():
     return render_template("schedule.html", events=list_events, calendar_view=calendar_view, user=current_user.login)
 
 
-@schedule_bp.route('/schedule/drop', methods=["POST", "GET"])
+@schedule_bp.route('/schedule/drop', methods=["POST"])
 @login_required
 def schedule_drop():
-    # Pobranie danych z formularza
     data = request.get_json()
     event_id = data.get('id')
-    start_date = data.get('start')
-    end_date = data.get('end')
-    start_time = data.get('start_time')
-    end_time = data.get('end_time')
-    calendar_view = request.form.get('modal_drop_view', 'dayGridMonth')
+    start = data.get('start')
+    end = data.get('end', start)
+    start_time = data.get('start_time', "00:00")
+    end_time = data.get('end_time', "23:59")
 
-    if not event_id:
-        flash("Nie podano ID wydarzenia do zaktualizowania.", "danger")
-        return redirect(url_for('schedule.schedule_main'))
+    # Tworzenie obiektów datetime
+    try:
+        start_date = datetime.strptime(f"{start} {start_time}", "%Y-%m-%d %H:%M")
+        end_date = datetime.strptime(f"{end} {end_time}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        return jsonify({"status": "error", "message": "Nieprawidłowy format daty lub czasu."}), 400
+
+    # Walidacja kolizji z innymi wydarzeniami
+    event_collision, error_message = validate_event_collision(
+        current_user.id, start_date, end_date, exclude_event_id=event_id
+    )
+    if not event_collision:
+        # flash(error_message, "danger")
+        return jsonify({"status": "error", "message": error_message}), 400
 
     try:
         # Znalezienie wydarzenia w bazie danych
@@ -179,48 +185,49 @@ def schedule_drop():
 
         if event:
             # Aktualizacja pól wydarzenia
-            event.start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-            event.end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+            event.start_date = start_date.date()
+            event.end_date = end_date.date()
             event.start_time = start_time
             event.end_time = end_time
-
             db.session.commit()
-            flash("Wydarzenie zostało zaktualizowane.", "success")
+            return jsonify({"status": "success", "message": "Wydarzenie zostało zaktualizowane."}), 200
         else:
-            flash("Nie znaleziono wydarzenia do zaktualizowania.", "warning")
+            return jsonify({"status": "error", "message": "Nie znaleziono wydarzenia do zaktualizowania."}), 404
 
-    except ValueError as ve:
-        flash(f"Nieprawidłowy format daty: {str(ve)}", "danger")
     except SQLAlchemyError as e:
         db.session.rollback()
-        flash(f"Błąd podczas aktualizacji wydarzenia: {str(e)}", "danger")
-
-    # Przeładuj kalendarz z wydarzeniami
-    start = date.today().replace(day=1)
-    ender = date.today().replace(day=1) + timedelta(days=120)
-    list_events = get_schedule_events(current_user.id, start, ender)
-
-    return render_template("schedule.html", events=list_events, calendar_view=calendar_view, user=current_user.login)
+        return jsonify({"status": "error", "message": f"Błąd podczas aktualizacji wydarzenia: {str(e)}"}), 500
 
 
 @schedule_bp.route('/schedule/update', methods=["POST", "GET"])
 @login_required
 def schedule_update():
-    # Pobranie danych z formularza
     calendar_view = request.form.get('modal_edit_view', 'dayGridMonth')
     event_id = request.form.get('modal_edit_id')
-    title = request.form.get('edittitle', '')
-    start_date = request.form.get('editstart', '')
-    end_date = request.form.get('editend', start_date)
-    description = request.form.get('editklasa', '')
-    url = request.form.get('editurl', '')
-    color_back = request.form.get('editsetcolor', '')
-    color_fore = request.form.get('editsetlitery', '')
-    start_time = request.form.get('editstart_time', '00:00')
-    end_time = request.form.get('editend_time', '24:00')
+    title = request.form.get('edittitle', '').strip()
+    start_date = request.form.get('editstart', '').strip()
+    end_date = request.form.get('editend', start_date).strip()
+    description = request.form.get('editklasa', '').strip()
+    url = request.form.get('editurl', '').strip()
+    color_back = request.form.get('editsetcolor', '#FFFFFF').strip()
+    color_fore = request.form.get('editsetlitery', '#000000').strip()
+    start_time = request.form.get('editstart_time', '00:00').strip()
+    end_time = request.form.get('editend_time', '23:59').strip()
 
     if not event_id:
-        flash("Nie podano ID wydarzenia do zaktualizowania.", "danger")
+        return redirect(url_for('schedule.schedule_main'))
+
+    # Tworzenie obiektów datetime
+    try:
+        start_datetime = datetime.strptime(f"{start_date} {start_time}", "%Y-%m-%d %H:%M")
+        end_datetime = datetime.strptime(f"{end_date} {end_time}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        return redirect(url_for('schedule.schedule_main'))
+
+    event_collision, error_message = validate_event_collision(
+        current_user.id, start_datetime, end_datetime, exclude_event_id=event_id
+    )
+    if not event_collision:
         return redirect(url_for('schedule.schedule_main'))
 
     try:
@@ -230,8 +237,8 @@ def schedule_update():
         if event:
             # Aktualizacja pól wydarzenia
             event.title = title
-            event.start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-            event.end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+            event.start_date = start_datetime.date()
+            event.end_date = end_datetime.date()
             event.start_time = start_time
             event.end_time = end_time
             event.description = description
@@ -244,15 +251,13 @@ def schedule_update():
         else:
             flash("Nie znaleziono wydarzenia do zaktualizowania.", "warning")
 
-    except ValueError as ve:
-        flash(f"Nieprawidłowy format daty: {str(ve)}", "danger")
     except SQLAlchemyError as e:
         db.session.rollback()
         flash(f"Błąd podczas aktualizacji wydarzenia: {str(e)}", "danger")
 
     # Przeładuj kalendarz z wydarzeniami
-    start = date.today().replace(day=1)
-    ender = date.today().replace(day=1) + timedelta(days=120)
-    list_events = get_schedule_events(current_user.id, start, ender)
+    start_month = date.today().replace(day=1)
+    end_month = date.today().replace(day=1) + timedelta(days=120)
+    list_events = get_schedule_events(current_user.id, start_month, end_month)
 
     return render_template("schedule.html", events=list_events, calendar_view=calendar_view, user=current_user.login)
