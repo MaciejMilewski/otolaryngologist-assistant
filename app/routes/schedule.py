@@ -9,7 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app import db
 from app.models import Schedule
-from app.utils import validate_event_collision
+from app.utils.utils import validate_event_collision
 
 schedule_bp = Blueprint('schedule', __name__)
 
