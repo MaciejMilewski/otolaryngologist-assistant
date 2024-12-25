@@ -1,0 +1,157 @@
+:root {
+    /* Kolory */
+    --primary-border-color: khaki;
+    --secondary-bg-color: #FAEDBC;
+    --color-text-primary: #000;
+    --color-text-secondary: #FFF;
+    --color-danger-bg: #bb2d3b;
+    --modal-body-bg: #F8E69E;
+    --modal-body-bg-alt: #ffcd39;
+    --modal-header-bg: #fff;
+
+    /* Czcionki */
+    --font-family-main: 'Open Sans', Arial, Helvetica, sans-serif, monospace;
+    --font-family-alt: Verdana, Arial, Helvetica, sans-serif, monospace;
+
+    /* Rozmiary */
+    --padding-small: 5px 12px 10px 12px;
+    --padding-medium: 10px 15px 10px 15px;
+    --padding-large: 20px;
+    --font-size-modal: 1.2rem;
+
+    /* Granice */
+    --border-light: 0.1rem solid var(--primary-border-color);
+    --border-thick: 0.5rem solid var(--primary-border-color);
+    --border-modal: 1px solid var(--primary-border-color);
+}
+
+/* Style dla fieldset */
+fieldset {
+    border: var(--border-thick);
+    padding: var(--padding-small);
+}
+legend {
+    float: none;
+    width: inherit;
+}
+
+/* Wspólna klasa box */
+.common-box {
+    padding: var(--padding-medium);
+    border: var(--border-light);
+    text-align: justify;
+    text-justify: inter-word;
+    font-family: var(--font-family-main);
+    font-style: italic;
+}
+
+/* Style dla dialogów */
+.modal-wide {
+    max-width: 60%;
+}
+@media (max-width: 768px) {
+    .modal-wide {
+        max-width: 90%;
+    }
+}
+.modal-body {
+    font-size: var(--font-size-modal);
+    background-color: var(--modal-body-bg-alt);
+}
+.modal-header {
+    background-color: var(--modal-header-bg);
+    color: #495057;
+}
+.modal-footer {
+    background-color: #cfe2ff;
+}
+#autocompleteModal .modal-content {
+    box-shadow: 0 0 55px rgba(0, 0, 0, 0.5);
+}
+#autocompleteModal .modal-body {
+    padding: var(--padding-large);
+}
+
+/* Styl dla przycisku ostrzeżenia */
+.btn-warning {
+    background-color: #2196f3;
+    border-color: var(--color-text-secondary);
+    color: var(--color-text-secondary);
+    box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 50px 0 rgba(0, 0, 0, 0.19);
+}
+.btn-warning:hover {
+    background-color: var(--color-danger-bg);
+    border-color: var(--modal-body-bg-alt);
+    box-shadow: 0 12px 16px 0 rgba(0, 0, 0, 0.24), 0 17px 70px 0 rgba(99, 09, 09, 0.19);
+    color: var(--color-text-secondary);
+}
+
+/* Styl dla elementu .error */
+.error {
+    border-color: red;
+}
+
+/* Styl dla #toast */
+#toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--color-danger-bg);
+    color: var(--color-text-secondary);
+    padding: var(--padding-large);
+    border-radius: 8px;
+    font-size: 16px;
+    text-align: center;
+    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.3), 0 17px 70px 0 rgba(0, 0, 0, 0.19);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 1065;
+}
+#toast.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Odstęp między wierszami formularza */
+.form-spacing {
+    margin-bottom: 0.4rem; /* Odstęp między wierszami */
+}
+
+/* Odstęp między kolumnami w wierszu */
+.form-spacing > .col-10,
+.form-spacing > .col-2 {
+    padding-right: 0.5rem; /* Opcjonalnie zmniejsz odstęp wewnętrzny */
+}
+
+/* Wyrównanie wysokości input i select2 */
+input.form-control,
+.select2-container .select2-selection--single {
+    height: calc(2.375rem); /* Wysokość dla Bootstrap 5 */
+    padding: 0.1rem 0.3rem;     /* Dopasowanie paddingu */
+    font-size: 1.1rem;           /* 1rem Czcionka jak w Bootstrap 5 */
+    line-height: 1.5;            /* Wyrównanie tekstu */
+    border: var(--border-light); /* Obramowanie zgodne z motywem */
+    border-radius: 0.375rem;     /* Zaokrąglenie krawędzi */
+    box-shadow: none;            /* Wyłączenie cieni */
+}
+
+/* Wyrównanie select2 po najechaniu */
+.select2-container .select2-selection--single:hover {
+    border-color: var(--primary-border-color); /* Kolor na hover */
+}
+
+/* Wyrównanie wysokości dla select2 focus */
+.select2-container--default .select2-selection--single:focus {
+    border-color: var(--primary-border-color);
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(222, 184, 135, 0.25); /* Subtelny efekt focus */
+}
+
+/* Wyrównanie strzałki rozwijanej w select2 */
+.select2-container .select2-selection__arrow {
+    height: 100%; /* Dopasowanie wysokości */
+    top: 50%;     /* Wyśrodkowanie */
+    transform: translateY(-50%);
+}

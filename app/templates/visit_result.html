@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Shortcut icon -->
+    <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/visit_result.css') }}">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+
+    <!-- Import JQUERY JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Import Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+
+    <title>OPIS BADANIA</title>
+</head>
+<body>
+
+<noscript>
+    <div class="alert alert-danger">
+        Aby strona działała poprawnie, musisz włączyć obsługę JavaScript.
+    </div>
+</noscript>
+
+<!-- MAIN  -->
+
+<div class="form-3-container section-container section-container-image-bg">
+
+    <!-- Flash messages section -->
+    {% with messages = get_flashed_messages(with_categories=True) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} text-center" role="alert">
+                    {{ message|e }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="container">
+
+        <div class="row">
+            <div class="col-md-10 offset-md-1 form-3-box wow fadeInUp">
+
+                <!-- Main form -->
+                <form action="{{ url_for('visit.drukuj') }}" method="post">
+
+                    <!-- Form content section -->
+                    <fieldset class="form-group p-3 text-left">
+                        <legend class="w-auto px-2 text-center">{{ today|default('Brak daty') }}</legend>
+
+                        <!-- 'Wywiad' section -->
+                        <div class="form-group">
+                            <label for="wywiad_text">Wywiad:</label>
+                            <textarea id="wywiad_text" name="wywiad_text" class="form-control">{{ wywiad|e }}</textarea>
+                        </div>
+
+                        <!-- 'Schorzenia ogólne' section -->
+                        <div class="form-group text-left">
+                            <label for="general_choroby">Schorzenia ogólne:</label>
+                            <textarea id="general_choroby" name="general_choroby"
+                                      class="form-control">{{ ogolne|default('Pacjent nie zgłasza chorób przewlekłych i nie przyjmuje leków na stałe.',true)|e }}</textarea>
+                        </div>
+
+                        <!-- 'Schorzenia laryngologiczne' section -->
+                        <div class="form-group text-left">
+                            <label for="orl_choroby">Schorzenia laryngologiczne:</label>
+                            <textarea id="orl_choroby" name="orl_choroby"
+                                      class="form-control">{{ laryngolog|default('Pacjent nie zgłasza przewlekłych dolegliwości laryngologicznych.',true)|e }}</textarea>
+                        </div>
+
+                        <!-- 'Badanie laryngologiczne' section -->
+                        <div class="form-group text-left">
+                            <label for="opis">Badanie laryngologiczne:</label>
+                            <textarea id="opis" name="opis"
+                                      class="form-control">{{ orl|e }}</textarea>
+                        </div>
+
+                        {% if szept %}
+                            <!-- 'Badanie szeptem' section -->
+                            <div class="form-group text-left">
+                                <label for="szept">Badanie szeptem:</label>
+                                <input type="text" class="form-control szept" id="szept" name="szept"
+                                       value="{{ (data_szeptu ~ ' ' ~ szept)|e }}">
+                            </div>
+                        {% endif %}
+
+                        {% if UL_250 %}
+                            <!-- Audiogram table section -->
+                            <div class="form-group text-left">
+                                <label for="szept">Audiogram:</label>
+
+                                <div class="form-group text-left">
+                                    <table class="table table-bordered text-center">
+                                        <thead>
+                                        <tr class="table-primary">
+                                            <th>
+                                                <button type="button" class="btn btn-success" name="btn-audio"
+                                                        id="btn-audio">
+                                                    {{ data_audiogramu }}
+                                                </button>
+                                            </th>
+                                            <th>250 Hz</th>
+                                            <th>500 Hz</th>
+                                            <th>1 kHz</th>
+                                            <th>2 kHz</th>
+                                            <th>3 kHz</th>
+                                            <th>4 kHz</th>
+                                            <th>6 kHz</th>
+                                            <th>8 kHz</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr class="table-warning">
+                                            <td>UCHO LEWE</td>
+                                            <td>{{ UL_250 }}</td>
+                                            <td>{{ UL_500 }}</td>
+                                            <td>{{ UL_1000 }}</td>
+                                            <td>{{ UL_2000 }}</td>
+                                            <td>{{ UL_3000 }}</td>
+                                            <td>{{ UL_4000 }}</td>
+                                            <td>{{ UL_6000 }}</td>
+                                            <td>{{ UL_8000 }}</td>
+                                        </tr>
+                                        <tr class="table-warning">
+                                            <td>UCHO PRAWE</td>
+                                            <td>{{ UP_250 }}</td>
+                                            <td>{{ UP_500 }}</td>
+                                            <td>{{ UP_1000 }}</td>
+                                            <td>{{ UP_2000 }}</td>
+                                            <td>{{ UP_3000 }}</td>
+                                            <td>{{ UP_4000 }}</td>
+                                            <td>{{ UP_6000 }}</td>
+                                            <td>{{ UP_8000 }}</td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if zabieg %}
+                            <!-- Procedures section -->
+                            <div class="form-group text-left">
+                                <ul id="zabieg">
+                                    {% for item in zabieg %}
+                                        <li style="margin-left: 10px;" contenteditable="true">{{ item|e }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+
+                        {% if zalecenia %}
+                            <!-- Recommendations section -->
+                            <div class="form-group text-left">
+                                <label for="zalecenia">Zalecenia:</label>
+                                <textarea id="zalecenia" name="zalecenia"
+                                          class="form-control">{{ zalecenia|e }}</textarea>
+                            </div>
+                        {% endif %}
+                    </fieldset>
+
+                    <div class="btn-toolbar" style="justify-content: center; display: flex; padding: 5px;"
+                         role="toolbar" aria-label="Toolbar with button groups">
+
+                        <!-- Action buttons (Print, Back, Save, Exit) -->
+                        <div class="btn-group text-center" role="group" aria-label="First group">
+                            <div>
+                                <!-- Print button -->
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-action="print"
+                                        data-bs-target="#modalForm">
+                                    <i class="bi bi-printer-fill"></i> - Drukuj
+                                </button>
+                            </div>
+                            &nbsp;
+                            <div>
+                                <!-- Back button -->
+                                <button type="button" onclick="history.back();" class="btn btn-primary">
+                                    <i class="bi bi-back"></i> - Powrót
+                                </button>
+                            </div>
+                            &nbsp;
+                            <div>
+                                <!-- Save button -->
+                                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-action="save"
+                                        data-bs-target="#modalForm">
+                                    <i class="bi bi-save"></i> - Zapisz
+                                </button>
+                            </div> &nbsp;
+{##}
+{#                            <div>#}
+{#                                <!-- Exit button -->#}
+{#                                <button class="btn btn-danger" onclick="location.href='{{ url_for('menu') }}'"#}
+{#                                        type="button">#}
+{#                                    <i class="bi bi-door-open"></i> - WYJDŹ#}
+{#                                </button>#}
+{#                            </div>#}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Autocomplete -->
+<div class="modal fade" id="autocompleteModal" tabindex="-1" aria-labelledby="exampleModalLabel">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Autouzupełnianie</h5>
+                <img alt="zapis" class="float-end" width="60" height="60"
+                     src="{{ url_for('static', filename='img/dane_osobowe.jpg') }}">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="autocompleteSelect">Pacjenci</label>
+                    <select id="autocompleteSelect" class="form-control select2"></select>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal Form -->
+<div id="modalForm" tabindex="-1" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-wide"> <!-- Niestandardowy rozmiar modala -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">DANE WIZYTY</h4>
+                <img alt="zapis" class="float-end" width="70" height="70"
+                     src="{{ url_for('static', filename='img/dane_osobowe.jpg') }}">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-start">
+
+                <!-- Element Toast -->
+                <div id="toast" class="toast"></div>
+
+                <form id="modalFormAction" method="post">
+                    <!-- Location -->
+                    <div class="row justify-content-end mb-4">
+                        <div class="col-6">
+
+                            <!-- ukryte pole 'id' pacjenta, wynik wyboru z 'autocompleteSelect' -->
+                            <input type="hidden" id="hiddenResultInput" name="hiddenResultInput" value=""/>
+                            <!-- Localisation -->
+                            <label for="siteZapis" class="bold-label">Lokalizacja gabinetu</label>
+                            <select id="siteZapis" name="siteZapis" class="form-select select2">
+                                {% for locale in place %}
+                                    <option value="{{ locale['name'] }}">{{ locale['name'] }},
+                                        dnia {{ today }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Name and PESEL -->
+                    <div class="row form-spacing">
+                        <div class="col-4">
+                            <label for="first_name" class="bold-label">Imię</label>
+                            <input type="text" id="first_name" name="first_name" class="form-control" required
+                                   placeholder="Wpisz imię pacjenta"
+                                   pattern="[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż\s]+" title="Wprowadź tylko litery">
+                        </div>
+                        <div class="col-5">
+                            <label for="surname" class="bold-label">Nazwisko</label>
+                            <input type="text" id="surname" name="surname" class="form-control" required
+                                   placeholder="Wpisz nazwisko pacjenta"
+                                   pattern="[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'\s]+" title="Wprowadź tylko litery">
+                            <span id="pesel-error" class="error" aria-live="polite"></span>
+                        </div>
+                        <div class="col-3">
+                            <label for="pesel" class="bold-label">PESEL</label>
+                            <input type="text" id="pesel" name="pesel" class="form-control"
+                                   placeholder="Wpisz 11-cyfrowy numer"
+                                   pattern="[0-9]{11}" maxlength="11" inputmode="numeric" required>
+                        </div>
+                    </div>
+                    <!-- Województwo -->
+                    <div class="row form-spacing">
+                        <div class="col">
+                            <label for="wojewodztwo" class="bold-label">Województwo</label>
+                            <select id="wojewodztwo" name="wojewodztwo" class="form-select select2">
+                                {% for key, nazwa in woj.items() %}
+                                    <option value="{{ key }}">{{ nazwa }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Address -->
+                    <div class="row form-spacing">
+                        <div class="col-5">
+                            <label for="city_select" class="bold-label">Miejscowość</label>
+                            <select id="city_select" name="city_select" class="form-select select2">
+                                {% for city in cities %}
+                                    <option value="{{ city }}"
+                                            {% if city == city_default %}selected{% endif %}>{{ city }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-5">
+                            <label for="street" class="bold-label">Ulica</label>
+                            <select id="street" name="street" class="form-select select2">
+                                {% for street in streets %}
+                                    <option value="{{ street }}"
+                                            {% if street == street_default %}selected{% endif %}>{{ street }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-2">
+                            <label for="home_numer" class="bold-label">Numer</label>
+                            <input type="text" id="home_numer" name="home_numer" class="form-control"
+                                   placeholder="Numer domu" required>
+                        </div>
+                    </div>
+                    <div class="row form-spacing">
+                        <!-- DIAGNOZA -->
+                        <div class="col-10 form-group mb-3">
+                            <label for="diagnoza" class="form-label ms-2">Diagnoza</label>
+                            <input type="text" class="form-control" id="diagnoza" name="diagnoza" maxlength="255"
+                                   placeholder="Podaj diagnozę" required>
+                        </div>
+                        <!-- KODY NFZ -->
+                        <div class="col-2 form-group mb-3">
+                            <label for="kody_nfz" class="form-label ms-2">NFZ kody</label>
+                            <input type="text" class="form-control" id="kody_nfz" name="kody_nfz" maxlength="12"
+                                   placeholder="Podaj kody">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Anuluj</button>
+                        <button type="submit" class="btn btn-warning">Gotowe</button>
+                    </div>
+
+                    <div hidden>
+                        <input type="hidden" class="form-control" id="wywiad" name="wywiad" value="{{ wywiad|e }}">
+                        <input type="hidden" class="form-control" id="ogolne" name="ogolne"
+                               value="{{ ogolne|default('Pacjent nie zgłasza chorób przewlekłych i nie przyjmuje leków na stałe.',true)|e }}">
+                        <input type="hidden" class="form-control" id="laryngolog" name="laryngolog"
+                               value="{{ laryngolog|default('Pacjent nie zgłasza przewlekłych dolegliwości laryngologicznych.',true)|e }}">
+                        <input type="hidden" class="form-control" id="orl" name="orl" value="{{ orl }}">
+                        <input type="hidden" class="form-control" id="szepty" name="szepty"
+                               value="{{ data_szeptu|e }} {{ szept|e }}">
+                        <input type="hidden" class="form-control" id="zabiegi" name="zabiegi" value="{{ zabieg|e }}">
+                        <input type="hidden" class="form-control" id="zalecenie" name="zalecenie"
+                               value="{{ zalecenia|e }}">
+                        <input type="hidden" class="form-control" id="data_audiogramu" name="data_audiogramu"
+                               value="{{ data_audiogramu }}">
+                        <input type="hidden" class="form-control" id="UL__250" name="UL__250" value="{{ UL_250 }}">
+                        <input type="hidden" class="form-control" id="UL__500" name="UL__500" value="{{ UL_500 }}">
+                        <input type="hidden" class="form-control" id="UL__1000" name="UL__1000" value="{{ UL_1000 }}">
+                        <input type="hidden" class="form-control" id="UL__2000" name="UL__2000" value="{{ UL_2000 }}">
+                        <input type="hidden" class="form-control" id="UL__3000" name="UL__3000" value="{{ UL_3000 }}">
+                        <input type="hidden" class="form-control" id="UL__4000" name="UL__4000" value="{{ UL_4000 }}">
+                        <input type="hidden" class="form-control" id="UL__6000" name="UL__6000" value="{{ UL_6000 }}">
+                        <input type="hidden" class="form-control" id="UL__8000" name="UL__8000" value="{{ UL_8000 }}">
+                        <input type="hidden" class="form-control" id="UP__250" name="UP__250" value="{{ UP_250 }}">
+                        <input type="hidden" class="form-control" id="UP__500" name="UP__500" value="{{ UP_500 }}">
+                        <input type="hidden" class="form-control" id="UP__1000" name="UP__1000" value="{{ UP_1000 }}">
+                        <input type="hidden" class="form-control" id="UP__2000" name="UP__2000" value="{{ UP_2000 }}">
+                        <input type="hidden" class="form-control" id="UP__3000" name="UP__3000" value="{{ UP_3000 }}">
+                        <input type="hidden" class="form-control" id="UP__4000" name="UP__4000" value="{{ UP_4000 }}">
+                        <input type="hidden" class="form-control" id="UP__6000" name="UP__6000" value="{{ UP_6000 }}">
+                        <input type="hidden" class="form-control" id="UP__8000" name="UP__8000" value="{{ UP_8000 }}">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+
+<!-- OBSŁUGA PRZYCISKÓW W MODALU PRINT / SAVE -->
+<script type="text/javascript">
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Pobieramy wszystkie przyciski otwierające modal
+        const modalButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-action]');
+        const modalForm = document.querySelector('#modalFormAction');
+
+        // Przypisujemy odpowiednie akcje w zależności od 'data-action'
+        modalButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                const action = button.getAttribute('data-action');
+
+                // Ustaw odpowiedni endpoint na podstawie akcji
+                if (action === 'print') {
+                    modalForm.setAttribute('action', '/drukuj'); // Endpoint dla drukowania
+                } else if (action === 'save') {
+                    modalForm.setAttribute('action', '/zapis');  // Endpoint dla zapisu danych
+                }
+            });
+        });
+    });
+</script>
+
+<!-- OBSŁUGA TERYT W MODALU -->
+<script type="text/javascript">
+
+    $(document).ready(function () {
+        // ### Inicjalizacja selektorów ###
+        const wojewodztwoSelect = $('#wojewodztwo');
+        const citySelect = $('#city_select');
+        const streetSelect = $('#street');
+
+        // ### Funkcja pomocnicza ###
+        function setSelect2OptionByText(selectElement, textValue) {
+            // Sprawdź, czy element select ma id 'wojewodztwo'
+            if (selectElement.attr('id') === 'wojewodztwo') {
+                // Jeśli tak, ustaw wartość na textValue
+                selectElement.val(textValue).trigger('change.select2');
+            } else {
+                // W przeciwnym razie wyszukaj opcję po tekście
+                const option = selectElement.find('option').filter(function () {
+                    return $(this).text().trim() === textValue;
+                });
+                if (option.length > 0) {
+                    selectElement.val(option.val()).trigger('change.select2');
+                } else {
+                    console.warn("Nie znaleziono opcji w select:", selectElement.attr('id'));
+                }
+            }
+        }
+
+        // ### Pobieranie ulic ###
+        function updateStreets(selectedStreet = null) {
+            return new Promise((resolve, reject) => {
+                const miejscowosc = citySelect.find(":selected").text();
+                const wojewodztwo = wojewodztwoSelect.val();
+
+                // Walidacja danych wejściowych
+                if (!miejscowosc || !wojewodztwo) {
+                    console.error("Brak miejscowości lub województwa do pobrania ulic.");
+                    return reject("Nie wybrano miejscowości lub województwa.");
+                }
+                // Wykonaj żądanie AJAX
+                $.ajax({
+                    url: '/get_ulice',
+                    type: 'POST',
+                    data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
+                    success: function (response) {
+                        streetSelect.empty();
+
+                        const fragment = document.createDocumentFragment(); // Fragment do optymalizacji DOM
+
+                        if (response.ulice && response.ulice.length > 0) {
+                            // Dodaj ulice
+                            response.ulice.forEach(street => {
+                                fragment.appendChild(new Option(street, street));
+                            });
+
+                            streetSelect.append(fragment).trigger('change.select2');
+
+                            // Ustaw wybraną ulicę, jeśli podano
+                            if (selectedStreet) {
+                                setSelect2OptionByText(streetSelect, selectedStreet);
+                            }
+                            resolve("Ulice zostały załadowane.");
+                        } else {
+                            console.warn("Brak ulic dla wybranej miejscowości.");
+                            streetSelect.append(new Option("Brak dostępnych ulic !", "", false, false)).trigger('change.select2');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Błąd podczas pobierania ulic:", textStatus, errorThrown);
+                        streetSelect.empty().append(new Option("Błąd w pobieraniu danych", "", false, false));
+                        streetSelect.trigger('change.select2');
+                    }
+                });
+            });
+        }
+
+        // ### Pobieranie miast ###
+        function loadCities(wojewodztwo) {
+            return new Promise((resolve, reject) => {
+                if (!wojewodztwo) {
+                    return reject("Brak wybranego województwa.");
+                }
+                $.ajax({
+                    url: '/get_miejscowosci',
+                    type: 'POST',
+                    data: {wojewodztwo: wojewodztwo},
+                    success: function (response) {
+
+                        // Resetuj pola miast i ulic
+                        citySelect.empty();
+                        streetSelect.empty();
+
+                        // Sprawdź, czy są miejscowości
+                        if (response.miejscowosci && response.miejscowosci.length > 0) {
+                            const fragment = document.createDocumentFragment();
+                            response.miejscowosci.forEach(city => {
+                                // gdy Option(city[1], city[0]) to submit zwraca numer miasta zamiast nazwy !
+                                const option = new Option(city[1], city[1]);
+                                fragment.appendChild(option);
+                            });
+                            citySelect.append(fragment);
+                            // Wymuś odświeżenie Select2
+                            citySelect.trigger('change.select2');
+
+                            resolve(); // Rozwiązanie Promise
+
+                            // załaduj ulice
+                            updateStreets();
+                        } else {
+                            console.warn("Brak dostępnych miejscowości dla województwa:", wojewodztwo);
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Błąd podczas pobierania miejscowości:", textStatus, errorThrown);
+                    }
+                });
+            });
+        }
+
+        // ### Inicjalizacja Select2 ###
+        function initializeSelect2() {
+            $('#wojewodztwo, #siteZapis').select2({
+                width: '100%',
+                dropdownParent: $('#modalForm'),
+                allowClear: true
+            });
+
+            $('.select2').each(function () {
+                const parentModal = $(this).closest('.modal');
+                $(this).select2({
+                    width: '100%',
+                    allowClear: true,
+                    dropdownParent: parentModal.length ? parentModal : $(document.body)
+                });
+            });
+
+            wojewodztwoSelect.val('22').trigger('change.select2'); // Default: POMORSKIE
+        }
+
+        // ### wypełnij select2 autocompleteSelect ###
+        function populateAutocompleteModal(results) {
+            const autocompleteSelect = $('#autocompleteSelect');
+            const fragment = document.createDocumentFragment();
+
+            // Wyczyść istniejące opcje
+            autocompleteSelect.empty();
+
+            // Dodaj opis na belce startowej wyszukiwania
+            const defaultOption = new Option('Lista rozwijana z wynikami ...', '', false, false);
+            fragment.appendChild(defaultOption);
+
+            // Dodaj nowe wyniki jako opcje, jeśli wyniki są dostępne
+            if (results && results.length > 0) {
+                results.forEach((result) => {
+                    // dodaj imię, nazwisko i pesel z 'result'
+                    const displayText = result[1] + ' ' + result[2] + ' ' + result[3];
+                    const newOption = new Option(displayText, result[0], false, false);
+                    $(newOption).data('fullData', result); // dodaj cały 'result'
+                    fragment.appendChild(newOption);
+                });
+            } else {
+                // Dodaj opcję informującą o braku wyników
+                const noResultsOption = new Option('Brak wyników !', '', false, false);
+                fragment.appendChild(noResultsOption);
+            }
+
+            // Przenieś fragment do Select2
+            autocompleteSelect.append(fragment);
+
+            // Inicjalizuj lub odśwież Select2
+            autocompleteSelect.select2({
+                dropdownParent: $('#autocompleteModal'),
+                width: '100%'
+            });
+            // Aktualizacja ukrytego pola z wynikami wyboru - 'id' pacjenta
+            autocompleteSelect
+                .off('change')
+                .on('change', function () {
+                    const selectedOption = $(this).find(':selected');
+                    const fullData = selectedOption.data('fullData');
+                    const hiddenInput = $('#hiddenResultInput');
+                    hiddenInput.val(fullData ? fullData[0] : '');
+                });
+            // Otwórz modal
+            $('#autocompleteModal').modal('show');
+        }
+
+
+        // ### Zdarzenia ###
+        function bindEvents() {
+            wojewodztwoSelect.on('change', function () {
+                const wojewodztwo = $(this).val();
+                if (wojewodztwo) {
+                    loadCities(wojewodztwo);
+                } else {
+                    console.error("Brak wybranego wojewodztwa!");
+                }
+            });
+
+            citySelect.on('change', function () {
+                const selectedCity = citySelect.find(":selected").text();
+                if (selectedCity && selectedCity !== "0") {
+                    updateStreets();
+                }
+            });
+
+            $('#autocompleteSelect').on('select2:open', function () {
+                const select2Element = $(this).data('select2');
+                if (select2Element) {
+                    // Wymuś wybór pierwszej dostępnej opcji
+                    setTimeout(() => {
+                        const firstOption = $(this).find('option:first').val();
+                        if (firstOption) {
+                            $(this).val(firstOption).trigger('change.select2');
+                        }
+                    }, 80); // Czas oczekiwania, aby Select2 zdążył się otworzyć
+                }
+            });
+
+            $('#autocompleteSelect').on('select2:select', function () {
+                // Pobierz zapisane dane z wybranego elementu select2
+                const selectedData = $(this).find('option:selected').data('fullData');
+
+                // Zamknij modal
+                $('#autocompleteModal').modal('hide');
+
+                const data = {
+                    first_name: selectedData[1],
+                    surname: selectedData[2],
+                    pesel: selectedData[3],
+                    new_woj: selectedData[5],
+                    new_city: selectedData[6],
+                    new_street: selectedData[7],
+                    new_home_number: selectedData[8]
+                };
+                // Przenieś dane do pól
+                transferDataToInputs(data);
+            });
+        }
+
+        async function transferDataToInputs(data) {
+            try {
+                $('#first_name').val(data.first_name);
+                $('#surname').val(data.surname);
+                $('#pesel').val(data.pesel);
+                $('#home_numer').val(data.new_home_number);
+
+                const wojewodztwoSelect = $('#wojewodztwo');
+                const citySelect = $('#city_select');
+
+                // 1. Ustaw województwo
+                setSelect2OptionByText(wojewodztwoSelect, data.new_woj);
+
+                // 2. Poczekaj na załadowanie miast i ustaw miasto
+                await loadCities(data.new_woj);
+
+                setSelect2OptionByText(citySelect, data.new_city);
+
+                // 3. Po ustawieniu poczekaj na załadowanie ulic i ustaw ulicę
+                await updateStreets(data.new_street);
+            } catch (error) {
+                console.error("Błąd podczas transferu danych:", error);
+            }
+        }
+
+        // ### Autouzupełnianie ###
+        function setupAutocomplete(inputId, field) {
+            $(inputId).on('input', function () {
+                const query = $(this).val().trim();
+                // Sprawdź, czy zapytanie zawiera co najmniej 3 znaki.
+                if (query.length >= 3) {
+                    $.ajax({
+                        url: '/autocomplete', // Endpoint, który zwraca wyniki z bazy danych.
+                        method: 'GET',
+                        data: {query: query, field: field},
+                        success: function (response) {
+                            // Sprawdź, czy są wyniki w odpowiedzi
+                            if (response && response.length > 0) {
+                                // Wywołaj modal i wypełnij jego zawartość
+                                populateAutocompleteModal(response);
+                            } else {
+                                console.log("Brak wyników dla zapytania:", query);
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error("Błąd podczas autouzupełniania:", textStatus, errorThrown);
+                        }
+                    });
+                }
+            });
+        }
+
+        // ### Inicjalizacja ###
+        initializeSelect2();
+        bindEvents();
+        setupAutocomplete('#surname', 'surname');
+        setupAutocomplete('#pesel', 'pesel');
+
+        // Przesunięcie modala z wynikami na wierzch
+        $('#autocompleteModal').on('show.bs.modal', function () {
+            // Pobierz obecny z-index modala rodzica (modalForm)
+            const parentModalZIndex = parseInt($('#modalForm').css('z-index'));
+            // Ustaw wyższy z-index dla nowego modala
+            $(this).css('z-index', parentModalZIndex + 10);
+        });
+
+        $('#autocompleteModal').on('shown.bs.modal', function () {
+            // Pamiętać, aby backdrop nowego modala również miał poprawny z-index
+            const backdropZIndex = parseInt($(this).css('z-index')) - 1;
+            $('.modal-backdrop').last().css('z-index', backdropZIndex);
+        });
+        // Inicjalizacja Select2 dla autocompleteSelect
+        $('#autocompleteSelect').select2({
+            dropdownParent: $('#autocompleteModal'),
+            width: '100%'
+        });
+    });
+
+    // ### Walidacja PESEL ###
+    function validatePesel(pesel) {
+        if (!/^\d{11}$/.test(pesel)) {
+            return false; // Nieprawidłowa długość lub zawiera znaki inne niż cyfry
+        }
+
+        const weights = [9, 7, 3, 1, 9, 7, 3, 1, 9, 7];
+        let sum = 0;
+
+        for (let i = 0; i < 10; i++) {
+            sum += parseInt(pesel[i]) * weights[i];
+        }
+
+        const controlDigit = sum % 10;
+        return controlDigit === parseInt(pesel[10]);
+    }
+
+    // ### Pokaż okienko toast ###
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;    // Ustawienie tekstu toastu
+        toast.className = 'toast show'; // Dodanie klasy do pokazania
+        setTimeout(() => {
+            toast.className = toast.className.replace('show', ''); // Ukryj po 4 sekundach
+        }, 4000);
+    }
+
+    // ### Obsługa formularza i walidacji pesela ###
+    const peselInput = document.querySelector('#pesel');
+    const form = document.querySelector('#modalForm');
+
+    // Walidacja przy próbie wysyłania formularza
+    form.addEventListener('submit', (event) => {
+        const peselValue = peselInput.value;
+
+        if (!validatePesel(peselValue)) {
+            event.preventDefault();                 // Zatrzymanie wysyłania formularza
+            showToast('PESEL jest nieprawidłowy!'); // Wyświetlenie toastu
+            peselInput.style.borderColor = 'red';   // Wizualne oznaczenie błędu
+        } else {
+            peselInput.style.borderColor = '';      // Wyczyszczenie błędu
+            showToast('PESEL jest prawidłowy!');
+        }
+    });
+
+</script>
+</body>
+</html>

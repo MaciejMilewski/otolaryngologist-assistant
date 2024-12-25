@@ -22,7 +22,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
 
-    <link rel="stylesheet" href="{{ url_for('static',filename='css/badanie.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/visit.css') }}">
 
 </head>
 <body class="light-theme">
@@ -63,7 +63,7 @@
                             </li>
                             &ensp;
                             <li class="nav-item">
-                                <a class="btn btn-outline-success" type="button"
+                                <a class="btn btn-success" type="button"
                                    href="{{ url_for('visit.main_form') }}">Badanie</a>
                             </li>
                             &ensp;
@@ -104,7 +104,7 @@
 
 // POCZĄTEK FORMULARZA
 <div class="container">
-    <form action="/formularz" method="post">
+    <form action="{{ url_for('visit.generuj') }}" method="post">
         <div class="row">
             <div class="col-12 border border-white shadow min-vh-20 py-2 text-color: text-success">
                 WYWIAD
@@ -2476,21 +2476,21 @@
                 <div class="row border border-white shadow min-vh-30 py-2">
 
                     <div class="input-group mb-3">
-                        <label for="startDate"><br>DATA BADANIA&nbsp;&nbsp;&nbsp;</label>
+                        <label for="startDate"><br>&nbsp;&nbsp;&nbsp;DATA BADANIA&nbsp;&nbsp;&nbsp;</label>
                         <input id="startDate" name="data_badania" class="form-control text-center" type="date"/>
                         <span id="startDateSelected"></span>
                     </div>
 
                     <label for="basic-url_ul" class="form-label"></label>
                     <div class="input-group mb-3"><br>
-                        <span class="input-group-text" id="basic-addon3">Ucho lewe [m]&nbsp;&nbsp;</span>
+                        <span class="input-group-text text-bg-secondary" id="basic-addon3">Ucho lewe [m]&nbsp;&nbsp;</span>
                         <input type="text" name="szept_UL" class="form-control text-center" id="basic-url_ul"
                                aria-describedby="basic-addon3">
                     </div>
 
                     <label for="basic-url_up" class="form-label"></label>
                     <div class="input-group mb-3">
-                        <span class="input-group-text" id="basic-addon31">Ucho prawe [m]</span>
+                        <span class="input-group-text text-bg-secondary" id="basic-addon31">Ucho prawe [m]</span>
                         <input type="text" name="szept_UP" class="form-control text-center" id="basic-url_up"
                                aria-describedby="basic-addon3">
                     </div>
@@ -2509,7 +2509,7 @@
                 <table class="table table-bordered text-center">
 
                     <thead>
-                    <tr class="table-danger">
+                    <tr class="table-success">
                         <th>
                             <div class="d-flex align-items-center">
                                 <button type="button" class="btn btn-success" id="setAudiogramBtn"
@@ -2766,6 +2766,20 @@
 </div>
 
 <script>
+    // Pobierz element input dla dat
+    const dateInputSzept = document.getElementById("startDate");
+    const dateInputAudiogram = document.getElementById("startDateAudiogram");
+
+    // Utwórz obiekt z datą bieżącą
+    const today = new Date();
+
+    // Zapisz datę w formacie "YYYY-MM-DD" (wymagany przez pole <input type="date">)
+    const formattedDate = today.toISOString().split("T")[0];
+
+    // Ustaw datę w polu input data badania Szeptem, data badania Audiogramu
+    dateInputSzept.value = formattedDate;
+    dateInputAudiogram.value = formattedDate;
+
     function clear_all_tags() {
         window.location.reload();
     }
