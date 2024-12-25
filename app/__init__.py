@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
+import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
@@ -11,13 +12,17 @@ from flask_migrate import Migrate
 from zeep import Client
 from zeep.wsse.username import UsernameToken
 
-# from app.models import User
 from config import Config
 
 
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+dane_woj = {}
+parquet_data = {}
+
+# get_streets_from_memory
+# get_lista_ulic
 
 
 # Inicjalizacja zmiennych środowiskowych
@@ -68,6 +73,19 @@ def create_app():
     except Exception as e:
         logging.error(f"Błąd podczas inicjalizacji klienta SOAP: {e}")
 
+    global dane_woj
+    if not dane_woj:
+        data_stanu = datetime.now().strftime('%Y-%m-%d')
+        result = client_soap.service.PobierzListeWojewodztw(DataStanu=data_stanu)
+        dane_woj = {woj.WOJ: woj.NAZWA for woj in result}
+        if dane_woj:
+            logging.info(f"Załadowano dane województw: {len(dane_woj)} rekordów.")
+        else:
+            logging.warning("Nie udało się załadować danych województw.")
+
+    global parquet_data
+    parquet_data = load_parquet_files()
+
     @login_manager.user_loader
     def load_user(user_id):
         with app.app_context():
@@ -106,3 +124,37 @@ def create_app():
     app.register_blueprint(schedule_bp)
 
     return app
+
+
+def load_parquet_files(directory='app/static/parquet', expected_file_count=16):
+    """
+    :param directory: The directory to search for Parquet files.
+    :type directory: str
+    :param expected_file_count: The expected number of Parquet files to be loaded.
+    :type expected_file_count: int
+    :return: A dictionary where keys are region names derived from file names, and values are the loaded Parquet files as DataFrames.
+    :rtype: dict
+    """
+    data = {}
+    loaded_file_count = 0
+
+    # Iterowanie po plikach w katalogu
+    for filename in os.listdir(directory):
+        if filename.endswith('.parquet'):
+            try:
+                file_path = os.path.join(directory, filename)
+                region_name = filename.split('.')[0]
+                data[region_name] = pd.read_parquet(file_path)
+                loaded_file_count += 1
+            except FileNotFoundError as error_filename:
+                logging.error(f"File {filename} not found. Error: {error_filename}")
+            except Exception as error_os:
+                logging.error(f"Error loading file {filename}: {error_os}")
+
+    # Sprawdzenie, czy liczba wczytanych plików jest zgodna z oczekiwaną
+    if loaded_file_count < expected_file_count:
+        missing_files_count = expected_file_count - loaded_file_count
+        logging.warning(f"Only {loaded_file_count} out of {expected_file_count} expected Parquet files were loaded. "
+                        f"{missing_files_count} files are missing.")
+
+    return data
