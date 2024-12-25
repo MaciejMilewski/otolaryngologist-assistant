@@ -354,3 +354,41 @@ def zalecenia(data_request) -> str:
         it = int(item)
         result += lista_zalecen[it - 1] + ', '
     return result
+
+
+def pesel2birth(pesel):
+    """
+    Wyznacza datę urodzenia z numeru PESEL.
+
+    :param pesel: Numer PESEL jako string.
+    :return: Data urodzenia w formacie 'YYYY-MM-DD'.
+    """
+    if len(pesel) != 11:
+        return "BŁĘDNY PESEL!"
+
+    year = int(pesel[0:2])
+    month = int(pesel[2:4])
+    day = int(pesel[4:6])
+
+    if 80 <= month <= 99:  # 1800–1899
+        year += 1800
+        month -= 80
+    elif 1 <= month <= 12:  # 1900–1999
+        year += 1900
+    elif 21 <= month <= 32:  # 2000–2099
+        year += 2000
+        month -= 20
+    elif 41 <= month <= 52:  # 2100–2199
+        year += 2100
+        month -= 40
+    elif 61 <= month <= 72:  # 2200–2299
+        year += 2200
+        month -= 60
+    else:
+        return "BŁĘDNY PESEL!"
+
+    try:
+        birth_date = datetime(year, month, day).strftime('%Y-%m-%d')
+        return birth_date
+    except ValueError:
+        return "BŁĘDNY PESEL!"

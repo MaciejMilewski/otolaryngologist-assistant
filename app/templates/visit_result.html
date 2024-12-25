@@ -200,14 +200,14 @@
                                     <i class="bi bi-save"></i> - Zapisz
                                 </button>
                             </div> &nbsp;
-{##}
-{#                            <div>#}
-{#                                <!-- Exit button -->#}
-{#                                <button class="btn btn-danger" onclick="location.href='{{ url_for('menu') }}'"#}
-{#                                        type="button">#}
-{#                                    <i class="bi bi-door-open"></i> - WYJDŹ#}
-{#                                </button>#}
-{#                            </div>#}
+                            {##}
+                            {#                            <div>#}
+                            {#                                <!-- Exit button -->#}
+                            {#                                <button class="btn btn-danger" onclick="location.href='{{ url_for('menu') }}'"#}
+                            {#                                        type="button">#}
+                            {#                                    <i class="bi bi-door-open"></i> - WYJDŹ#}
+                            {#                                </button>#}
+                            {#                            </div>#}
                         </div>
                     </div>
                 </form>
@@ -399,16 +399,18 @@
         const modalButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-action]');
         const modalForm = document.querySelector('#modalFormAction');
 
-        // Przypisujemy odpowiednie akcje w zależności od 'data-action'
+        const printUrl = "{{ url_for('visit.drukuj') }}";
+        const saveUrl = "{{ url_for('visit.zapis_wizyty_do_bazy') }}";
+
         modalButtons.forEach(button => {
             button.addEventListener('click', function () {
                 const action = button.getAttribute('data-action');
 
                 // Ustaw odpowiedni endpoint na podstawie akcji
                 if (action === 'print') {
-                    modalForm.setAttribute('action', '/drukuj'); // Endpoint dla drukowania
+                    modalForm.setAttribute('action', printUrl); // URL dla drukowania
                 } else if (action === 'save') {
-                    modalForm.setAttribute('action', '/zapis');  // Endpoint dla zapisu danych
+                    modalForm.setAttribute('action', saveUrl);  // URL dla zapisu danych
                 }
             });
         });
