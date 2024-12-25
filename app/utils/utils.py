@@ -1,4 +1,8 @@
-from datetime import datetime
+import ast
+import os
+from datetime import datetime, date
+
+from fpdf import FPDF
 from sqlalchemy import and_, or_
 
 from app.models import Schedule
@@ -392,3 +396,109 @@ def pesel2birth(pesel):
         return birth_date
     except ValueError:
         return "BŁĘDNY PESEL!"
+
+
+def generate_pdf(data):
+    def bullet_point(text, bullet='•'):
+        pdf.set_x(10)
+        pdf.cell(10, 10, bullet)
+        pdf.multi_cell(0, 10, text)
+
+    pdf = FPDF()
+    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.add_page()
+
+    # Dodanie czcionek obsługujących Unicode
+    deja_vu_sans_path = os.path.abspath('./fonts/DejaVuSans.ttf')
+    pdf.add_font('DejaVu', '', deja_vu_sans_path, uni=True)
+
+    deja_vu_bold_path = os.path.abspath('./fonts/DejaVuSans-Bold.ttf')
+    pdf.add_font('DejaVu-Bold', '', deja_vu_bold_path, uni=True)
+
+    deja_vu_condensed_oblique_path = os.path.abspath('./fonts/DejaVuSansCondensed-Oblique.ttf')
+    pdf.add_font('DejaVu-Condensed-Oblique', '', deja_vu_condensed_oblique_path, uni=True)
+
+    # Nagłówek z datą i miejscem
+    pdf.set_font("DejaVu-Condensed-Oblique", size=12)
+    pdf.multi_cell(0, 10,
+                   f"{data['siteZapis'] if data['siteZapis'] != '' else 'Gdańsk'}, dnia {date.today().strftime('%d-%m-%Y')} r.",
+                   align='R')
+    pdf.ln(10)
+
+    # Dane osobowe
+    pdf.set_font("DejaVu-Bold", size=12)
+    pdf.cell(0, 10, "Dane osobowe:")
+    pdf.ln(6)
+
+    pdf.set_font("DejaVu", size=12)
+    pdf.cell(0, 10, f"{data['first_name']} {data['surname']}, ur. {pesel2birth(data['pesel'])}")
+    pdf.ln(6)
+
+    address_line = f"{data['city_select']}, {data['street']} {data['home_numer']}".strip(", ")
+    pdf.cell(0, 10, address_line)
+
+    pdf.ln(20)
+
+    # Wywiad
+    pdf.set_font("DejaVu-Bold", size=12)
+    pdf.cell(0, 10, "WYWIAD", align='C')
+    pdf.ln(6)
+    pdf.set_font("DejaVu", size=12)
+    pdf.multi_cell(0, 10, data['wywiad'])
+
+    # Schorzenia ogólne
+    if data['ogolne']:
+        pdf.set_font("DejaVu-Bold", size=12)
+        pdf.cell(0, 10, "Schorzenia ogólne:")
+        pdf.ln(6)
+        pdf.set_font("DejaVu", size=12)
+        pdf.multi_cell(0, 10, data['ogolne'])
+
+    # Schorzenia laryngologiczne
+    if data['laryngolog']:
+        pdf.set_font("DejaVu-Bold", size=12)
+        pdf.cell(0, 10, "Schorzenia laryngologiczne:")
+        pdf.ln(6)
+        pdf.set_font("DejaVu", size=12)
+        pdf.multi_cell(0, 10, data['laryngolog'])
+
+    # Badanie laryngologiczne
+    if data['orl']:
+        pdf.set_font("DejaVu-Bold", size=12)
+        pdf.cell(0, 10, "Badanie laryngologiczne:")
+        pdf.ln(6)
+        pdf.set_font("DejaVu", size=12)
+        pdf.multi_cell(0, 10, data['orl'])
+
+    # Zabiegi
+    if data['zabiegi']:
+        pdf.set_font("DejaVu-Bold", size=12)
+        pdf.cell(0, 10, "Zabiegi:")
+        pdf.ln(6)
+        pdf.set_font("DejaVu", size=12)
+
+        lista_zabiegi = ast.literal_eval(data['zabiegi'])
+        for zabieg in lista_zabiegi:
+            bullet_point(zabieg)
+
+    # Diagnoza
+    if data['diagnoza']:
+        pdf.set_font("DejaVu-Bold", size=12)
+        pdf.cell(0, 10, "DIAGNOZA:")
+        pdf.ln(6)
+        pdf.set_font("DejaVu", size=12)
+        pdf.multi_cell(0, 10, data['diagnoza'])
+
+    # Zalecenia
+    pdf.set_font("DejaVu-Bold", size=12)
+    pdf.cell(0, 10, "ZALECENIA:")
+    pdf.ln(6)
+    pdf.set_font("DejaVu", size=12)
+    pdf.multi_cell(0, 10, data['zalecenie'])
+
+    # Podpis
+    pdf.ln(10)
+    pdf.set_font("DejaVu-Condensed-Oblique", size=12)
+    pdf.cell(0, 10, "podpis i pieczątka", align='R')
+
+    return pdf

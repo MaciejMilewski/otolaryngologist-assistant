@@ -13,7 +13,7 @@ from app.models import Procedure, Patient
 from app.utils.parquet_util import get_streets_from_memory
 
 from app.utils.utils import (ogolne_items, orl_items, validate_request_badania, validate_request_structure_main,
-                             validate_request_szept, zalecenia, pesel2birth)
+                             validate_request_szept, zalecenia, pesel2birth, generate_pdf)
 
 from typing import List, Optional, Tuple
 
@@ -26,7 +26,7 @@ place = [
     {'id': '6', 'name': 'Gdynia'}
 ]
 
-ALLOWED_FIELDS = {'pesel', 'surname'} # Definicja dozwolonych kolumn
+ALLOWED_FIELDS = {'pesel', 'surname'}  # Definicja dozwolonych kolumn
 
 
 def get_data_to_autocomplete(query: str, field: str) -> Optional[List[Tuple]]:
@@ -189,109 +189,6 @@ def get_ulice():
 @visit_bp.route('/drukuj', methods=['GET', 'POST'])
 @login_required
 def drukuj():
-
-    def generate_pdf(data):
-
-        def bullet_point(text, bullet='•'):
-            pdf.set_x(10)
-            pdf.cell(10, 10, bullet)
-            pdf.multi_cell(0, 10, text)
-
-        pdf = FPDF()
-        pdf.set_auto_page_break(auto=True, margin=15)
-        pdf.add_page()
-
-        # Dodanie czcionek obsługujących Unicode
-        deja_vu_sans_path = os.path.abspath('./fonts/DejaVuSans.ttf')
-        pdf.add_font('DejaVu', '', deja_vu_sans_path, uni=True)
-
-        deja_vu_bold_path = os.path.abspath('./fonts/DejaVuSans-Bold.ttf')
-        pdf.add_font('DejaVu-Bold', '', deja_vu_bold_path, uni=True)
-
-        deja_vu_condensed_oblique_path = os.path.abspath('./fonts/DejaVuSansCondensed-Oblique.ttf')
-        pdf.add_font('DejaVu-Condensed-Oblique', '', deja_vu_condensed_oblique_path, uni=True)
-
-        # Nagłówek z datą i miejscem
-        pdf.set_font("DejaVu-Condensed-Oblique", size=12)
-        pdf.multi_cell(0, 10,
-                       f"{data['site'] if data['site'] != '' else 'Gdańsk'}, dnia {date.today().strftime('%d-%m-%Y')} r.", align='R')
-        pdf.ln(10)
-
-        # Dane osobowe
-        pdf.set_font("DejaVu-Bold", size=12)
-        pdf.cell(0, 10, "Dane osobowe:")
-        pdf.ln(6)
-
-        pdf.set_font("DejaVu", size=12)
-        pdf.cell(0, 10, f"{data['name']}, ur. {pesel2birth(data['pesel'])}")
-        pdf.ln(6)
-        pdf.cell(0, 10, f"{data['adress'] if data['adress'] != '' else 'Gdańsk'}")
-        pdf.ln(10)
-
-        # Wywiad
-        pdf.set_font("DejaVu-Bold", size=12)
-        pdf.cell(0, 10, "WYWIAD", align='C')
-        pdf.ln(6)
-        pdf.set_font("DejaVu", size=12)
-        pdf.multi_cell(0, 10, data['wywiad'])
-
-        # Schorzenia ogólne
-        if data['ogolne']:
-            pdf.set_font("DejaVu-Bold", size=12)
-            pdf.cell(0, 10, "Schorzenia ogólne:")
-            pdf.ln(6)
-            pdf.set_font("DejaVu", size=12)
-            pdf.multi_cell(0, 10, data['ogolne'])
-
-        # Schorzenia laryngologiczne
-        if data['laryngolog']:
-            pdf.set_font("DejaVu-Bold", size=12)
-            pdf.cell(0, 10, "Schorzenia laryngologiczne:")
-            pdf.ln(6)
-            pdf.set_font("DejaVu", size=12)
-            pdf.multi_cell(0, 10, data['laryngolog'])
-
-        # Badanie laryngologiczne
-        if data['orl']:
-            pdf.set_font("DejaVu-Bold", size=12)
-            pdf.cell(0, 10, "Badanie laryngologiczne:")
-            pdf.ln(6)
-            pdf.set_font("DejaVu", size=12)
-            pdf.multi_cell(0, 10, data['orl'])
-
-        # Zabiegi
-        if data['zabiegi']:
-            pdf.set_font("DejaVu-Bold", size=12)
-            pdf.cell(0, 10, "Zabiegi:")
-            pdf.ln(6)
-            pdf.set_font("DejaVu", size=12)
-
-            lista_zabiegi = ast.literal_eval(data['zabiegi'])
-            for zabieg in lista_zabiegi:
-                bullet_point(zabieg)
-
-        # Diagnoza
-        if data['diagnoza']:
-            pdf.set_font("DejaVu-Bold", size=12)
-            pdf.cell(0, 10, "DIAGNOZA:")
-            pdf.ln(6)
-            pdf.set_font("DejaVu", size=12)
-            pdf.multi_cell(0, 10, data['diagnoza'])
-
-        # Zalecenia
-        pdf.set_font("DejaVu-Bold", size=12)
-        pdf.cell(0, 10, "ZALECENIA:")
-        pdf.ln(6)
-        pdf.set_font("DejaVu", size=12)
-        pdf.multi_cell(0, 10, data['zalecenie'])
-
-        # Podpis
-        pdf.ln(10)
-        pdf.set_font("DejaVu-Condensed-Oblique", size=12)
-        pdf.cell(0, 10, "podpis i pieczątka", align='R')
-
-        return pdf
-
     # Generowanie PDF
     pdf = generate_pdf(request.form)
 
@@ -301,7 +198,8 @@ def drukuj():
     buffer.seek(0)
 
     # Zwrócenie pliku PDF jako odpowiedź
-    return send_file(buffer, mimetype='application/pdf', download_name=f"{request.form['name']}.pdf",
+    return send_file(buffer, mimetype='application/pdf',
+                     download_name=f"{request.form['first_name']}_{request.form['surname']}.pdf",
                      as_attachment=True)
 
 
@@ -309,6 +207,3 @@ def drukuj():
 @visit_bp.route('/zapis', methods=['POST', 'GET'])
 def zapis_wizyty_do_bazy():
     pass
-
-
-
