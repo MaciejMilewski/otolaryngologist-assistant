@@ -1,3 +1,6 @@
+import logging
+from logging.handlers import RotatingFileHandler
+
 from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
@@ -12,6 +15,15 @@ migrate = Migrate()
 login_manager = LoginManager()
 
 
+def setup_logging(app):
+    handler = RotatingFileHandler(
+        'errors.log', maxBytes=3 * 1024 * 1024, backupCount=5
+    )
+    handler.setLevel(logging.ERROR)
+    handler.setFormatter(logging.Formatter(fmt='%(asctime)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
+    app.logger.addHandler(handler)
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -20,6 +32,7 @@ def create_app():
     migrate.init_app(app, db)
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
+    setup_logging(app)
 
     @login_manager.user_loader
     def load_user(user_id):
@@ -59,4 +72,3 @@ def create_app():
     app.register_blueprint(schedule_bp)
 
     return app
-
