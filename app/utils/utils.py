@@ -399,6 +399,8 @@ def pesel2birth(pesel):
 
 
 def generate_pdf(data):
+    freq_list = ["250", "500", "1000", "2000", "3000", "4000", "6000", "8000"]
+
     def bullet_point(text, bullet='•'):
         pdf.set_x(10)
         pdf.cell(10, 10, bullet)
@@ -414,9 +416,6 @@ def generate_pdf(data):
 
     deja_vu_bold_path = os.path.abspath('./fonts/DejaVuSans-Bold.ttf')
     pdf.add_font('DejaVu-Bold', '', deja_vu_bold_path, uni=True)
-
-    # deja_vu_condensed_oblique_path = os.path.abspath('./fonts/DejaVuSansCondensed-Oblique.ttf')
-    # pdf.add_font('DejaVu-Condensed-Oblique', '', deja_vu_condensed_oblique_path, uni=True)
 
     # Nagłówek z datą i miejscem
     pdf.set_font("DejaVu", size=12)
@@ -481,18 +480,54 @@ def generate_pdf(data):
         for zabieg in lista_zabiegi:
             bullet_point(zabieg)
 
-    # Diagnoza
-    if data['diagnoza']:
-        pdf.set_font("DejaVu-Bold", size=12)
-        pdf.cell(0, 10, "DIAGNOZA:")
-        pdf.ln(6)
+    # Szept
+    if data['szepty']:
         pdf.set_font("DejaVu", size=12)
-        pdf.multi_cell(0, 10, data['diagnoza'])
+        pdf.cell(0, 10, f"W dniu {data['szepty']}")
+        pdf.ln(10)
+
+    # Audiogram
+    if (not any(data.get(f"UL__{freq}") for freq in freq_list) or
+            not any(data.get(f"UP__{freq}") for freq in freq_list)):
+        pass
+    else:
+        pdf.set_font("DejaVu-Bold", size=12)
+        pdf.cell(0, 10, f"AUDIOGRAM {data['data_audiogramu']}")
+        pdf.ln(10)
+        pdf.set_font("DejaVu", size=10)
+        # Nagłówki tabeli: częstotliwości
+        pdf.cell(30, 10, "Hz", 1, 0, "C")  # Pusta komórka (lewa kolumna)
+        for freq in freq_list:
+            pdf.cell(18, 10, freq, 1, 0, "C")  # Nagłówki z kolejnymi częstotliwościami
+        pdf.ln()  # Nowy wiersz
+
+        # Dane dla ucha lewego
+        pdf.cell(30, 10, "Ucho lewe", 1, 0, "C")
+        for freq in freq_list:
+            value = data.get(f"UL__{freq}", "-")  # Pobiera dane dla ucha lewego lub "Brak"
+            pdf.cell(18, 10, str(value), 1, 0, "C")
+        pdf.ln()  # Nowy wiersz
+
+        # Dane dla ucha prawego
+        pdf.cell(30, 10, "Ucho prawe", 1, 0, "C")
+        for freq in freq_list:
+            value = data.get(f"UP__{freq}", "-")  # Pobiera dane dla ucha prawego lub "Brak"
+            pdf.cell(18, 10, str(value), 1, 0, "C")
+        pdf.ln(14)
+
+        # Diagnoza
+        if data['diagnoza']:
+            pdf.set_font("DejaVu-Bold", size=12)
+            pdf.cell(0, 10, "DIAGNOZA:")
+            pdf.ln(10)
+            pdf.set_font("DejaVu", size=12)
+            pdf.multi_cell(0, 10, data['diagnoza'])
+            pdf.ln(10)
 
     # Zalecenia
     pdf.set_font("DejaVu-Bold", size=12)
     pdf.cell(0, 10, "ZALECENIA:")
-    pdf.ln(6)
+    pdf.ln(10)
     pdf.set_font("DejaVu", size=12)
     pdf.multi_cell(0, 10, data['zalecenie'])
 

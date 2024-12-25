@@ -152,11 +152,12 @@
                             </div>
                         {% endif %}
 
-                        {% if zabieg %}
+                        {% if zabiegi %}
                             <!-- Procedures section -->
-                            <div class="form-group text-left">
+                            <div class="form-group text-left" id="zabiegi">
+                                <label for="zabiegi">Zabiegi:</label>
                                 <ul id="zabieg">
-                                    {% for item in zabieg %}
+                                    {% for item in zabiegi %}
                                         <li style="margin-left: 10px;" contenteditable="true">{{ item|e }}</li>
                                     {% endfor %}
                                 </ul>
@@ -347,6 +348,9 @@
                     </div>
 
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" onclick="location.href='{{ url_for('visit.main_form') }}'">
+                            Powrót
+                        </button>
                         <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Anuluj</button>
                         <button type="submit" class="btn btn-warning">Gotowe</button>
                     </div>
@@ -360,7 +364,7 @@
                         <input type="hidden" class="form-control" id="orl" name="orl" value="{{ orl }}">
                         <input type="hidden" class="form-control" id="szepty" name="szepty"
                                value="{{ data_szeptu|e }} {{ szept|e }}">
-                        <input type="hidden" class="form-control" id="zabiegi" name="zabiegi" value="{{ zabieg|e }}">
+                        <input type="hidden" class="form-control" id="zabiegi" name="zabiegi" value="{{ zabiegi|e }}">
                         <input type="hidden" class="form-control" id="zalecenie" name="zalecenie"
                                value="{{ zalecenia|e }}">
                         <input type="hidden" class="form-control" id="data_audiogramu" name="data_audiogramu"
@@ -774,9 +778,6 @@
             event.preventDefault();                 // Zatrzymanie wysyłania formularza
             showToast('PESEL jest nieprawidłowy!'); // Wyświetlenie toastu
             peselInput.style.borderColor = 'red';   // Wizualne oznaczenie błędu
-        } else {
-            peselInput.style.borderColor = '';      // Wyczyszczenie błędu
-            showToast('PESEL jest prawidłowy!');
         }
     });
 

@@ -1,46 +1,38 @@
-import ast
-import os
 from datetime import date
 from io import BytesIO
 
-from flask import Blueprint, render_template, request, abort, jsonify, send_file
+from flask import Blueprint, render_template, request, abort, jsonify, send_file, redirect, url_for
 from flask_login import login_required, current_user
-from fpdf import FPDF
+
 from jinja2 import TemplateNotFound
 
 from app import db, parquet_data, dane_woj
 from app.models import Procedure, Patient
+from app.utils.const import place
 from app.utils.parquet_util import get_streets_from_memory
 
 from app.utils.utils import (ogolne_items, orl_items, validate_request_badania, validate_request_structure_main,
-                             validate_request_szept, zalecenia, pesel2birth, generate_pdf)
+                             validate_request_szept, zalecenia, generate_pdf)
 
 from typing import List, Optional, Tuple
 
-place = [
-    {'id': '1', 'name': 'Pruszcz Gdański'},
-    {'id': '2', 'name': 'Starogard Gdański'},
-    {'id': '3', 'name': 'Gdańsk'},
-    {'id': '4', 'name': 'Sopot'},
-    {'id': '5', 'name': 'Tczew'},
-    {'id': '6', 'name': 'Gdynia'}
-]
-
-ALLOWED_FIELDS = {'pesel', 'surname'}  # Definicja dozwolonych kolumn
+ALLOWED_FIELDS = {'pesel', 'surname'}  # Definicja dozwolonych kolumn dla szukania w bazie danych
 
 
-def get_data_to_autocomplete(query: str, field: str) -> Optional[List[Tuple]]:
+def get_data_to_autocomplete(query: str, field: str) -> Optional[List[List]]:
     if field not in ALLOWED_FIELDS:
-        raise ValueError("Invalid -field- parameter")
+        raise ValueError("Invalid -field- parameter in autocomplete")
     try:
         # Otwórz nową sesję
         # Dynamiczne filtrowanie za pomocą getattr
         result = db.session.query(Patient).filter(getattr(Patient, field).like(f"{query}%")).all()
-
+        # Zwrócenie tylko pożądanych pól
+        fields_to_return = ['id', 'first_name', 'surname', 'pesel', 'gender', 'state', 'city', 'street',
+                            'apartment_number']
         # Konwersja wyników na listę krotek z wszystkimi kolumnami
-        return [tuple(row.__dict__.values()) for row in result if '_sa_instance_state' in row.__dict__.keys()]
+        return [[getattr(row, field) for field in fields_to_return] for row in result]
     except Exception as e:
-        print(f"Problem: {e}")
+        print(f"Problem z bazą danych i danymi pobieranymi dla autocomplete: {e}")
         return []
 
 
@@ -69,6 +61,7 @@ def generuj():
         orl = validate_request_structure_main(dane)
         szept = validate_request_szept(dane)
         zaleca = zalecenia(dane)
+
         today = date.today().strftime("%d-%m-%Y")
 
         wojewodztwo_default = '22'  # Domyślne województwo - "POMORSKIE" (kod '22')
@@ -196,6 +189,9 @@ def drukuj():
     pdf_data = pdf.output(dest='S').encode('latin1')
     buffer = BytesIO(pdf_data)
     buffer.seek(0)
+
+    # nie działa przekierowanie na visit.main_form
+    redirect(url_for('visit.main_form'))
 
     # Zwrócenie pliku PDF jako odpowiedź
     return send_file(buffer, mimetype='application/pdf',
