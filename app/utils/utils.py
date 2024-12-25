@@ -415,11 +415,11 @@ def generate_pdf(data):
     deja_vu_bold_path = os.path.abspath('./fonts/DejaVuSans-Bold.ttf')
     pdf.add_font('DejaVu-Bold', '', deja_vu_bold_path, uni=True)
 
-    deja_vu_condensed_oblique_path = os.path.abspath('./fonts/DejaVuSansCondensed-Oblique.ttf')
-    pdf.add_font('DejaVu-Condensed-Oblique', '', deja_vu_condensed_oblique_path, uni=True)
+    # deja_vu_condensed_oblique_path = os.path.abspath('./fonts/DejaVuSansCondensed-Oblique.ttf')
+    # pdf.add_font('DejaVu-Condensed-Oblique', '', deja_vu_condensed_oblique_path, uni=True)
 
     # Nagłówek z datą i miejscem
-    pdf.set_font("DejaVu-Condensed-Oblique", size=12)
+    pdf.set_font("DejaVu", size=12)
     pdf.multi_cell(0, 10,
                    f"{data['siteZapis'] if data['siteZapis'] != '' else 'Gdańsk'}, dnia {date.today().strftime('%d-%m-%Y')} r.",
                    align='R')
@@ -498,7 +498,7 @@ def generate_pdf(data):
 
     # Podpis
     pdf.ln(10)
-    pdf.set_font("DejaVu-Condensed-Oblique", size=12)
+    pdf.set_font("DejaVu", size=12)
     pdf.cell(0, 10, "podpis i pieczątka", align='R')
 
     return pdf
