@@ -1,10 +1,15 @@
 import logging
+import os
+from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
+from dotenv import load_dotenv
 from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+from zeep import Client
+from zeep.wsse.username import UsernameToken
 
 # from app.models import User
 from config import Config
@@ -13,6 +18,26 @@ from config import Config
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
+
+
+# Inicjalizacja zmiennych środowiskowych
+load_dotenv()
+
+# Dane SOAP
+WSDL_URL = os.getenv('WSDL_URL')
+WSDL_USERNAME = os.getenv('WSDL_USERNAME')
+WSDL_PASSWORD = os.getenv('WSDL_PASSWORD')
+
+if None in (WSDL_URL, WSDL_USERNAME, WSDL_PASSWORD):
+    logging.error("Jedna lub więcej zmiennych środowiskowych WSDL jest pusta.")
+    print("Jedna lub więcej zmiennych środowiskowych WSDL jest pusta.")
+
+if WSDL_URL and WSDL_USERNAME and WSDL_PASSWORD:
+    token = UsernameToken(username=WSDL_USERNAME, password=WSDL_PASSWORD)
+    client_soap = Client(wsdl=WSDL_URL, wsse=token)
+else:
+    client_soap = None
+    logging.error("Nie udało się utworzyć klienta SOAP z powodu brakujących danych uwierzytelniających.")
 
 
 def setup_logging(app):
@@ -33,6 +58,15 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = 'auth.login'
     setup_logging(app)
+
+    try:
+        test_response = client_soap.service.PobierzListeWojewodztw(DataStanu=datetime.now().strftime('%Y-%m-%d'))
+        if not test_response:
+            logging.error("Nie udało się zalogować klienta SOAP.")
+        else:
+            logging.info("Klient SOAP został poprawnie zalogowany.")
+    except Exception as e:
+        logging.error(f"Błąd podczas inicjalizacji klienta SOAP: {e}")
 
     @login_manager.user_loader
     def load_user(user_id):
