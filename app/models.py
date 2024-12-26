@@ -20,6 +20,9 @@ class Patient(db.Model):
     street = db.Column(db.String(50))
     apartment_number = db.Column(db.String(10))
 
+    # Relacja z Visit
+    visits = db.relationship('Visit', backref='patient', lazy=True)
+
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'
@@ -59,8 +62,8 @@ class Visit(db.Model):
     orl = db.Column(db.String(100))
     examination = db.Column(db.String, nullable=False)
     recommendations = db.Column(db.String, nullable=False)
-    whisper_test = db.Column(db.String, nullable=False)
-    nfz_info = db.Column(db.String, nullable=False)
+    whisper_test = db.Column(db.String)
+    nfz_info = db.Column(db.String)
     audiogram_date = db.Column(db.Date, default=None)
     examination_date = db.Column(db.Date, default=None)
     routine = db.Column(db.String)
