@@ -64,36 +64,35 @@
 
                         <!-- 'Wywiad' section -->
                         <div class="form-group">
-                            <label for="wywiad_text">Wywiad:</label>
-                            <textarea id="wywiad_text" name="wywiad_text" class="form-control">{{ wywiad|e }}</textarea>
+                            <label for="wywiad">Wywiad:</label>
+                            <textarea id="wywiad" name="wywiad" class="form-control">{{ wywiad|e }}</textarea>
                         </div>
 
                         <!-- 'Schorzenia ogólne' section -->
                         <div class="form-group text-left">
-                            <label for="general_choroby">Schorzenia ogólne:</label>
-                            <textarea id="general_choroby" name="general_choroby"
+                            <label for="ogolne">Schorzenia ogólne:</label>
+                            <textarea id="ogolne" name="ogolne"
                                       class="form-control">{{ ogolne|default('Pacjent nie zgłasza chorób przewlekłych i nie przyjmuje leków na stałe.',true)|e }}</textarea>
                         </div>
 
                         <!-- 'Schorzenia laryngologiczne' section -->
                         <div class="form-group text-left">
-                            <label for="orl_choroby">Schorzenia laryngologiczne:</label>
-                            <textarea id="orl_choroby" name="orl_choroby"
+                            <label for="laryngolog">Schorzenia laryngologiczne:</label>
+                            <textarea id="laryngolog" name="laryngolog"
                                       class="form-control">{{ laryngolog|default('Pacjent nie zgłasza przewlekłych dolegliwości laryngologicznych.',true)|e }}</textarea>
                         </div>
 
                         <!-- 'Badanie laryngologiczne' section -->
                         <div class="form-group text-left">
-                            <label for="opis">Badanie laryngologiczne:</label>
-                            <textarea id="opis" name="opis"
-                                      class="form-control">{{ orl|e }}</textarea>
+                            <label for="orl">Badanie laryngologiczne:</label>
+                            <textarea id="orl" name="orl" class="form-control">{{ orl|e }}</textarea>
                         </div>
 
                         {% if szept %}
                             <!-- 'Badanie szeptem' section -->
                             <div class="form-group text-left">
-                                <label for="szept">Badanie szeptem:</label>
-                                <input type="text" class="form-control szept" id="szept" name="szept"
+                                <label for="szepty">Badanie szeptem:</label>
+                                <input type="text" class="form-control" id="szepty" name="szepty"
                                        value="{{ (data_szeptu ~ ' ' ~ szept)|e }}">
                             </div>
                         {% endif %}
@@ -101,7 +100,7 @@
                         {% if UL_250 %}
                             <!-- Audiogram table section -->
                             <div class="form-group text-left">
-                                <label for="szept">Audiogram:</label>
+                                <label for="audiogram">Audiogram:</label>
 
                                 <div class="form-group text-left">
                                     <table class="table table-bordered text-center">
@@ -154,23 +153,17 @@
 
                         {% if zabiegi %}
                             <!-- Procedures section -->
-                            <div class="form-group text-left" id="zabiegi">
                                 <label for="zabiegi">Zabiegi:</label>
-                                <ul id="zabieg">
-                                    {% for item in zabiegi %}
-{#                                        <li style="margin-left: 10px;" contenteditable="true">{{ item|e }}</li>#}
-                                            <textarea style="margin-left: 10px;">{{ item|e }}</textarea>
-                                    {% endfor %}
-                                </ul>
-                            </div>
+                                <textarea id="zabiegi" name="zabiegi" class="form-control text-left" placeholder="">{{ zabiegi|e }}</textarea>
                         {% endif %}
 
                         {% if zalecenia %}
                             <!-- Recommendations section -->
                             <div class="form-group text-left">
-                                <label for="zalecenia">Zalecenia:</label>
-                                <textarea id="zalecenia" name="zalecenia"
-                                          class="form-control">{{ zalecenia|e }}</textarea>
+                                <label for="zalecenie">Zalecenia:</label>
+                                <textarea id="zalecenie" name="zalecenie"
+                                          class="form-control">{{ zalecenia|e }}
+                                </textarea>
                             </div>
                         {% endif %}
                     </fieldset>
@@ -341,7 +334,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-danger" onclick="location.href='{{ url_for('visit.main_form') }}'">
+                        <button type="button" class="btn btn-danger"
+                                onclick="location.href='{{ url_for('visit.main_form') }}'">
                             Powrót
                         </button>
                         <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Anuluj</button>
@@ -437,7 +431,7 @@
                 if (option.length > 0) {
                     selectElement.val(option.val()).trigger('change.select2');
                 } else {
-                    console.warn("Nie znaleziono opcji w select:", textValue,' - ', selectElement.attr('id'));
+                    console.warn("Nie znaleziono opcji w select:", textValue, ' - ', selectElement.attr('id'));
                 }
             }
         }
@@ -773,6 +767,33 @@
             peselInput.style.borderColor = 'red';   // Wizualne oznaczenie błędu
         }
     });
+
+
+    <!-- FUNKCJA DO SYNCHRONIZACJI WARTOŚCI PÓL TEXTAREA Z UKRYTYMI INPUTAMI -->
+
+    function syncTextareaToHiddenInputs() {
+        // Pobierz wszystkie pola textarea
+        const textareas = document.querySelectorAll('textarea');
+
+        // Iteruj przez każde textarea
+        textareas.forEach((textarea) => {
+            textarea.addEventListener('input', function () {
+                // Znajdź odpowiadające ukryte pole input w modalu
+                const hiddenInput = document.querySelector(`input[type="hidden"][name="${textarea.name}"]`);
+
+                if (hiddenInput) {
+                    // Zaktualizuj wartość ukrytego inputa
+                    hiddenInput.value = textarea.value;
+                }
+            });
+        });
+    }
+
+    // Wywołaj funkcję po załadowaniu dokumentu
+    document.addEventListener('DOMContentLoaded', function () {
+        syncTextareaToHiddenInputs();
+    });
+
 
 </script>
 </body>

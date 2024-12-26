@@ -55,7 +55,7 @@ def generuj():
     try:
         dane = request.form
 
-        zabiegi = dane.getlist('selectZabiegi')
+        zabiegi = ' '.join(dane.getlist('selectZabiegi')).lstrip()
         ogolne = validate_request_badania(ogolne_items, dane)
         laryngologiczne = validate_request_badania(orl_items, dane)
         orl = validate_request_structure_main(dane)
@@ -334,5 +334,3 @@ def zapis_wizyty_do_bazy():
         db.session.rollback()
         flash(f"Błąd zapisu bazy danych: {e}", "danger")
         return redirect('/visit')
-
-

@@ -40,7 +40,7 @@ legend {
     padding: var(--padding-medium);
     border: var(--border-light);
     text-align: justify;
-    text-justify: inter-word;
+  /*  text-justify: inter-word; */
     font-family: var(--font-family-main);
     font-style: italic;
 }
