@@ -158,7 +158,8 @@
                                 <label for="zabiegi">Zabiegi:</label>
                                 <ul id="zabieg">
                                     {% for item in zabiegi %}
-                                        <li style="margin-left: 10px;" contenteditable="true">{{ item|e }}</li>
+{#                                        <li style="margin-left: 10px;" contenteditable="true">{{ item|e }}</li>#}
+                                            <textarea style="margin-left: 10px;">{{ item|e }}</textarea>
                                     {% endfor %}
                                 </ul>
                             </div>
@@ -201,14 +202,6 @@
                                     <i class="bi bi-save"></i> - Zapisz
                                 </button>
                             </div> &nbsp;
-                            {##}
-                            {#                            <div>#}
-                            {#                                <!-- Exit button -->#}
-                            {#                                <button class="btn btn-danger" onclick="location.href='{{ url_for('menu') }}'"#}
-                            {#                                        type="button">#}
-                            {#                                    <i class="bi bi-door-open"></i> - WYJDŹ#}
-                            {#                                </button>#}
-                            {#                            </div>#}
                         </div>
                     </div>
                 </form>
@@ -444,7 +437,7 @@
                 if (option.length > 0) {
                     selectElement.val(option.val()).trigger('change.select2');
                 } else {
-                    console.warn("Nie znaleziono opcji w select:", selectElement.attr('id'));
+                    console.warn("Nie znaleziono opcji w select:", textValue,' - ', selectElement.attr('id'));
                 }
             }
         }
