@@ -537,3 +537,21 @@ def generate_pdf(data):
     pdf.cell(0, 10, "podpis i pieczątka", align='R')
 
     return pdf
+
+
+def walidacja_pesela(pesel):
+    """
+    :param pesel: The PESEL number to be validated as a string of digits.
+    :return: True if the PESEL is valid, False otherwise.
+    """
+    # Sprawdzamy, czy PESEL ma dokładnie 11 cyfr i czy znaki są cyframi
+    if len(pesel) != 11 or not pesel.isdigit():
+        return False
+    # Wagi dla pozycji PESEL-a
+    wagi = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3]
+    # Obliczamy sumę kontrolną
+    suma = sum(int(pesel[i]) * wagi[i] for i in range(10))
+    # Cyfra kontrolna to ostatnia cyfra PESEL-a
+    cyfra_kontrolna = (10 - suma % 10) % 10
+    # Sprawdzamy, czy cyfra kontrolna zgadza się z ostatnią cyfrą PESEL-a
+    return cyfra_kontrolna == int(pesel[10])

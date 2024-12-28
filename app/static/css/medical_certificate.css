@@ -1,0 +1,170 @@
+/* Kolor tła strony i przewijanie */
+body {
+    background-color: #F2F5EA; /* Delikatniejszy odcień dla komfortu oczu */
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+}
+
+/* Kontener, pełna szerokość dla desktopu */
+.container {
+    padding-top: 40px;
+    max-width: 100%;
+}
+
+/* Styl nagłówków kart */
+.card-header {
+    background-color: #5cb85c; /* Delikatniejszy, przyjemny odcień zieleni */
+    color: #fff;
+    font-weight: bold;
+}
+
+/* Nagłówki sekcji */
+h4 span.badge {
+    font-size: 1.1rem;
+    padding: 0.5rem;
+}
+
+/* Ustawienie stylu etykiet */
+label {
+    display: inline-block;
+    width: 100%;
+    font-weight: bold;
+    color: #333333; /* Bardziej wyrazisty, ciemniejszy kolor */
+}
+
+.form-check-label {
+    font-weight: bold;
+    color: #333333;
+}
+
+/* Styl dla pól input, select i select2 */
+.form-control,
+select.form-select,
+.select2-container .select2-selection--single {
+    background-color: #eaf2e8; /* Miękki, jasny odcień zielonego */
+    color: #495057;
+    border: 1px solid #bbb;
+    border-radius: 0.25rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: 10px 12px;
+}
+
+/* Stylizacja dla Select2 */
+.select2-container .select2-selection--single {
+    height: 38px;
+    line-height: 38px;
+    background-color: #eaf2e8 !important;
+    color: #495057;
+    border-radius: 0.25rem;
+}
+
+.select2-container .select2-selection__rendered {
+    color: #495057;
+}
+
+.select2-container .select2-selection__arrow {
+    height: 38px;
+}
+
+/* Styl dla zwykłych pól select */
+select.form-select:focus,
+.form-control:focus {
+    background-color: #e0f7fa; /* Delikatne niebieskie podświetlenie */
+    outline: none;
+}
+
+select.form-select:hover,
+.form-control:hover {
+    background-color: #e4fce4 !important;
+}
+
+select.form-select option {
+    color: #495057;
+}
+
+/* Styl dla przycisków głównych */
+.btn-primary {
+    background-color: #5bc0de; /* Jasno-niebieski */
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #31b0d5; /* Ciemniejszy niebieski przy hover */
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+/* Styl dla przycisku Czyść */
+.btn-warning {
+    background-color: #f0ad4e; /* Pomarańczowy */
+    color: #fff;
+    border: none;
+}
+
+.btn-warning:hover {
+    background-color: #ec971f; /* Ciemniejszy pomarańczowy przy hover */
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+/* Przycisk GRBAS */
+#GRBAS {
+    font-size: 0.9rem;
+    /*background-color: #5bc0de; !* Dopasowany do głównych przycisków *!*/
+    color: #fff;
+    font-weight: bold;
+}
+
+#GRBAS:hover {
+    background-color: #f0ad4e; /* Pomarańczowy */
+    color: black; /* Ciemniejszy niebieski przy hover */
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+/* Usunięcie odstępów między wierszami sekcji systemowej */
+#systemButtons .row {
+    margin-bottom: 0;
+}
+
+/* Styl dla kontenera numer */
+#numer {
+    width: 90%; /* Zmniejszona szerokość */
+}
+
+/* Dodanie lekkiego odstępu między polami */
+.form-control,
+.select2-container .select2-selection--single {
+    margin-bottom: 15px;
+}
+
+/* Pole tekstowe */
+.form-control {
+    background-color: #d4f5d4 !important;
+    color: #000;
+    border: 1px solid #ccc;
+}
+
+/* Styl dla pola tekstowego przy fokusie */
+input:focus {
+    background-color: #ffe5b4 !important;
+    outline: none;
+}
+/* Styl dla ikon w przyciskach */
+button .bi {
+    margin-right: 8px;
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+
+.zdolny-label {
+    display: inline;
+    width: auto;
+}
+
+.custom-raport-btn {
+    color: #fff; /* Biały kolor tekstu */
+}
+
+.custom-raport-btn i {
+    color: #fff; /* Biały kolor ikony */
+}

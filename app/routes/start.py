@@ -11,19 +11,6 @@ start_bp = Blueprint('start', __name__)
 @start_bp.route('/', methods=['GET'])
 def home():
     try:
-        print("Województwa wywołane w start.py: ", dane_woj)
-
-        if 'POMORSKIE' in parquet_data:
-            miejscowosc_choices = parquet_data["POMORSKIE"]['Nazwa'].tolist()  # Wczytaj miejscowości
-        else:
-            miejscowosc_choices = []  # Pusta lista, jeśli nie zostały wczytane
-
-        default_miejscowosc = "Pruszcz Gdański"
-
-        # Pobierz ulice dla domyślnej miejscowości
-        ulica_choices = get_streets_from_memory("POMORSKIE", default_miejscowosc)
-        print("ulica_choices: ", ulica_choices)
-
         return render_template('index.html')
     except TemplateNotFound:
         return abort(404)
