@@ -1,11 +1,9 @@
 <!DOCTYPE html>
-
 <html lang="pl">
-
 <head>
-    <meta http-equiv="content-type" content="application/json; charset=UTF-8"/>
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
+    <link rel="shortcut icon"  href="{{ url_for('static',filename='img/logo.png') }}">
 
     <title>Antybiotyki</title>
 
@@ -13,19 +11,20 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-
     <script src="{{ url_for('static',filename='js/jquery-3.6.0.js') }}"></script>
-
-    <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
-
 </head>
+
 <body>
+
+<script type="text/javascript">
+    // przenosi na początek pierwszej lub drugiej strony
+    function jump(element) {
+        const target = document.getElementById(element);
+       if (target) {
+           target.scrollIntoView({ behavior: "smooth" });
+       }
+    }
+</script>
 
 <div class="col-12 text-center">
     <div class="row">
@@ -33,7 +32,7 @@
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} text-center" role="alert">
-                        {{ message }}
+                        {{ message|e }}
                     </div>
                 {% endfor %}
             {% endif %}
@@ -101,5 +100,571 @@
         </div>
     </div>
 </div>
+
+ <!-- POCZĄTEK STRONY -->
+
+<section id="page_augmentin"></section>
+
+{% if skok == 'koniec' %}
+    <script> jump('page_duracef'); </script>
+{% endif %}
+
+<a id="START_PAGE"></a>
+
+<div class="container-fluid g-4 px-4 py-5" id="featured-3">
+
+    <form action="{{ url_for('antibiotic.calculations') }}" method="post">
+
+        <div class="row py-5 row-cols-1 row-cols-lg-3">
+            <div class="feature col border rounded-4">
+                <h4 class="fs-2 border-bottom border-success">
+                    Augmentin ES
+                    <img src="{{ url_for('static',filename='img/drugs.png') }}"
+                         class="img-fluid rounded float-end" alt="drugs" style="width: 36px; height: 30px;">
+                </h4>
+                <ol>
+                    <li>
+                        <i>Antybiotyk B-laktamowy stosowany po 3 miesiącu życia (półsyntetyczna penicylina).</i>
+                    </li>
+                    <li>
+                        <b> Dawkowanie: </b>
+                        <ul>
+                            <li><i> dla masy ciała do 40 kg dawka <b>90</b> mg/kg podawanych 2x dziennie. </i></li>
+                        </ul>
+                    </li>
+                    <li><b> Dane: </b>
+                        <div class="input-group w-20">
+                            <label for="waga_augmentin" class="form-label"></label>
+                            <span class="input-group-text">Masa ciała</span>
+                            <input type="number" class="form-control" aria-label="waga_aug" id="waga_augmentin"
+                                   name="waga_augmentin"
+                                   value="{{ waga_augmentin or '' }}" style="text-align: center;">
+                            <span class="input-group-text">[kg]</span>
+                        </div>
+                        <br>
+                        <div class="d-flex flex-row input-group">
+                            <label for="inputGroupSelect01" class="form-label"></label>
+                            <select class="form-select" id="inputGroupSelect01" name="inputGroupSelect01">
+                                {% if select_01=="0" %}
+                                    <option value="0" selected> zawiesina 642,9 mg/5 ml, 50 ml</option>
+                                {% else %}
+                                    <option value="0"> zawiesina 642,9 mg/5 ml, 50 ml</option>
+                                {% endif %}
+                                {% if select_01=="1" %}
+                                    <option value="1" selected> zawiesina 642,9 mg/5 ml, 100 ml</option>
+                                {% else %}
+                                    <option value="1"> zawiesina 642,9 mg/5 ml, 100 ml</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <br>
+                    </li>
+                    <li>
+                        <div class="d-inline-flex w-75">
+                            <label for="augmentin" class="form-label"></label>
+                            <input type="submit" id="augmentin" class="btn btn-secondary" name="augmentin"
+                                   value="oblicz">
+                            &ensp;&ensp;
+                            <label for="wynik_augmentin" class="form-label"></label>
+                            <input type="text" class="btn btn-warning" id="wynik_augmentin" name="wynik_augmentin"
+                                   style="width:9.5em;  text-align: center;" value="{{ dawka_augmentin if dawka_augmentin is not none else '' }}">
+                            &ensp;&ensp;
+                            <button class="btn btn-danger"
+                                    onclick="document.getElementById('waga_augmentin').value = ''">
+                                Czyść
+                            </button>
+                        </div>
+                    </li>
+
+                    <li>
+                        <b> Wskazania: </b>
+                        <ul>
+                            <li><i> ostre zapalenie ucha środkowego,</i></li>
+                            <li><i> pozaszpitalne zapalenie płuc,</i></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <b> Uboczne: </b>
+                        <ul>
+                            <li><i> biegunki,</i></li>
+                            <li><i> w mononukleozie osutka odropodobna, drgawki przy uszkodzeniu nerek lub
+                                przedawkowaniu,</i></li>
+                            <li><i> przenika przez mleko matki do noworodka zwiększone ryzyko martwiczego zapalenia
+                                jelit,</i></li>
+                        </ul>
+                    </li>
+                </ol>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <a href="#START_PAGE" class="btn btn-outline-success d-inline-flex align-items-center"> Początek </a>
+            </div>
+
+            <div class="feature col border rounded-4">
+                <h3 class="fs-2 border-bottom border-info">
+                    Sumamed
+                    <img src="{{ url_for('static',filename='img/drugs.png') }}"
+                         class="img-fluid rounded float-end" alt="drugs" style="width: 36px; height: 30px;">
+                </h3>
+                <ol>
+                    <li><i> Antybiotyk makrolidowy należący do grupy azalidów, metabolizowany w wątrobie. </i></li>
+                    <li><b> Dawkowanie: </b>
+                        <ul>
+                            <li><i> zależy od masy ciała, dawka <b>10</b> mg/kg podawanych 1x dziennie. </i></li>
+                        </ul>
+                    </li>
+                    <li><b> Dane: </b>
+                        <div class="input-group w-20">
+                            <span class="input-group-text">Masa ciała</span>
+                            <input type="number" class="form-control" id="waga_sumamed" name="waga_sumamed"
+                                   aria-label="waga" value="{{ waga_sumamed or '' }}" style="text-align: center;">
+                            <span class="input-group-text">[kg]</span>
+                        </div>
+                        <br>
+                        <div class="d-flex flex-row input-group">
+                            <label for="inputGroupSelect02" class="form-label"></label>
+                            <select class="form-select" id="inputGroupSelect02" name="inputGroupSelect02">
+                                {% if select_02=="0" %}
+                                    <option value="0" selected> zawiesina 100 mg/5 ml, 20 ml</option>
+                                {% else %}
+                                    <option value="0"> zawiesina 100 mg/5 ml, 20 ml</option>
+                                {% endif %}
+                                {% if select_02=="1" %}
+                                    <option value="1" selected> zawiesina 200 mg/5 ml, 20 ml</option>
+                                {% else %}
+                                    <option value="1"> zawiesina 200 mg/5 ml, 20 ml</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <br>
+                    </li>
+                    <li>
+                        <div class="d-inline-flex w-75">
+                            <input type="submit" id="sumamed" class="btn btn-secondary" name="sumamed" value="oblicz">
+                            &ensp;&ensp;
+                            <label for="wynik_sumamed" class="form-label"></label>
+                            <input type="text" class="btn btn-warning" id="wynik_sumamed" name="wynik_sumamed"
+                                   style="width:9.5em;  text-align: center;" value="{{ dawka_sumamed if dawka_sumamed is not none else '' }}"> &ensp;&ensp;
+                            <button class="btn btn-danger" onclick="document.getElementById('waga_sumamed').value = ''">
+                                Czyść
+                            </button>
+                        </div>
+                    </li>
+                    <li><b> Wskazania: </b>
+                        <ul>
+                            <li><i> bakteryjne zapalenie gardła, zapalenie migdałków, zapalenie zatok, ostre zapalenie
+                                ucha środkowego,</i></li>
+                            <li><i> ostre zapalenie oskrzeli, zaostrzenie przewlekłego zapalenia oskrzeli, zapalenie
+                                płuc, w tym śródmiąższowe,</i></li>
+                            <li><i> zakażenia skóry i tkanek miękkich, róża, liszajec oraz wtórne ropne zapalenie skóry,
+                                rumień wędrujący,</i></li>
+                        </ul>
+                    </li>
+                    <li><b> Uboczne: </b>
+                        <ul>
+                            <li><i> przenika do mleka kobiecego, ryzyko wydłużenia odstępu QT i torsades de pointes,</i>
+                            </li>
+                            <li><i> po przedawkowaniu: przemijająca utrata słuchu, nudności, wymioty i biegunka
+                                (leczenie węglem aktywowanym),</i></li>
+                            <li><i> ból głowy, biegunka, zaburzenia smaku i węchu, zapalenie wątroby,</i></li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+
+            <div class="feature col border rounded-4">
+                <h3 class="fs-2 border-bottom border-danger">
+                    Levoxa
+                    <img src="{{ url_for('static',filename='img/drugs.png') }}"
+                         class="img-fluid rounded float-end" alt="drugs" style="width: 36px; height: 30px;">
+                </h3>
+                <ol>
+                    <li>
+                        <i>Fluorochinolon III generacji stosowany po 18 roku życia, odpłatność 100%.</i>
+                    </li>
+                    <li>
+                        <b> Dawkowanie: </b>
+                        <ul>
+                            <li><i> zwykle 1 lub 2 tabletki dziennie stosowane przez 7 - 14 dni. </i></li>
+                        </ul>
+                    </li>
+                    <li><b> Dane: </b>
+                        <div class="input-group w-20">
+                            <span class="input-group-text">Masa ciała</span>
+                            <input type="number" class="form-control" id="waga_levoxa" name="waga_levoxa"
+                                   aria-label="waga"
+                                   value="{{ waga_levoxa or '' }}" style="text-align: center;">
+                            <span class="input-group-text">[kg]</span>
+                        </div>
+                        <br>
+                        <div class="d-flex flex-row input-group">
+                            <label for="inputGroupSelect03" class="form-label"></label>
+                            <select class="form-select" id="inputGroupSelect03" name="inputGroupSelect03">
+                                {% if select_03=="0" %}
+                                    <option value="0" selected> tabletki 250 mg, 10 sztuk</option>
+                                {% else %}
+                                    <option value="0"> tabletki 250 mg, 10 sztuk</option>
+                                {% endif %}
+                                {% if select_03=="1" %}
+                                    <option value="1" selected> tabletki 500 mg, 10 sztuk</option>
+                                {% else %}
+                                    <option value="1"> tabletki 500 mg, 10 sztuk</option>
+                                {% endif %}
+                                {% if select_03=="2" %}
+                                    <option value="2" selected> fiolki 5 mg/ml, 5 fiolek 50 ml</option>
+                                {% else %}
+                                    <option value="2"> fiolki 5 mg/ml, 5 fiolek 50 ml</option>
+                                {% endif %}
+                                {% if select_03=="3" %}
+                                    <option value="3" selected> fiolki 5 mg/ml, 5 fiolek 100 ml</option>
+                                {% else %}
+                                    <option value="3"> fiolki 5 mg/ml, 5 fiolek 100 ml</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <br>
+                    </li>
+                    <li>
+                        <div class="d-inline-flex w-75">
+                            <input type="submit" id="levoxa" class="btn btn-secondary" name="levoxa" value="oblicz">
+                            &ensp;
+                            <label for="wynik_levoxa" class="form-label"></label>
+                            <input type="text" class="btn btn-warning" id="wynik_levoxa" name="wynik_levoxa"
+                                   style="width:10.5em;  text-align: center;" value="{{ dawka_levoxa if dawka_levoxa is not none else '' }}"> &ensp;
+                            <button class="btn btn-danger" onclick="document.getElementById('waga_levoxa').value = ''">
+                                Czyść
+                            </button>
+                        </div>
+                    </li>
+                    <li>
+                        <b> Wskazania: </b>
+                        <ul>
+                            <li><i> ostre bakteryjne zapalenie zatok,</i></li>
+                            <li><i> zaostrzenie przewlekłego zapalenia oskrzeli,</i></li>
+                            <li><i> zakażenie układu moczowego, w tym odmiedniczkowe zapalenie nerek,</i></li>
+                            <li><i> przewlekłe bakteryjne zapalenie gruczołu krokowego,</i></li>
+                            <li><i> zakażenia skóry i tkanek miękkich,</i></li>
+                        </ul>
+                    </li>
+                    <li>
+                        <b> Uboczne: </b>
+                        <ul>
+                            <li><i> zapalenia ścięgien i zerwania ścięgna Achillesa (osóby starsze, sterydoterapia),</i>
+                            </li>
+                            <li><i> biegunki a zwłaszcza krwawa (rzekomobłoniaste zapalenie jelit),</i></li>
+                            <li><i> przeciwwskazany u pacjentów z padaczką w wywiadzie oraz u kobiet w ciąży oraz
+                                karmiących,</i></li>
+                            <li><i> nadwrażliwość na światło, nasilenie działania leków typu Warfaryna.</i></li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+        <section id="page_duracef">
+
+            <div class="b-example-divider"></div>
+
+            <div class="row g-4 py-5 row-cols-1 row-cols-lg-3">
+                <div class="feature col border rounded-4">
+                    <h3 class="fs-2 border-bottom border-success">
+                        Duracef
+                        <img src="{{ url_for('static',filename='img/drugs.png') }}"
+                             class="img-fluid rounded float-end" alt="drugs" style="width: 36px; height: 30px;">
+                    </h3>
+                    <ol>
+                        <li>
+                            <i>Cefalosporyna I generacji, działa przez hamowanie syntezy ściany komórkowej bakterii.
+                                Reakcja disulfiramowa w połączeniu z alkoholem, odpłatność 100%.</i>
+                        </li>
+                        <li>
+                            <b> Dawkowanie: </b>
+                            <ul>
+                                <li><i> dla masy ciała do 40 kg dawka <b>25-50</b> mg/kg podawanych 2x dziennie. </i>
+                                </li>
+                                <li><i> dla masy ciała ponad 40 kg i powyżej 12 rż dawka <b>1 g</b> podawana 1x lub 2x
+                                    dziennie.</i></li>
+                            </ul>
+                        </li>
+                        <li><b> Dane: </b>
+                            <div class="input-group w-20">
+                                <span class="input-group-text">Masa ciała</span>
+                                <input type="number" class="form-control" id="waga_duracef" name="waga_duracef"
+                                       aria-label="waga"
+                                       value="{{ waga_duracef or '' }}" style="text-align: center;">
+                                <span class="input-group-text">[kg]</span>
+                            </div>
+                            <br>
+                            <div class="d-flex flex-row input-group">
+                                <label for="inputGroupSelect04" class="form-label"></label>
+                                <select class="form-select" id="inputGroupSelect04" name="inputGroupSelect04">
+                                    {% if select_04=="0" %}
+                                        <option value="0" selected> zawiesina 250 mg/5 ml, 60 ml</option>
+                                    {% else %}
+                                        <option value="0"> zawiesina 250 mg/5 ml, 60 ml</option>
+                                    {% endif %}
+                                    {% if select_04=="1" %}
+                                        <option value="1" selected> zawiesina 250 mg/5 ml, 100 ml</option>
+                                    {% else %}
+                                        <option value="1"> zawiesina 250 mg/5 ml, 100 ml</option>
+                                    {% endif %}
+                                    {% if select_04=="2" %}
+                                        <option value="2" selected> zawiesina 500 mg/5 ml, 60 ml</option>
+                                    {% else %}
+                                        <option value="2"> zawiesina 500 mg/5 ml, 60 ml</option>
+                                    {% endif %}
+                                    {% if select_04=="3" %}
+                                        <option value="3" selected> zawiesina 500 mg/5 ml, 100 ml</option>
+                                    {% else %}
+                                        <option value="3"> zawiesina 500 mg/5 ml, 100 ml</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <br>
+                        </li>
+                        <li>
+                            <div class="d-inline-flex w-75">
+                                <input type="submit" id="duracef" class="btn btn-secondary" name="duracef"
+                                       value="oblicz">
+                                &ensp;
+                                <label for="wynik_duracef" class="form-label"></label>
+                                <input type="text" class="btn btn-warning" id="wynik_duracef" name="wynik_duracef"
+                                       style="width:10.5em;  text-align: center;" value="{{ dawka_duracef if dawka_duracef is not none else '' }}"> &ensp;
+                                &ensp;
+                                <button class="btn btn-danger"
+                                        onclick="document.getElementById('waga_duracef').value = ''">
+                                    Czyść
+                                </button>
+                            </div>
+                        </li>
+                        <li>
+                            <b> Wskazania: </b>
+                            <ul>
+                                <li><i> paciorkowcowe zapalenie gardła i migdałków,</i></li>
+                                <li><i> zakażenia górnych i dolnych dróg oddechowych,</i></li>
+                                <li><i> zakażenia układu moczowego wywołanych przez E. coli, P. mirabilis i Klebsiella
+                                    spp,</i></li>
+                                <li><i> zakażenia skóry i tkanek miękkich,</i></li>
+                                <li><i> zapalenie szpiku i bakteryjne zapalenie stawów powodowanych przez gronkowce
+                                    i/lub paciorkowce,</i></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <b> Uboczne: </b>
+                            <ul>
+                                <li><i> przenikają do pokarmu kobiecego,</i></li>
+                                <li><i> niepożądane objawy gastryczne,</i></li>
+                                <li><i> cefalosporyny I generacji wykazują silniejsze działanie na bakterie
+                                    Gram-dodatnie, </i></li>
+                                <li><i> nie są one lekami pierwszego wyboru w zakażeniach u dzieci!,</i></li>
+                            </ul>
+                        </li>
+                    </ol>
+                    <br>
+                    <br>
+                    <br>
+                    <a href="#START_PAGE" class="btn btn-outline-success d-inline-flex align-items-center">
+                        Początek </a>
+                </div>
+
+                <div class="feature col border rounded-4">
+                    <h3 class="fs-2 border-bottom border-info">
+                        Zinnat
+                        <img src="{{ url_for('static',filename='img/drugs.png') }}"
+                             class="img-fluid rounded float-end" alt="drugs" style="width: 36px; height: 30px;">
+                    </h3>
+                    <ol>
+                        <li>
+                            <i>Cefalosporyna II generacji stosowana po 3 miesiącu życia.</i>
+                        </li>
+                        <li>
+                            <b> Dawkowanie: </b>
+                            <ul>
+                                <li><i> dla masy ciała do 40 kg dawka <b>15</b> mg/kg podawanych 2x dziennie. </i></li>
+                                <li><i> ostre zapalenie gardła i migdałków <b>10</b> mg/kg podawanych 2x dziennie. </i>
+                                </li>
+                                <li><i> dla masy ciała ponad 40 kg dawka <b>2 x 250 mg</b> podawanych 2x dziennie. </i>
+                                </li>
+                            </ul>
+                        </li>
+                        <li><b> Dane: </b>
+                            <div class="input-group w-20">
+                                <span class="input-group-text">Masa ciała</span>
+                                <input type="number" class="form-control" id="waga_zinnat" name="waga_zinnat"
+                                       aria-label="waga"
+                                       value="{{ waga_zinnat or '' }}" style="text-align: center;">
+                                <span class="input-group-text">[kg]</span>
+                            </div>
+                            <br>
+                            <div class="d-flex flex-row input-group">
+                                <label for="inputGroupSelect05" class="form-label"></label>
+                                <select class="form-select" id="inputGroupSelect05" name="inputGroupSelect05">
+                                    {% if select_05=="0" %}
+                                        <option value="0" selected> zawiesina 125 mg/5 ml, 50 ml</option>
+                                    {% else %}
+                                        <option value="0"> zawiesina 125 mg/5 ml, 50 ml</option>
+                                    {% endif %}
+                                    {% if select_05=="1" %}
+                                        <option value="1" selected> zawiesina 125 mg/5 ml, 100 ml</option>
+                                    {% else %}
+                                        <option value="1"> zawiesina 125 mg/5 ml, 100 ml</option>
+                                    {% endif %}
+                                    {% if select_05=="2" %}
+                                        <option value="2" selected> zawiesina 250 mg/5 ml, 50 ml</option>
+                                    {% else %}
+                                        <option value="2"> zawiesina 250 mg/5 ml, 50 ml</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <br>
+                        </li>
+                        <li>
+                            <div class="d-inline-flex w-75">
+                                <input type="submit" id="zinnat" class="btn btn-secondary" name="zinnat" value="oblicz">
+                                &ensp;
+                                <label for="wynik_zinnat" class="form-label"></label>
+                                <input type="text" class="btn btn-warning" id="wynik_zinnat" name="wynik_zinnat"
+                                       style="width:10.5em;  text-align: center;" value="{{ dawka_zinnat if dawka_zinnat is not none else '' }}"> &ensp;
+                                &ensp;
+                                <button class="btn btn-danger"
+                                        onclick="document.getElementById('waga_zinnat').value = ''">
+                                    Czyść
+                                </button>
+                            </div>
+                        </li>
+                        <li>
+                            <b> Wskazania: </b>
+                            <ul>
+                                <li><i> ostre paciorkowcowe zapalenie gardła i migdałków,</i></li>
+                                <li><i> bakteryjne zapalenie zatok przynosowych,</i></li>
+                                <li><i> ostre zapalenie ucha środkowego,</i></li>
+                                <li><i> zaostrzenie przewlekłego zapalenia oskrzeli,</i></li>
+                                <li><i> zapalenie pęcherza moczowego,</i></li>
+                                <li><i> odmiedniczkowe zapalenie nerek,</i></li>
+                                <li><i> niepowikłane zakażenia skóry i tkanek miękkich,</i></li>
+                                <li><i> leczenie wczesnej boreliozy - choroby z Lyme,</i></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <b> Uboczne: </b>
+                            <ul>
+                                <li><i> odczyn Jarischa-Herxheimera i Łukasiewicza w boreliozie (zaostrzenie
+                                    wcześniejszych objawów),</i></li>
+                                <li><i> słabo przechodzi do mleka matki, eozynofilia, bóle głowy; przedawkowanie -
+                                    pobudzenie OUN !</i></li>
+                                <li><i> cefalosporyny II generacji silniej działają na bakterie Gram-ujemne niż na
+                                    Gram-dodatnie,</i></li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="feature col border rounded-4">
+                    <h3 class="fs-2 border-bottom border-danger">
+                        Cetix
+                        <img src="{{ url_for('static',filename='img/drugs.png') }}"
+                             class="img-fluid rounded float-end" alt="drugs" style="width: 36px; height: 30px;">
+                    </h3>
+                    <ol>
+                        <li>
+                            <i>Cefalosporyna III generacji stosowana po 6 miesiącu życia, wyłącznie do użycia doustnego,
+                                odpłatność 100%.</i>
+                        </li>
+                        <li>
+                            <b> Dawkowanie: </b>
+                            <ul>
+                                <li><i> poniżej 12 roku życia dawka <b>8</b> mg/kg podawanych w 1x lub 2x dawkach, </i>
+                                </li>
+                                <li><i> po 12 roku życia <b>400 mg/dobę</b> podawanych w 1x lub 2x dawkach, </i></li>
+                                <li><i> leczenie trwa 7 dni, można przedłużyć do 14 dni. </i></li>
+                            </ul>
+                        </li>
+                        <li><b> Dane: </b>
+                            <div class="input-group w-20">
+                                <span class="input-group-text">Masa ciała</span>
+                                <input type="text" class="form-control" id="waga_cetix" name="waga_cetix"
+                                       aria-label="waga"
+                                       value="{{ waga_cetix or '' }}" style="text-align: center;">
+                                <span class="input-group-text">[kg]</span>
+                            </div>
+                            <br>
+                            <div class="d-flex flex-row input-group">
+                                <label for="inputGroupSelect06" class="form-label"></label>
+                                <select class="form-select" id="inputGroupSelect06" name="inputGroupSelect06">
+                                    {% if select_06=="0" %}
+                                        <option value="0" selected> zawiesina 100 mg/5 ml, butelka 1,2 g</option>
+                                    {% else %}
+                                        <option value="0"> zawiesina 100 mg/5 ml, butelka 1,2 g</option>
+                                    {% endif %}
+                                    {% if select_06=="1" %}
+                                        <option value="1" selected> zawiesina 100 mg/5 ml, butelka 2,0 g</option>
+                                    {% else %}
+                                        <option value="1"> zawiesina 100 mg/5 ml, butelka 2,0 g</option>
+                                    {% endif %}
+                                    {% if select_06=="2" %}
+                                        <option value="2" selected> tabletki 400 mg, 7 sztuk</option>
+                                    {% else %}
+                                        <option value="2"> tabletki 400 mg, 7 sztuk</option>
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <br>
+                        </li>
+                        <li>
+                            <div class="d-inline-flex w-75">
+                                <input type="submit" id="cetix" class="btn btn-secondary" name="cetix" value="oblicz">
+                                &ensp;
+                                <label for="wynik_cetix" class="form-label"></label>
+                                <input type="text" class="btn btn-warning" id="wynik_cetix" name="wynik_cetix"
+                                       style="width:10.5em;  text-align: center;" value="{{ dawka_cetix if dawka_cetix is not none else '' }}"> &ensp;
+                                &ensp;
+                                <button class="btn btn-danger"
+                                        onclick="document.getElementById('waga_cetix').value = ''">
+                                    Czyść
+                                </button>
+                            </div>
+                        </li>
+                        <li>
+                            <b> Wskazania: </b>
+                            <ul>
+                                <li><i> nagłe zaostrzenia przewlekłego zapalenia oskrzeli,</i></li>
+                                <li><i> ostre zapalenie ucha środkowego,</i></li>
+                                <li><i> niepowikłane ostre zapalenie pęcherza moczowego,</i></li>
+                                <li><i> niepowikłane odmiedniczkowe zapalenie nerek,</i></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <b> Uboczne: </b>
+                            <ul>
+                                <li><i> biegunki,</i></li>
+                                <li><i> reakcje skórne - zespół nadwrażliwości polekowej (DRESS – wysypka polekowa z
+                                    eozynofilią i objawami ogólnymi) lub pęcherzowe reakcje skórne (zespół Lyella,
+                                    zespół Stevensa i Johnsona),</i></li>
+                                <li><i> cefalosporyny III generacji są skuteczne w leczeniu zakażeń opornych na inne
+                                    antybiotyki, przechodzą przez barierę krew-mózg, dzięki czemu wykorzystuje się je w
+                                    leczeniu bakteryjnego zapalenia opon mózgowych. Oddziałują na bakterie Gram-dodatnie
+                                    i Gram-ujemne, są szczególnie aktywne w stosunku do pałeczek ropy błękitnej.</i>
+                                </li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+
+        </section>
+
+    </form>
+
+</div>
+
+<div class="b-example-divider"></div>
+
+
+<script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+
 </body>
 </html>
