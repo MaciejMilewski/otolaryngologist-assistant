@@ -1,15 +1,12 @@
 from flask import Blueprint, render_template, request, abort
-from flask_login import current_user, login_required
-from jinja2 import TemplateNotFound
-from sqlalchemy import and_
-
+from flask_login import login_required, current_user
 from app.models import Patient, Visit
 from app import db
 
 from math import ceil
 
-ITEMS_PER_PAGE = 5  # Liczba wyników na stronę
-
+ITEMS_PER_PAGE = 5  # Liczba pacjentów na stronę
+VISITS_PER_PAGE = 5  # Liczba wizyt na stronę
 
 patient_bp = Blueprint('patient', __name__)
 
@@ -17,12 +14,16 @@ patient_bp = Blueprint('patient', __name__)
 @patient_bp.route('/patient', methods=['GET', 'POST'])
 @login_required
 def patient_main():
-    results = None
-    current_page = int(request.args.get('page', 1))  # Domyślnie pierwsza strona
-    total_pages = 1                                  # Domyślnie jedna strona (gdy brak wyników)
     try:
+        current_page = int(request.args.get('page', 1))  # Paginacja pacjentów
+        visit_page = int(request.args.get('visit_page', 1))  # Paginacja wizyt
+        filters = []
+        joins_required = False
+        # Wyniki do przekazania do szablonu (puste domyślnie)
+        patients = []
+        total_pages = 0
+
         if request.method == 'POST':
-            # Pobierz kryteria wyszukiwania
             first_name = request.form.get('first_name')
             surname = request.form.get('surname')
             pesel = request.form.get('pesel')
@@ -31,8 +32,6 @@ def patient_main():
             start_date = request.form.get('start_date')
             end_date = request.form.get('end_date')
 
-            # Tworzenie dynamicznego filtra
-            filters = []
             if first_name:
                 filters.append(Patient.first_name.ilike(f"%{first_name}%"))
             if surname:
@@ -43,26 +42,50 @@ def patient_main():
                 filters.append(Patient.city.ilike(f"%{city}%"))
             if nfz_info:
                 filters.append(Visit.nfz_info.ilike(f"%{nfz_info}%"))
+                joins_required = True
             if start_date and end_date:
                 filters.append(Visit.examination_date.between(start_date, end_date))
+                joins_required = True
 
-            # Zapytanie z paginacją
-            query = db.session.query(Patient).join(Visit).filter(*filters)
-            total_results = query.count()
-            total_pages = ceil(total_results / ITEMS_PER_PAGE)
-            results = query.offset((current_page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).all()
+        # Pobieranie pacjentów z paginacją
+        query = db.session.query(Patient).filter(*filters)
+        # Dodaje filtry tylko jeżeli istnieją, nie wyświetlamy starych wyników
+        # if filters:
+        #     query = query.filter(*filters)
+        total_patients = query.count()
+        total_pages = ceil(total_patients / ITEMS_PER_PAGE)
 
+        patients = query.offset((current_page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).all()
+
+        # Dodanie paginacji wizyt do każdego pacjenta
+        for patient in patients:
+            visit_query = db.session.query(Visit).filter_by(patient_id=patient.id)
+            total_visits = visit_query.count()
+            visit_total_pages = ceil(total_visits / VISITS_PER_PAGE)
+
+            patient.limited_visits = visit_query.offset((visit_page - 1) * VISITS_PER_PAGE).limit(
+                VISITS_PER_PAGE).all()
+            patient.visit_current_page = visit_page
+            patient.visit_total_pages = visit_total_pages
+            patient.visit_has_prev = visit_page > 1
+            patient.visit_has_next = visit_page < visit_total_pages
+
+        # Przy żądaniu GET, ustal pustą odpowiedź
+        # if request.method == 'GET' and not filters:
+            # patients = []
+            # total_patients = 0
+            # total_pages = 1
+
+        # Zwrot odpowiedzi
         return render_template(
             'patient.html',
-            user=current_user.login,
-            results=results,
+            current_user=current_user.login,
+            results=patients,
             current_page=current_page,
             total_pages=total_pages,
+            has_prev=current_page > 1,
+            has_next=current_page < total_pages
         )
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error in patient_main: {e}")
         return abort(500)
-
-    except TemplateNotFound:
-        return abort(404)
-

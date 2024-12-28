@@ -134,105 +134,218 @@
             </div>
             <button type="submit" class="btn btn-primary">Szukaj</button>
         </form>
-
+        <!-- Wyniki wyszukiwania -->
         <!-- Wyniki wyszukiwania -->
         {% if results is not none %}
             {% if results %}
                 <h3 class="mt-5">Wyniki:</h3>
                 <div id="results-pagination">
-                    {% for patient in results %}
-                        {% for visit in patient.visits %}
-                            <div class="card mb-4">
-                                <div class="card-header bg-light">
-                                    <strong>Data badania:</strong> {{ visit.examination_date }} |
-                                    <strong>Miejsce badania:</strong> {{ visit.location }}
-                                </div>
-                                <div class="card-body">
-                                    <p><strong>Pacjent:</strong> {{ patient.first_name }} {{ patient.surname }},
-                                        PESEL: {{ patient.pesel }}</p>
-                                    <p>
-                                        <strong>Adres:</strong> {{ patient.city }}, {{ patient.street }} {{ patient.apartment_number }}
-                                    </p>
-                                    <hr>
-                                    <div class="text-start">
-                                        <p><strong>Wywiad:</strong> {{ visit.interview }}</p>
-                                        <p><strong>Dane ogólne:</strong> {{ visit.general_info }}</p>
-                                        <p><strong>Dane laryngologiczne:</strong> {{ visit.examination }}</p>
-                                        <p><strong>Badanie laryngologiczne:</strong> {{ visit.orl }}</p>
-                                        <p><strong>Zabiegi:</strong> {{ visit.routine }}</p>
-                                        <p><strong>Badanie szeptem:</strong> {{ visit.whisper_test }}</p>
+                    <div class="accordion" id="patientsAccordion">
+                        {% for patient in results %}
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{ loop.index }}">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapse{{ loop.index }}" aria-expanded="false"
+                                            aria-controls="collapse{{ loop.index }}">
+                                        Pacjent: {{ patient.first_name }} {{ patient.surname }}
+                                    </button>
+                                </h2>
+                                <div id="collapse{{ loop.index }}" class="accordion-collapse collapse"
+                                     aria-labelledby="heading{{ loop.index }}" data-bs-parent="#patientsAccordion">
+                                    <div class="accordion-body">
+                                        <p><strong>PESEL:</strong> {{ patient.pesel }}</p>
+                                        <p>
+                                            <strong>Adres:</strong> {{ patient.city }}, {{ patient.street }} {{ patient.apartment_number }}
+                                        </p>
+
+                                        {% if patient.limited_visits %}
+                                            <h5>Wizyty:</h5>
+                                            <ul class="list-group">
+                                                {% for visit in patient.limited_visits %}
+                                                    <li class="list-group-item">
+                                                        <div class="card mb-4">
+                                                            <div class="card-header bg-light">
+                                                                <strong>Data
+                                                                    badania:</strong> {{ visit.examination_date }} |
+                                                                <strong>Miejsce badania:</strong> {{ visit.location }}
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <p>
+                                                                    <strong>Pacjent:</strong> {{ patient.first_name }} {{ patient.surname }},
+                                                                    PESEL: {{ patient.pesel }}</p>
+                                                                <p>
+                                                                    <strong>Adres:</strong> {{ patient.city }}, {{ patient.street }} {{ patient.apartment_number }}
+                                                                </p>
+                                                                <hr>
+                                                                <div class="text-start">
+                                                                    <p><strong>Wywiad:</strong> {{ visit.interview }}
+                                                                    </p>
+                                                                    <p><strong>Dane
+                                                                        ogólne:</strong> {{ visit.general_info }}</p>
+                                                                    <p><strong>Dane
+                                                                        laryngologiczne:</strong> {{ visit.examination }}
+                                                                    </p>
+                                                                    <p><strong>Badanie
+                                                                        laryngologiczne:</strong> {{ visit.orl }}</p>
+                                                                    {% if visit.routine %}
+                                                                        <p><strong>Zabiegi:</strong> {{ visit.routine }}
+                                                                        </p>
+                                                                    {% endif %}
+                                                                    {% if visit.whisper_test %}
+                                                                        <p><strong>Badanie
+                                                                            szeptem:</strong> {{ visit.whisper_test }}
+                                                                        </p>
+                                                                    {% endif %}
+                                                                    {% if visit.audiogram %}
+                                                                        <p>
+                                                                            <strong>Audiogram:</strong> {{ visit.audiogram }}
+                                                                        </p>
+                                                                    {% endif %}
+                                                                </div>
+                                                                {% if visit.audiogram_date %}
+                                                                    <p class="text-center"><strong>Data wykonania
+                                                                        audiogramu:</strong> {{ visit.audiogram_date }}
+                                                                    </p>
+                                                                    <hr>
+                                                                    <h5 class="text-center">Audiogram</h5>
+
+
+                                                                    <table class="table table-sm table-bordered text-center">
+                                                                        <thead class="table-light text-center">
+                                                                        <tr>
+                                                                            <th class="text-center">250 Hz</th>
+                                                                            <th class="text-center">500 Hz</th>
+                                                                            <th class="text-center">1000 Hz</th>
+                                                                            <th class="text-center">2000 Hz</th>
+                                                                            <th class="text-center">3000 Hz</th>
+                                                                            <th class="text-center">4000 Hz</th>
+                                                                            <th class="text-center">6000 Hz</th>
+                                                                            <th class="text-center">8000 Hz</th>
+                                                                        </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        <tr>
+                                                                            <td class="text-center">{{ visit.ul_250 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_500 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_1000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_2000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_3000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_4000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_6000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_8000 }}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="text-center">{{ visit.up_250 }}</td>
+                                                                            <td class="text-center">{{ visit.up_500 }}</td>
+                                                                            <td class="text-center">{{ visit.up_1000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_2000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_3000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_4000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_6000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_8000 }}</td>
+                                                                        </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                {% endif %}
+                                                                <p><strong>Rozpoznanie:</strong> {{ visit.diagnosis }}
+                                                                </p>
+                                                                {% if visit_nfz_info %}
+                                                                    <p><strong>Kod NFZ:</strong> {{ visit.nfz_info }}</p>
+                                                                {% endif %}
+                                                                <p>
+                                                                    <strong>Zalecenia:</strong> {{ visit.recommendations }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                            <!-- Paginacja wizyt -->
+                                            <nav aria-label="Pagination for visits">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item {% if not patient.visit_has_prev %}disabled{% endif %}">
+                                                        <a class="page-link"
+                                                           href="{{ url_for('patient.patient_main', patient_id=patient.id, visit_page=patient.visit_current_page - 1) }}">Poprzednia</a>
+                                                    </li>
+                                                    {% for page_num in range(1, patient.visit_total_pages + 1) %}
+                                                        <li class="page-item {% if page_num == patient.visit_current_page %}active{% endif %}">
+                                                            <a class="page-link"
+                                                               href="{{ url_for('patient.patient_main', patient_id=patient.id, visit_page=page_num) }}">{{ page_num }}</a>
+                                                        </li>
+                                                    {% endfor %}
+                                                    <li class="page-item {% if not patient.visit_has_next %}disabled{% endif %}">
+                                                        <a class="page-link"
+                                                           href="{{ url_for('patient.patient_main', patient_id=patient.id, visit_page=patient.visit_current_page + 1) }}">Następna</a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        {% else %}
+                                            <p>Brak wizyt dla tego pacjenta.</p>
+                                        {% endif %}
                                     </div>
-                                    <p class="text-center"><strong>Data wykonania audiogramu :</strong> {{ visit.audiogram_date }}</p>
-                                    <hr>
-                                    <h5 class="text-center">Audiogram</h5>
-                                    <table class="table table-sm table-bordered text-center">
-                                        <thead class="table-light text-center">
-                                        <tr>
-                                            <th class="text-center">250 Hz</th>
-                                            <th class="text-center">500 Hz</th>
-                                            <th class="text-center">1000 Hz</th>
-                                            <th class="text-center">2000 Hz</th>
-                                            <th class="text-center">3000 Hz</th>
-                                            <th class="text-center">4000 Hz</th>
-                                            <th class="text-center">6000 Hz</th>
-                                            <th class="text-center">8000 Hz</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                            <td class="text-center">{{ visit.ul_250 }}</td>
-                                            <td class="text-center">{{ visit.ul_500 }}</td>
-                                            <td class="text-center">{{ visit.ul_1000 }}</td>
-                                            <td class="text-center">{{ visit.ul_2000 }}</td>
-                                            <td class="text-center">{{ visit.ul_3000 }}</td>
-                                            <td class="text-center">{{ visit.ul_4000 }}</td>
-                                            <td class="text-center">{{ visit.ul_6000 }}</td>
-                                            <td class="text-center">{{ visit.ul_8000 }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td class="text-center">{{ visit.up_250 }}</td>
-                                            <td class="text-center">{{ visit.up_500 }}</td>
-                                            <td class="text-center">{{ visit.up_1000 }}</td>
-                                            <td class="text-center">{{ visit.up_2000 }}</td>
-                                            <td class="text-center">{{ visit.up_3000 }}</td>
-                                            <td class="text-center">{{ visit.up_4000 }}</td>
-                                            <td class="text-center">{{ visit.up_6000 }}</td>
-                                            <td class="text-center">{{ visit.up_8000 }}</td>
-                                        </tr>
-                                        </tbody>
-                                    </table>
-                                    <p><strong>Rozpoznanie:</strong> {{ visit.diagnosis }}</p>
-                                    <p><strong>Kod NFZ:</strong> {{ visit.nfz_info }}</p>
-                                    <p><strong>Zalecenia:</strong> {{ visit.recommendations }}</p>
                                 </div>
                             </div>
                         {% endfor %}
-                    {% endfor %}
+                    </div>
                 </div>
 
-                <!-- Paginacja -->
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-center">
-                        <li class="page-item {% if current_page <= 1 %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('patient.patient_main', page=current_page - 1) }}">Poprzednia</a>
-                        </li>
-                        {% for page_num in range(1, total_pages + 1) %}
-                            <li class="page-item {% if page_num == current_page %}active{% endif %}">
-                                <a class="page-link"
-                                   href="{{ url_for('patient.patient_main', page=page_num) }}">{{ page_num }}</a>
-                            </li>
-                        {% endfor %}
-                        <li class="page-item {% if current_page >= total_pages %}disabled{% endif %}">
-                            <a class="page-link" href="{{ url_for('patient.patient_main', page=current_page + 1) }}">Następna</a>
-                        </li>
-                    </ul>
-                </nav>
             {% else %}
                 <p class="mt-5">Brak wyników wyszukiwania.</p>
             {% endif %}
         {% endif %}
+
+
+        <!-- Paginacja -->
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not has_prev %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('patient.patient_main', page=current_page - 1) }}">Poprzednia</a>
+                </li>
+                {% for page_num in range(1, total_pages + 1) %}
+                    <li class="page-item {% if page_num == current_page %}active{% endif %}">
+                        <a class="page-link"
+                           href="{{ url_for('patient.patient_main', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% endfor %}
+                <li class="page-item {% if not has_next %}disabled{% endif %}">
+                    <a class="page-link"
+                       href="{{ url_for('patient.patient_main', page=current_page + 1) }}">Następna</a>
+                </li>
+            </ul>
+        </nav>
     </div>
+
 </div>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const accordion = document.getElementById("patientsAccordion");
+
+        // Otwórz akordeon, jeśli jest zapisany w local Storage
+        const openAccordionId = localStorage.getItem("openAccordionId");
+        if (openAccordionId) {
+            const collapseElement = document.getElementById(openAccordionId);
+            if (collapseElement) {
+                const collapseInstance = new bootstrap.Collapse(collapseElement, {
+                    toggle: true
+                });
+            }
+        }
+
+        // Zapisz otwarty akordeon
+        accordion.addEventListener("show.bs.collapse", function (event) {
+            localStorage.setItem("openAccordionId", event.target.id);
+        });
+
+        // Usuń z local Storage, gdy zamykasz akordeon
+        accordion.addEventListener("hide.bs.collapse", function () {
+            localStorage.removeItem("openAccordionId");
+        });
+    });
+
+</script>
 
 </body>
 </html>

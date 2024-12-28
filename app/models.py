@@ -21,7 +21,7 @@ class Patient(db.Model):
     apartment_number = db.Column(db.String(10))
 
     # Relacja z Visit
-    visits = db.relationship('Visit', backref='patient', lazy=True)
+    visits = db.relationship('Visit', backref='patient', lazy='select')
 
 
 class User(db.Model, UserMixin):

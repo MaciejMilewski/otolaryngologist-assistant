@@ -5,6 +5,7 @@ body {
     margin: 1rem;
     padding: 0;
     box-sizing: border-box;
+    background-color: #f3f3f3;
 }
 
 table {
@@ -64,4 +65,146 @@ table th {
     margin-top: 2rem;
     font-size: 1.1rem;
     font-weight: 400;
+}
+
+/* Stylizacja pól formularza */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea,
+select {
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-family: 'Verdana', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #333; /* Kolor tekstu */
+    background-color: #ffffff; /* Tło pola */
+    border: 1px solid #cccccc; /* Neutralne obramowanie */
+    border-radius: 8px; /* Zaokrąglone rogi (spójne z `.card`) */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtelny cień */
+    box-sizing: border-box;
+}
+
+/* Styl przy skupieniu (focus) */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus,
+select:focus {
+    outline: none; /* Usunięcie domyślnej ramki */
+    border-color: #007bff; /* Niebieska ramka dla wyróżnienia fokus */
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.25); /* Delikatny rozświetlony efekt */
+}
+
+/* Styl dla przycisków */
+button,
+input[type="submit"] {
+    font-family: 'Verdana', sans-serif;
+    font-size: 1rem;
+    font-weight: 400;
+    color: #ffffff; /* Biały tekst */
+    background-color: #007bff; /* Niebieskie tło */
+    border: none; /* Brak obramowania */
+    padding: 0.75rem 1.5rem;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtelny cień */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover i focus na przyciskach */
+button:hover,
+input[type="submit"]:hover {
+    background-color: #0056b3; /* Ciemniejszy niebieski na hover */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+button:focus,
+input[type="submit"]:focus {
+    outline: none;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+/* Stylizacja textarea */
+textarea {
+    resize: vertical; /* Pozwala zmieniać wysokość tylko w pionie */
+}
+
+/* Stylizacja pola select */
+select {
+    appearance: none; /* Ukrycie domyślnego stylu dla przeglądarek */
+    background-color: #ffffff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='%23333' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); /* Strzałka */
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2.5rem; /* Zwiększenie odstępu na strzałkę */
+}
+
+
+/* Ustawienie ikony kalendarza w niektórych przeglądarkach */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+    display: none; /* Ukrycie domyślnych ikon */
+}
+
+/* Styl przy aktywnym polu (focus) */
+input[type="date"]:focus {
+    outline: none; /* Usunięcie domyślnej ramki */
+    border-color: #007bff; /* Niebieska ramka na focus */
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.25); /* Efekt rozświetlenia */
+}
+
+/* Przy wsparciu starszych przeglądarek */
+input[type="date"]::-ms-expand {
+    display: none;
+}
+
+/* Stylizacja przycisku nagłówka accordion */
+.accordion-button {
+    background-color: #e3f2fd; /* Jasnoniebieskie tło */
+    color: #000; /* Czarny tekst */
+    font-weight: bold; /* Pogrubienie tekstu */
+    border: 1px solid #007bff; /* Dodanie obramowania */
+    border-radius: 4px; /* Zaokrąglone rogi */
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #007bff; /* Intensywniejszy niebieski przy aktywacji */
+    color: #fff; /* Biały tekst */
+    border-color: #0056b3; /* Ciemniejsze obramowanie */
+}
+
+/* Stylizacja hover (najechanie myszką) */
+.accordion-button:hover {
+    background-color: #0056b3; /* Ciemnoniebieskie tło przy hover */
+    color: #fff; /* Biały tekst */
+}
+
+/* Stylizacja treści accordion */
+.accordion-body {
+    background-color: #f8f9fa; /* Jasnoszare tło */
+    color: #212529; /* Ciemnoszary tekst */
+    border: 1px solid #dee2e6; /* Dodanie obramowania */
+    padding: 1rem; /* Wewnętrzne odstępy */
+    border-radius: 4px; /* Zaokrąglone rogi */
+}
+
+/* Stylizacja marginesów accordion */
+.accordion-item {
+    margin-bottom: 1rem; /* Dodanie odstępów między elementami */
+}
+
+/* Stylizacja aktywnego nagłówka */
+.accordion-header .accordion-button:focus {
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Podświetlenie aktywnego elementu */
+    border-color: #0056b3; /* Kolor obramowania */
+}
+
+/* Stylizacja aktywnej karty */
+.accordion-item.active .accordion-button {
+    background-color: #007bff; /* Intensywniejszy niebieski */
+    color: #fff; /* Biały tekst */
 }
