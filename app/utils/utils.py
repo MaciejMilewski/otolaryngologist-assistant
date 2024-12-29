@@ -3,7 +3,7 @@ import os
 from datetime import datetime, date
 
 from fpdf import FPDF
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, inspect
 
 from app.models import Schedule
 
@@ -555,3 +555,21 @@ def walidacja_pesela(pesel):
     cyfra_kontrolna = (10 - suma % 10) % 10
     # Sprawdzamy, czy cyfra kontrolna zgadza się z ostatnią cyfrą PESEL-a
     return cyfra_kontrolna == int(pesel[10])
+
+
+def object_to_dict(obj):
+    return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}
+
+
+# Funkcja czyta międzynarodową klasyfikację chorób ICD-10
+def get_icd_10():
+    try:
+        with open('instance/icd_10.txt', 'r', encoding="utf-8") as file:
+            get_data_icd_10 = file.readlines()
+    except FileNotFoundError:
+        print("Error: Specified file does not exist.")
+        return []
+    except IOError as e:
+        print(f"Error: Unable to read the file. Details: {e}")
+        return []
+    return get_data_icd_10

@@ -326,12 +326,8 @@
         document.getElementById('itemSelect')?.addEventListener('change', function () {
             const selectedItem = JSON.parse(`{{ data | tojson | safe }}`).find(item => item.id === parseInt(this.value, 10));
             if (selectedItem) {
-                itemDetailsTextarea.value = `
-                Tytuł: ${selectedItem.title.trim()}\n
-                Opis: ${selectedItem.description.trim()}\n
-                Grupa: ${selectedItem.group.trim() || '???'}
-                Kod ICD-9: ${selectedItem.icd9.trim() || '???'}
-                `.trim();
+                itemDetailsTextarea.value = selectedItem.title.trim() + '\n\n' + selectedItem.description.trim() +
+                '\n\n' + selectedItem.group.trim() + ' - ' + selectedItem.icd9.trim();
                 itemDetailsModal.show();
             }
         });

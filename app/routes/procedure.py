@@ -6,35 +6,9 @@ from jinja2 import TemplateNotFound
 from app import db
 from app.models import Procedure
 from app.utils.const import W0, W1, W2, W3, W9, W10, W16
+from app.utils.utils import get_icd_10, object_to_dict
 
 procedure_bp = Blueprint('procedure', __name__)
-
-
-# Funkcja pomocnicza do konwersji na słownik
-def object_to_dict(obj):
-    return {c.key: getattr(obj, c.key) for c in inspect(obj).mapper.column_attrs}
-
-
-# Funkcja czyta do zmiennej globalnej międzynarodową klasyfikację
-# chorób ICD-10
-def get_icd_10():
-    """
-       Reads the contents of the 'instance/icd_10.txt' file line by line and returns it as a list of strings.
-
-       Returns:
-           list: A list of strings where each string represents a line from the file.
-                 Returns an empty list if the file does not exist or cannot be read.
-       """
-    try:
-        with open('instance/icd_10.txt', 'r', encoding="utf-8") as file:
-            get_data_icd_10 = file.readlines()
-    except FileNotFoundError:
-        print("Error: Specified file does not exist.")
-        return []
-    except IOError as e:
-        print(f"Error: Unable to read the file. Details: {e}")
-        return []
-    return get_data_icd_10
 
 
 # Zmienna globalna przechowująca dane ICD-10
