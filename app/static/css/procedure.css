@@ -70,8 +70,8 @@ label {
 
 /* Nagłówek modala */
 .modal-header {
-  background-color: Gold; /* Ciemne tło */
-  color: #ffffff;           /* Biały kolor tekstu */
+  background-color: Gold; /* Jasne tło */
+  color: Saddlebrown;    /* Brąz - kolor tekstu */
   border-bottom: 2px solid #495057; /* Subtelne dolne obramowanie */
   padding: 20px; /* Większe odstępy */
   font-size: 18px;
@@ -80,7 +80,7 @@ label {
 
 .modal-header .btn-close {
   color: #ffffff; /* Biały kolor ikonki */
-  background: none; /* Transparentne tło */
+  /* background: none;  Transparentne tło */
   border: none; /* Usunięcie obramowania */
   font-size: 18px; /* Większy krzyżyk */
   opacity: 0.6; /* Subtelna przezroczystość */
@@ -114,8 +114,9 @@ label {
 .modal-footer .btn {
   border-radius: 6px; /* Lekko zaokrąglone przyciski */
   padding: 10px 20px; /* Większe odstępy wewnętrzne */
-  font-size: 14px; /* Czytelny tekst */
+  font-size: 12px; /* Czytelny tekst */
   transition: all 0.3s ease; /* Animacja */
+  background-color: #9ACD32;
 }
 
 .modal-footer .btn:hover {
