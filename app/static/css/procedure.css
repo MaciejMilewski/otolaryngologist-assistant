@@ -1,0 +1,157 @@
+ body {
+        background: khaki;
+        padding-top: 6.5rem; /* faktycza wysokość navbar */
+   }
+
+ .container {
+     width: 100%;
+     padding: 0;
+ }
+
+ .row {
+     width: 100%;
+     margin: 0;
+ }
+
+ @media (max-width: 768px) {
+     .container {
+         padding: 0 10px;
+     }
+ }
+
+ @media (min-width: 769px) {
+     .container {
+         width: 80%;
+         margin: 0 auto;
+     }
+ }
+
+ label,
+textarea {
+  font-size: 1.0rem;
+  letter-spacing: 1px;
+  color: red;
+}
+
+textarea {
+  max-width: 100%;
+  line-height: 1.5;
+  border-radius: 5px;
+  border: 1px solid #370f6e;
+  box-shadow: 1px 1px 1px #504141;
+  resize: none;
+}
+
+label {
+  display: block;
+  margin-left: 10px;
+}
+
+ .custom-select:hover option:checked {
+            color: red;
+        }
+.custom-select option {
+            color: Sienna;
+        }
+
+.routines {
+    border: 2px solid Sienna;
+    padding: 15px;  border-radius: 6px;
+    background-color:Wheat;
+}
+
+/* Główna zawartość modala */
+.modal-content {
+  background-color: #ffffff; /* Białe tło */
+  border-radius: 10px;      /* Zaokrąglone rogi */
+  border: 2px solid #007bff; /* Obramowanie w kolorze primary */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); /* Cień dla efektu głębi */
+}
+
+/* Nagłówek modala */
+.modal-header {
+  background-color: Gold; /* Ciemne tło */
+  color: #ffffff;           /* Biały kolor tekstu */
+  border-bottom: 2px solid #495057; /* Subtelne dolne obramowanie */
+  padding: 20px; /* Większe odstępy */
+  font-size: 18px;
+  font-weight: bold; /* Wyróżnienie tekstu */
+}
+
+.modal-header .btn-close {
+  color: #ffffff; /* Biały kolor ikonki */
+  background: none; /* Transparentne tło */
+  border: none; /* Usunięcie obramowania */
+  font-size: 18px; /* Większy krzyżyk */
+  opacity: 0.6; /* Subtelna przezroczystość */
+  transition: opacity 0.3s ease; /* Animacja przy najechaniu */
+}
+
+.modal-header .btn-close:hover {
+  opacity: 1; /* Pełna widoczność po najechaniu */
+}
+
+/* Treść modala */
+.modal-body {
+  padding: 25px; /* Większe odstępy */
+  font-size: 16px; /* Standardowy rozmiar czcionki */
+  line-height: 1.7; /* Większy odstęp między liniami */
+  color: #212529; /* Lekko ciemny tekst */
+  background-color: #f8f9fa; /* Jasne tło */
+  border-radius: 5px; /* Zaokrąglenie rogów */
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05); /* Subtelne cieniowanie */
+}
+
+/* Stopka modala */
+.modal-footer {
+  background-color: Khaki; /* Neutralne tło */
+  border-top: 1px solid #ced4da; /* Jasne obramowanie */
+  padding: 15px; /* Optymalne odstępy */
+  text-align: right; /* Wyrównanie przycisków */
+}
+
+/* Przyciski w stopce */
+.modal-footer .btn {
+  border-radius: 6px; /* Lekko zaokrąglone przyciski */
+  padding: 10px 20px; /* Większe odstępy wewnętrzne */
+  font-size: 14px; /* Czytelny tekst */
+  transition: all 0.3s ease; /* Animacja */
+}
+
+.modal-footer .btn:hover {
+  transform: scale(1.05); /* Powiększenie najechanego przycisku */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Subtelny cień */
+}
+
+/* Animacje */
+.modal.fade .modal-dialog {
+  transform: translateY(-30px); /* Modal zaczyna wyżej */
+  opacity: 0; /* Jest niewidoczny na początku */
+  transition: all 0.4s ease-out; /* Płynna animacja */
+}
+
+.modal.fade.show .modal-dialog {
+  transform: translateY(0); /* Powrót do miejsca */
+  opacity: 1; /* Modal staje się widoczny */
+}
+
+/* Customowa animacja dla otwierania */
+@keyframes slideDown {
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal.show .modal-dialog {
+  animation: slideDown 0.5s ease-out;
+}
+
+/* Ciemniejsze tło dla całej strony podczas otwarcia modala */
+.modal-backdrop.show {
+  background-color: rgba(0, 0, 0, 0.6); /* Przyciemnione tło */
+}

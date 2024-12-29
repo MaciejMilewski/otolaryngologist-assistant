@@ -1,44 +1,37 @@
 <!DOCTYPE html>
-
 <html lang="pl">
-
 <head>
-    <meta http-equiv="content-type" content="application/json; charset=UTF-8"/>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="shortcut icon" href="{{url_for('static',filename='img/logo.png')}}">
+    <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
 
     <title>Procedury</title>
 
-    <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
-
-    <link  href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css">
-
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-
-    <script src="{{url_for('static',filename='js/jquery-3.6.0.js')}}"></script>
-
-    <script src="{{url_for('static',filename='js/bootstrap.bundle.min.js')}}"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
-
+    <!-- Procedure CSS -->
+    <link href="{{ url_for('static',filename='css/procedure.css') }}" rel="stylesheet">
 </head>
 <body>
-<div class="col-12 text-center">
-    <div class="row">
-        {% with messages = get_flashed_messages(with_categories=True) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} text-center" role="alert">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-    </div>
 
-    <div class="container col-12">
+<div class="container">
+    <div class="col-12 text-center">
+        <div class="row">
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} text-center" role="alert">
+                            {{ message|e }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
         <div class="row">
             <nav class="navbar fixed-top navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
                 <div class="container-fluid">
@@ -46,52 +39,360 @@
                         <img src="{{ url_for('static',filename='img/logo.png') }}" alt="" width="60" height="60"
                              class="d-inline-block align-text-top">
                     </a>
-                    <a class="navbar-brand"><h5>{% if current_user.is_authenticated %}<b>{{ user }}</b>{% endif %}</h5>
-                    </a>
+                    <a class="navbar-brand"><h5>{% if current_user.is_authenticated %}<b>{{ user|e }}</b>{% endif %}
+                    </h5></a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarSupportedContent"
-                            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                            aria-controls="navbarSupportedContent" aria-expanded="false"
+                            aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                            <li class="nav-item">
-                                <a class="btn btn-outline-primary" type="button" href="{{ url_for('antibiotic.antibiotic_main') }}">Antybiotykoterapia</a>
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-primary" type="button"
+                                   href="{{ url_for('antibiotic.antibiotic_main') }}">Antybiotykoterapia</a>
                             </li>
-                            &ensp;
-                            <li class="nav-item">
+                            <li class="nav-item me-2">
                                 <a class="btn btn-outline-success" type="button"
                                    href="{{ url_for('visit.main_form') }}">Badanie</a>
                             </li>
-                            &ensp;
-                            <li class="nav-item">
-                                <a class="btn btn-outline-secondary" type="button" href="{{ url_for('medical_certificate.medical_certificate_main') }}">Orzeczenia</a>
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-secondary" type="button"
+                                   href="{{ url_for('medical_certificate.medical_certificate_main') }}">Orzeczenia</a>
                             </li>
-                            &ensp;
-                            <li class="nav-item">
-                                <a class="btn btn-outline-warning" type="button" href="{{ url_for('patient.patient_main') }}">Szukaj
-                                    pacjenta</a>
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-warning" type="button"
+                                   href="{{ url_for('patient.patient_main') }}">Szukaj pacjenta</a>
                             </li>
-                            &ensp;
-                            <li class="nav-item">
-                                <a class="btn btn-outline-info" type="button" href="{{ url_for('instruction.instruction_main') }}">Instrukcje</a>
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-info" type="button"
+                                   href="{{ url_for('instruction.instruction_main') }}">Instrukcje</a>
                             </li>
-                            &ensp;
-                            <li class="nav-item">
-                                <a class="btn btn-outline-dark" type="button" href="{{ url_for('procedure.procedure_main') }}">Procedury
-                                    NFZ</a>
+                            <li class="nav-item me-2">
+                                <a class="btn btn-dark" type="button"
+                                   href="{{ url_for('procedure.procedure_main') }}">Procedury NFZ</a>
                             </li>
-                            &ensp;
-                            <li class="nav-item">
-                                <a class="btn btn-outline-dark" type="button" href="{{ url_for('schedule.schedule_main') }}">Terminarz</a>
+                            <li class="nav-item me-2">
+                                <a class="btn btn-outline-dark" type="button"
+                                   href="{{ url_for('schedule.schedule_main') }}">Terminarz</a>
                             </li>
                         </ul>
-                        <a class="btn btn-danger" type="button" href="{{url_for('auth.logout')}}">Wyloguj się</a>
+                        <a class="btn btn-danger" type="button" href="{{ url_for('auth.logout') }}">Wyloguj się</a>
                     </div>
                 </div>
             </nav>
         </div>
     </div>
 </div>
+
+<!-- GŁÓWNY FORMULARZ -->
+
+<form action="{{ url_for('procedure.procedure_wynik_nfz') }}" method="post">
+    <div class="row">
+        <div class="col-lg-1">
+        </div>
+        <div class="col-lg-3 text-center">
+            <div class="badge bg-primary text-wrap" style="width: 21rem;">
+                <h6> AOS wersja 23.5</h6>
+            </div>
+        </div>
+        <div class="col-lg-5 text-center">
+
+        </div>
+        <div class="col-lg-3">
+            <button type="button" class="btn btn-primary me-md-2" data-bs-toggle="modal" data-bs-target="#bmiModal">
+                BMI
+            </button>
+            <button type="button" class="btn btn-secondary me-md-2" data-bs-toggle="modal" data-bs-target="#icd10Modal">
+                ICD-10
+            </button>
+            <button type="submit" class="btn btn-success me-md-2">ROZLICZ</button>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div>
+                <br>
+            </div>
+            <h6>PROCEDURY NIEZABIEGOWE</h6>
+            <div>
+                <br>
+            </div>
+            <div style="text-align: center;">LISTA W1:&ensp;
+                <select class="selectpicker show-tick" multiple data-live-search="true"
+                        data-style="btn-outline-primary"
+                        id="selektor_W1" name="selektor_W1" data-selected-text-format="count > 2" data-width="auto"
+                        title="Wybierz procedurę ..." data-size="11" data-container="body" data-actions-box="true">
+                    <optgroup data-icon="fa-solid fa-clipboard fa-2xl" label="lista W1">
+                        {% for kod, opis in lista_W1.items() %}
+                            <option value="{{ loop.index }}" data-subtext="{{ opis }}">{{ kod }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <hr>
+            <div style="text-align: center;">LISTA W2:&ensp;
+                <select class="selectpicker show-tick" multiple data-live-search="true"
+                        data-style="btn-outline-primary"
+                        id="selektor_W2" name="selektor_W2" data-selected-text-format="count > 2" data-width="auto"
+                        title="Wybierz procedurę ..." data-size="8" data-container="body" data-actions-box="true">
+                    <optgroup data-icon="fa-solid fa-sun fa-2xl" label="lista W2">
+                        {% for kod, opis in lista_W2.items() %}
+                            <option value="{{ loop.index }}" data-subtext="{{ opis }}">{{ kod }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <hr>
+            <div style="text-align: center;">LISTA W3:&ensp;
+                <select class="selectpicker show-tick" multiple data-style="btn-outline-primary"
+                        id="selektor_W3" name="selektor_W3" data-selected-text-format="count > 2" data-width="auto"
+                        title="Wybierz procedurę ..." data-size="7" data-container="body">
+                    <optgroup data-icon="fa-solid fa-moon fa-2xl" label="lista W3">
+                        {% for kod, opis in lista_W3.items() %}
+                            <option value="{{ loop.index }}" data-subtext="{{ opis }}">{{ kod }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <hr>
+            <div style="text-align: center;">LISTA WX:&ensp;
+                <select class="selectpicker show-tick" multiple data-style="btn-outline-primary"
+                        id="selektor_WX" name="selektor_WX" data-width="auto"
+                        title="Doppler / Histopatolog" data-size="8" data-container="body" data-dropup-auto="false">
+                    <optgroup data-icon="fa-solid fa-home" label="lista W9">
+                        {% for kod, opis in lista_W9.items() %}
+                            <option style="background: orange; color: #fff;"
+                                    value="{{ loop.index }}" data-subtext="{{ opis }}">{{ kod }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup data-icon="fa-solid fa-home fa-xl" label="lista W10">
+                        {% for kod, opis in lista_W10.items() %}
+                            <option style="background: #D2B48C; color: #fff;"
+                                    value="{{ 100+loop.index }}" data-subtext="{{ opis }}">{{ kod }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    <optgroup data-icon="fa-solid fa-home fa-2xl" label="lista W16">
+                        {% for kod, opis in lista_W16.items() %}
+                            <option style="background: #9ACD32; color: #fff;"
+                                    value="{{ 200+loop.index }}" data-subtext="{{ opis }}">{{ kod }}</option>
+                        {% endfor %}
+                    </optgroup>
+                </select>
+            </div>
+            <hr>
+            <h6>PROCEDURY ZABIEGOWE</h6>
+        </div>
+
+        <div class="col-lg-7">
+            <hr>
+            {% for kod, opis in lista_W0.items() %}
+                {% if the_best == loop.index %}
+                    <h4 class="mb-3">
+                        <span class="badge rounded-pill text-bg-success">
+                            {{ kod }} &nbsp; <i> {{ opis }} </i>
+                        </span>
+                    </h4>
+                {% else %}
+                    <h5 class="mb-2">
+                        <span class="badge rounded-pill text-bg-warning">
+                            {{ kod }}
+                        </span> &nbsp; <i> {{ opis }} </i>
+                    </h5>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="routines">
+                    <label for="itemSelect">Wybierz procedurę</label>
+                    <select class="form-select" id="itemSelect" style="width: 100%;">
+                        {% if data %}
+                            {% for item in data %}
+                                <option selected value="{{ item.id }}">
+                                    {% if item.icd9 %}
+                                        {{ "%3s"|format(item.value) }} pkt. - {{ item.title }}
+                                    {% else %}
+                                        --- {{ item.title }} ---
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        {% else %}
+                            <option>Brak danych...</option>
+                        {% endif %}
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+<!-- Modal Procedur Zabiegowych -->
+<div class="modal fade" id="itemDetailsModal" tabindex="-1" aria-labelledby="itemDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itemDetailsModalLabel">Szczegóły wybranego zabiegu ...</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <label for="itemDetailsTextarea"></label>
+                <textarea id="itemDetailsTextarea" class="form-control" rows="10"
+                          style="width: 100%; height: 100%; border: none; resize: none; text-align: left; white-space: pre-wrap;"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal dla BMI -->
+<div class="modal fade" id="bmiModal" tabindex="-1" aria-labelledby="bmiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="bmiModalLabel">Oblicz BMI</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="bmiForm" class="d-flex align-items-center">
+                    <div class="input-group me-2">
+                        <label for="weight" class="input-group-text"></label>
+                        <input type="number" class="form-control" id="weight" name="weight" placeholder="Masa (kg)"
+                               required>
+                        <span class="input-group-text">kg</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="height" class="input-group-text"></label>
+                        <input type="number" class="form-control" id="height" name="height" placeholder="Wzrost (cm)"
+                               required>
+                        <span class="input-group-text">cm</span>
+                    </div>
+                </form>
+                <div id="bmiResult" class="mt-3"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary btn-sm" id="bmiSubmit">Oblicz</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal dla ICD-10 -->
+<div class="modal fade" id="icd10Modal" tabindex="-1" aria-labelledby="icd10ModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title text-center" id="icd10ModalLabel">Międzynarodowa Klasyfikacja Chorób ICD-10</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="icd10Form" onkeydown="return event.key != 'Enter';">
+                    <div class="mb-3">
+                        <label for="icd10Code" class="form-label">Wpisz szukaną frazę ...</label>
+                        <input type="text" class="form-control" id="icd10Code" name="icd10Code" required>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="icd10Submit">Szukaj</button>
+                </form>
+                <div id="icd10Result" class="mt-3 p-2 border"
+                     style="max-height: 200px; overflow-y: auto; background-color: #f8f9fa;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success btn-sm" data-bs-dismiss="modal">Zamknij</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="{{ url_for('static',filename='js/jquery-3.6.0.js') }}"></script>
+<script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const itemDetailsModal = new bootstrap.Modal(document.getElementById('itemDetailsModal'));
+        const itemDetailsTextarea = document.getElementById('itemDetailsTextarea');
+
+        document.getElementById('itemSelect')?.addEventListener('change', function () {
+            const selectedItem = JSON.parse(`{{ data | tojson | safe }}`).find(item => item.id === parseInt(this.value, 10));
+            if (selectedItem) {
+                itemDetailsTextarea.value = `
+                Tytuł: ${selectedItem.title.trim()}\n
+                Opis: ${selectedItem.description.trim()}\n
+                Grupa: ${selectedItem.group.trim() || '???'}
+                Kod ICD-9: ${selectedItem.icd9.trim() || '???'}
+                `.trim();
+                itemDetailsModal.show();
+            }
+        });
+    });
+
+    // Obsługa BMI
+    document.getElementById('bmiSubmit').addEventListener('click', function () {
+        const weight = document.getElementById('weight').value;
+        const height = document.getElementById('height').value;
+
+        fetch('/body_mass_index', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({weight, height})
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('bmiResult').innerHTML = `<div class="alert alert-success">Twoje BMI wynosi: ${data.bmi}</div>`;
+            })
+            .catch(error => {
+                document.getElementById('bmiResult').innerHTML = `<div class="alert alert-danger">Wystąpił błąd: ${error.message}</div>`;
+            });
+    });
+
+    document.getElementById('icd10Submit').addEventListener('click', function () {
+        const icd10Code = document.getElementById('icd10Code').value;
+
+        fetch('/search_icd10', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({icd10Code: icd10Code})
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (Array.isArray(data.result)) {
+                    // Formatowanie wyników jako lista HTML
+                    const resultsHtml = data.result.map(item => `<li>${item}</li>`).join('');
+                    document.getElementById('icd10Result').innerHTML = `
+                <div class="alert alert-success">
+                    <strong>Wynik wyszukiwania:</strong>
+                    <ul>${resultsHtml}</ul>
+                </div>`;
+                } else {
+                    // Obsługa sytuacji, gdy `result` nie jest listą
+                    document.getElementById('icd10Result').innerHTML = `
+                <div class="alert alert-success">Wynik wyszukiwania: ${data.result}</div>`;
+                }
+            })
+            .catch(error => {
+                // Obsługa błędów
+                document.getElementById('icd10Result').innerHTML = `
+            <div class="alert alert-danger">Wystąpił błąd: ${error.message}</div>`;
+            });
+    });
+
+</script>
+
 </body>
 </html>
