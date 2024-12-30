@@ -36,9 +36,9 @@ def add_personal_data(pdf, data, birth=None):
     pdf.set_font('DejaVu-Bold', size=10)
     pdf.cell(0, 10, "Dane osobowe:", ln=True, align='L')
     pdf.set_font('DejaVu', size=10)
-    pdf.cell(0, 10, f"Nazwisko i imię: {data['firstname'].upper()} {data['lastname'].upper()}", ln=True)
-    pdf.multi_cell(0, 10, f"Data urodzenia: {birth or '??-??-????'}, Dowód osobisty: {data['dowod'] or 'NIEPODANO'}")
-    pdf.multi_cell(0, 10, f"Adres zamieszkania: {data['city'].upper()}, ul. {data['street'].upper()} {data['numer']}")
+    pdf.cell(0, 10, f"Nazwisko i imię: {data['first_name'].upper()} {data['surname'].upper()}", ln=True)
+    pdf.multi_cell(0, 10, f"Data urodzenia: {birth or '??-??-????'}")
+    pdf.multi_cell(0, 10, f"Adres zamieszkania: {data['city_select'].upper()}, ul. {data['street'].upper()} {data['home_numer']}")
     pdf.ln(5)
 
 
@@ -59,13 +59,13 @@ def pdf_zaswiadczenie(data):
     pdf.set_font('DejaVu-Bold', size=10)
     pdf.cell(0, 10, "Dane osobowe:", ln=True, align='L')
     pdf.set_font('DejaVu', size=10)
-    pdf.cell(0, 10, f"{data['firstname'].upper()} {data['lastname'].upper()}", ln=True)
-    pdf.multi_cell(0, 10, f"{data['city'].upper()}, ul. {data['street'].upper()} {data['numer']}")
+    pdf.cell(0, 10, f"{data['first_name'].upper()} {data['surname'].upper()}", ln=True)
+    pdf.multi_cell(0, 10, f"{data['city_select'].upper()}, ul. {data['street'].upper()} {data['home_numer']}")
     pdf.ln(5)
 
     # Treść zaświadczenia
     pdf.set_font('DejaVu', size=11)
-    if data['zdolny'] == 'yes':
+    if data['zdolny'] == '1':
         pdf.multi_cell(0, 10, typ_messages.get(data['typ'], "Nieznany typ badania."))
     else:
         pdf.multi_cell(0, 10, typ_messages_no.get(data['typ'], "Nieznany typ badania."))

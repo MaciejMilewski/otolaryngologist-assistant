@@ -3,27 +3,20 @@
 <html lang="pl">
 
 <head>
-    <meta http-equiv="content-type" content="application/json; charset=UTF-8"/>
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
 
     <title>Instrukcje</title>
 
+    <!-- BOOTSTRAP CSS & ICONS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
     <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
-
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/css/bootstrap-select.min.css">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-
+    <!-- JQUERY JS -->
     <script src="{{ url_for('static',filename='js/jquery-3.6.0.js') }}"></script>
-
-    <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.14.0-beta3/js/bootstrap-select.min.js"></script>
-
+    <!-- Instruction CSS -->
+    <link href="{{ url_for('static',filename='css/instruction.css') }}" rel="stylesheet">
 </head>
 <body>
 
@@ -33,7 +26,7 @@
             {% if messages %}
                 {% for category, message in messages %}
                     <div class="alert alert-{{ category }} text-center" role="alert">
-                        {{ message }}
+                        {{ message|e }}
                     </div>
                 {% endfor %}
             {% endif %}
@@ -48,7 +41,8 @@
                         <img src="{{ url_for('static',filename='img/logo.png') }}" alt="" width="60" height="60"
                              class="d-inline-block align-text-top">
                     </a>
-                    <a class="navbar-brand"><h5>{% if current_user.is_authenticated %}<b>{{ user }}</b>{% endif %}</h5>
+                    <a class="navbar-brand"><h5>{% if current_user.login.is_authenticated %}
+                        <b>{{ current_user.login }}</b>{% endif %}</h5>
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarSupportedContent"
@@ -79,7 +73,7 @@
                             </li>
                             &ensp;
                             <li class="nav-item">
-                                <a class="btn btn-outline-info" type="button"
+                                <a class="btn btn-info" type="button"
                                    href="{{ url_for('instruction.instruction_main') }}">Instrukcje</a>
                             </li>
                             &ensp;
@@ -101,6 +95,137 @@
         </div>
     </div>
 </div>
+
+<!-- GŁÓWNY FORMULARZ -->
+
+     <div class="container mt-5">
+        <h4 class="mb-4 text-center">Lista dokumentów i instrukcji dla pacjenta</h4>
+
+        <div class="d-flex justify-content-between mb-3">
+            <label for="searchInput" class="form-label"></label>
+            <input type="text" id="searchInput" class="form-control w-50 me-3" placeholder="Wyszukaj plik PDF...">
+            <label for="sortOptions" class="form-label"></label>
+            <select id="sortOptions" class="form-select w-auto">
+                <option value="name">Sortuj po nazwie</option>
+                <option value="date">Sortuj po dacie</option>
+            </select>
+        </div>
+
+        <div id="pdfList" class="scrollable-list list-group"></div>
+
+        <div id="pagination" class="d-flex justify-content-center mt-3">
+            <button class="btn btn-secondary" id="prevPage">Poprzednia</button>
+            <span id="pageInfo" class="mx-3"></span>
+            <button class="btn btn-secondary" id="nextPage">Następna</button>
+        </div>
+    </div>
+
+    <div id="previewModal" class="modal fade" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Podgląd PDF</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
+                </div>
+                <div class="modal-body">
+                    <iframe id="pdfPreview" src="" width="100%" height="500px" style="border: none;"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        const itemsPerPage = 5;
+        let currentPage = 1;
+        let pdfFiles = [];
+
+        async function loadPDFs() {
+            const response = await fetch('/list_pdfs');
+            pdfFiles = await response.json();
+            paginateList();
+        }
+
+        function paginateList() {
+            const pdfList = document.getElementById('pdfList');
+            pdfList.innerHTML = '';
+            const filterText = document.getElementById('searchInput').value.toLowerCase();
+
+            const filteredFiles = pdfFiles.filter(file => {
+                return file.name && file.name.toLowerCase().includes(filterText);
+            });
+
+            const totalPages = Math.ceil(filteredFiles.length / itemsPerPage);
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+
+            filteredFiles.slice(start, end).forEach(file => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item d-flex justify-content-between align-items-center';
+                item.dataset.date = new Date(file.date).toISOString();
+
+                item.innerHTML = `
+                    <span>
+                        <i class="bi bi-file-earmark-pdf text-danger"></i> ${file.name}
+                    </span>
+                    <div>
+                        <a href="/static/pdfs/${file.name}" class="btn btn-primary btn-sm me-2" target="_blank">Otwórz</a>
+                        <button class="btn btn-secondary btn-sm" onclick="printPDF('/static/pdfs/${file.name}')">Drukuj</button>
+                    </div>
+                `;
+                addPreviewButton(item, file.name);
+                pdfList.appendChild(item);
+            });
+
+            document.getElementById('pageInfo').textContent = `Strona ${currentPage} z ${totalPages}`;
+            document.getElementById('prevPage').disabled = currentPage === 1;
+            document.getElementById('nextPage').disabled = currentPage === totalPages;
+        }
+
+        function addPreviewButton(listItem, pdfName) {
+            const previewButton = document.createElement('button');
+            previewButton.className = 'btn btn-info btn-sm me-2';
+            previewButton.textContent = 'Podgląd';
+            previewButton.onclick = () => previewPDF(`/static/pdfs/${pdfName}`);
+            listItem.querySelector('div').prepend(previewButton);
+        }
+
+        function previewPDF(pdfUrl) {
+            document.getElementById('pdfPreview').src = pdfUrl;
+            const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+            previewModal.show();
+        }
+
+        function printPDF(pdfUrl) {
+            const printWindow = window.open(pdfUrl, '_blank');
+            printWindow.onload = function () {
+                printWindow.print();
+            };
+        }
+
+        document.getElementById('searchInput').addEventListener('input', paginateList);
+        document.getElementById('sortOptions').addEventListener('change', function () {
+            pdfFiles.sort((a, b) => this.value === 'name'
+                ? a.name.localeCompare(b.name)
+                : new Date(a.date) - new Date(b.date)
+            );
+            paginateList();
+        });
+
+        document.getElementById('prevPage').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                paginateList();
+            }
+        });
+
+        document.getElementById('nextPage').addEventListener('click', () => {
+            currentPage++;
+            paginateList();
+        });
+
+        loadPDFs();
+    </script>
 
 </body>
 </html>

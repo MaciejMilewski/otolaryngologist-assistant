@@ -1,20 +1,18 @@
 from datetime import date, datetime
 from io import BytesIO
-from sqlalchemy.exc import IntegrityError
+from typing import List, Optional
+
 from flask import Blueprint, render_template, request, abort, jsonify, send_file, flash, redirect
 from flask_login import login_required, current_user
-
 from jinja2 import TemplateNotFound
+from sqlalchemy.exc import IntegrityError
 
 from app import db, parquet_data, dane_woj
 from app.models import Procedure, Patient, Visit
 from app.utils.const import place
 from app.utils.parquet_util import get_streets_from_memory
-
 from app.utils.utils import (ogolne_items, orl_items, validate_request_badania, validate_request_structure_main,
                              validate_request_szept, zalecenia, generate_pdf)
-
-from typing import List, Optional
 
 ALLOWED_FIELDS = {'pesel', 'surname'}  # Definicja dozwolonych kolumn -field- dla szukania w bazie danych
 
@@ -196,7 +194,6 @@ def drukuj():
                      as_attachment=True)
 
 
-
 @visit_bp.route('/zapis', methods=['POST'])
 @login_required
 def zapis_wizyty_do_bazy():
@@ -334,3 +331,4 @@ def zapis_wizyty_do_bazy():
         db.session.rollback()
         flash(f"Błąd zapisu bazy danych: {e}", "danger")
         return redirect('/visit')
+

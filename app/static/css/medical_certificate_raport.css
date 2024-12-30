@@ -1,0 +1,76 @@
+body {
+    background-color: #FFFFF0;
+    padding-top: 4.5rem; /* faktycza wysokość navbar */
+}
+.box {
+    width: 100%;
+    padding: 20px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    border: 1px solid #7512d7;
+    box-sizing: border-box;
+}
+.heading {
+    text-align: center;
+    font-size: 50px;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    background-image: url(app/static/img/floral.jpg);
+    -webkit-text-stroke: 1px #7512d7;
+    animation: gradientAnimation 20s linear infinite;
+    animation-direction: alternate;
+}
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0;
+    }
+    to {
+        background-position: 100%;
+    }
+}
+.table-container {
+    max-width: 90%;
+    margin: 0 auto;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    background-color: #ffffff;
+}
+.data thead th {
+    padding: 12px;
+    border: 1px solid #ddd;
+    text-align: center;
+    background-color: #0074D9;
+    color: white;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+.data th, .data td {
+    padding: 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: #f9fafb;
+}
+.data tbody tr:hover {
+    background-color: rgba(229, 231, 235, 0.6);
+}
+.data tbody td:hover {
+    background-color: rgba(229, 231, 235, 0.8);
+}
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+.chart-container {
+    width: 90%;
+    height: 500px;
+    border: 1px solid Navy;
+}

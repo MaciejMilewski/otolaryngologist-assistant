@@ -1,0 +1,154 @@
+
+body {
+    background-color: Lavender; /* Jasne tło */
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding-top: 5.5rem; /* Dostosowanie dla fixed-top navbar */
+}
+
+ /*Nagłówki*/
+h4 {
+    color: #495057; /* Stonowany kolor */
+    text-transform: uppercase;
+
+    margin-bottom: 0.1rem;
+}
+
+/* Wyszukiwarka i sortowanie */
+#searchInput {
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    padding: 0.5rem;
+}
+
+#sortOptions {
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+}
+
+/* Lista plików */
+#pdfList {
+    background: #ffffff;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    max-height: 400px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+}
+
+.list-group-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border: none;
+    border-bottom: 1px solid #e9ecef;
+    transition: background-color 0.3s ease;
+}
+
+.list-group-item:hover {
+    background-color: #f1f3f5;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Ikony */
+.bi-file-earmark-pdf {
+    margin-right: 0.5rem;
+    font-size: 1.2rem;
+    color: #dc3545; /* Czerwony kolor dla PDF */
+}
+
+/* Przyciski */
+.btn {
+    font-size: 0.85rem;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    transform: scale(1.05);
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border: none;
+}
+
+.btn-secondary:hover {
+    background-color: #495057;
+    transform: scale(1.05);
+}
+
+.btn-outline-info {
+    color: #0dcaf0;
+    border-color: #0dcaf0;
+}
+
+.btn-outline-info:hover {
+    background-color: #0dcaf0;
+    color: white;
+}
+
+/* Modal */
+.modal-content {
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: darkgoldenrod;
+    color: white;
+    border-bottom: 1px solid Brown;
+}
+
+.modal-body {
+    background-color: Snow;
+}
+
+/* Paginacja */
+#pagination button {
+    margin: 0 5px;
+    border: none;
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+#pagination button:disabled {
+    background-color: #e9ecef;
+    color: #adb5bd;
+}
+
+#pagination button:hover:not(:disabled) {
+    background-color: #007bff;
+    color: white;
+    transform: scale(1.05);
+}
+
+/* Powiadomienia */
+.alert {
+    font-size: 0.9rem;
+    border-radius: 5px;
+}
+
+/* Styl dla braku wyników */
+.no-results {
+    text-align: center;
+    font-style: italic;
+    color: #adb5bd;
+    padding: 1rem;
+}

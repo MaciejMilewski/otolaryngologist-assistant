@@ -22,6 +22,7 @@ class Patient(db.Model):
 
     # Relacja z Visit
     visits = db.relationship('Visit', backref='patient', lazy='select')
+    certificates = db.relationship('MedicalCertificate', backref='patient', lazy=True)
 
 
 class User(db.Model, UserMixin):

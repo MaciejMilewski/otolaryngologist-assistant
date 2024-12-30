@@ -168,3 +168,34 @@ button .bi {
 .custom-raport-btn i {
     color: #fff; /* Biały kolor ikony */
 }
+
+/* Wyrównanie wysokości input i select2 */
+/*input.form-control,*/
+/*.select2-container .select2-selection--single {*/
+/*    height: calc(2.375rem); !* Wysokość dla Bootstrap 5 *!*/
+/*    padding: 0.1rem 0.3rem;     !* Dopasowanie paddingu *!*/
+/*    font-size: 1.1rem;           !* 1rem Czcionka jak w Bootstrap 5 *!*/
+/*    line-height: 1.5;            !* Wyrównanie tekstu *!*/
+/*    border: var(--border-light); !* Obramowanie zgodne z motywem *!*/
+/*    border-radius: 0.375rem;     !* Zaokrąglenie krawędzi *!*/
+/*    box-shadow: none;            !* Wyłączenie cieni *!*/
+/*}*/
+
+/*!* Wyrównanie select2 po najechaniu *!*/
+/*.select2-container .select2-selection--single:hover {*/
+/*    border-color: var(--primary-border-color); !* Kolor na hover *!*/
+/*}*/
+
+/*!* Wyrównanie wysokości dla select2 focus *!*/
+/*.select2-container--default .select2-selection--single:focus {*/
+/*    border-color: var(--primary-border-color);*/
+/*    outline: none;*/
+/*    box-shadow: 0 0 0 0.25rem rgba(222, 184, 135, 0.25); !* Subtelny efekt focus *!*/
+/*}*/
+
+/*!* Wyrównanie strzałki rozwijanej w select2 *!*/
+/*.select2-container .select2-selection__arrow {*/
+/*    height: 100%; !* Dopasowanie wysokości *!*/
+/*    top: 50%;     !* Wyśrodkowanie *!*/
+/*    transform: translateY(-50%);*/
+/*}*/

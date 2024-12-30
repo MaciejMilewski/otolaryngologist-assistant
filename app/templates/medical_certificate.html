@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 
-<html lang="pl">
+<html lang="en">
 
 <head>
-    <meta http-equiv="content-type" content="application/json; charset=UTF-8"/>
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
 
@@ -105,63 +105,149 @@
         <div class="row d-flex align-items-stretch" style="margin-top: 96px;">
             <!-- Formularz 1 - orzeczenia -->
             <div class="col-md-8 mb-3">
-                <div class="card h-100">
-                    <div class="card-header mb-3 py-3">
-                        <h4 class="mb-0"><span class="badge bg-success">ORZECZENIA LEKARSKIE</span></h4>
+                <form action="{{ url_for('medical_certificate.save') }}" method="post" id="medical_certificate_form">
+                    <div class="card h-100">
+                        <div class="card-header mb-3 py-3">
+                            <h4 class="mb-0"><span class="badge bg-success">ORZECZENIA LEKARSKIE</span></h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="typ">Typ orzeczenia</label>
+                                    <select id="typ" class="form-select select2" name="typ" aria-label="Typ badania">
+                                        {% for choice in typ %}
+                                            <option value="{{ choice['id'] }}"> {{ choice['name'] }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="place">Lokalizacja</label>
+                                    <select id="place" class="form-select select2" name="place"
+                                            aria-label="Lokalizacja">
+                                        {% for locale in place %}
+                                            <option value="{{ locale['name'] }}"> {{ locale['name'] }},
+                                                dnia {{ today }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label" for="add_information">ROZPOZNANIA / DODATKOWE
+                                    INFORMACJE</label>
+                                <textarea class="form-control" name="add_information" id="add_information"
+                                          rows="2"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check d-flex justify-content-end align-items-center mb-3">
+                                    <label class="form-check-label ms-2 zdolny-label" for="zdolny">&nbsp;&nbsp; Zdolność
+                                        do
+                                        pracy</label>
+                                    <input class="form-check-input ms-2" type="checkbox" id="zdolny" name="zdolny"
+                                           value="1"
+                                           checked>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <input type="hidden" id="hiddenResultInput" name="hiddenResultInput" value=""/>
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="first_name" class="form-label">Imię</label>
+                                        <input type="text" id="first_name" name="first_name" class="form-control"
+                                               required
+                                               placeholder="Wpisz imię pacjenta"
+                                               pattern="[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż\s]+" title="Wprowadź tylko litery">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="surname" class="form-label">Nazwisko</label>
+                                        <input type="text" id="surname" name="surname" class="form-control" required
+                                               placeholder="Wpisz nazwisko pacjenta"
+                                               pattern="[A-Za-zĄĆĘŁŃÓŚŹŻąćęłńóśźż'\s]+" title="Wprowadź tylko litery">
+                                        <span id="pesel-error" class="error" aria-live="polite"></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label for="pesel" class="form-label">PESEL</label>
+                                        <input type="text" id="pesel" name="pesel" class="form-control"
+                                               placeholder="Wpisz 11-cyfrowy numer"
+                                               pattern="[0-9]{11}" maxlength="11" inputmode="numeric" required>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label for="wojewodztwo" class="form-label">Województwo</label>
+                                        <select id="wojewodztwo" name="wojewodztwo" class="form-select select2">
+                                            {% for key, nazwa in woj.items() %}
+                                                <option value="{{ key }}">{{ nazwa }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="city_select" class="form-label">Miejscowość</label>
+                                        <select id="city_select" name="city_select" class="form-select select2">
+                                            {% for city in cities %}
+                                                <option value="{{ city }}"
+                                                        {% if city == city_default %}selected{% endif %}>{{ city }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="street" class="form-label">Ulica</label>
+                                        <select id="street" name="street" class="form-select select2">
+                                            {% for street in streets %}
+                                                <option value="{{ street }}"
+                                                        {% if street == street_default %}selected{% endif %}>{{ street }}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-4 mb-3">
+                                        <label for="home_numer" class="form-label">Numer</label>
+                                        <input type="text" id="home_numer" name="home_numer" class="form-control"
+                                               placeholder="Numer domu" required>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="d-flex flex-wrap justify-content-between gap-2">
+                                <button type="button" class="btn btn-danger flex-grow-1" id="clearForm">
+                                    <i class="bi bi-trash"></i> CZYŚĆ
+                                </button>
+                                <button type="submit" class="btn btn-primary flex-grow-1" id="pdf_Form"
+                                        data-bs-toggle="modal"
+                                        data-action="print"
+                                        data-bs-target="#modalForm"
+                                        formaction="{{ url_for('medical_certificate.medical_certificate_pdf') }}">
+                                    <i class="bi bi-file-earmark-pdf"></i> PDF
+                                </button>
+                                <button type="submit" class="btn btn-success flex-grow-1" id="saveButton"
+                                        data-bs-toggle="modal"
+                                        data-action="save"
+                                        data-bs-target="#modalForm">
+                                    <i class="bi bi-save"></i> ZAPISZ
+                                </button>
+                                <button type="submit" class="btn btn-info custom-raport-btn flex-grow-1"
+                                        id="raportButton"
+                                        formaction="{{ url_for('medical_certificate.raport') }}">
+                                    <i class="bi bi-bar-chart-line"></i> RAPORTY
+                                </button>
+                            </div>
+
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="typ">Typ orzeczenia</label>
-                                <select id="typ" class="form-select select2" name="typ" aria-label="Typ badania">
-                                    {% for choice in typ %}
-                                        <option value="{{ choice['id'] }}"> {{ choice['name'] }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="place">Lokalizacja</label>
-                                <select id="place" class="form-select select2" name="place" aria-label="Lokalizacja">
-                                    {% for locale in place %}
-                                        <option value="{{ locale['name'] }}"> {{ locale['name'] }},
-                                            dnia {{ today }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label" for="add_information">ROZPOZNANIA / DODATKOWE INFORMACJE</label>
-                            <textarea class="form-control" name="add_information" id="add_information"
-                                      rows="2"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <div class="form-check d-flex justify-content-end align-items-center mb-3">
-                                <label class="form-check-label ms-2 zdolny-label" for="zdolny">&nbsp;&nbsp; Zdolność do
-                                    pracy</label>
-                                <input class="form-check-input ms-2" type="checkbox" id="zdolny" name="zdolny" value="1"
-                                       checked>
-                            </div>
-                        </div>
-
-                        <div class="d-flex flex-wrap justify-content-between gap-2">
-                            <button type="button" class="btn btn-danger flex-grow-1" id="clearForm">
-                                <i class="bi bi-trash"></i> CZYŚĆ
-                            </button>
-                            <button type="button" class="btn btn-primary flex-grow-1" id="pdf_Form">
-                                <i class="bi bi-file-earmark-pdf"></i> PDF
-                            </button>
-                            <button type="button" class="btn btn-success flex-grow-1" id="saveButton">
-                                <i class="bi bi-save"></i> ZAPISZ
-                            </button>
-                            <button type="button" class="btn btn-info custom-raport-btn flex-grow-1" id="raportButton">
-                                <i class="bi bi-bar-chart-line"></i> RAPORTY
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
+                </form>
             </div>
 
             <!-- Formularz 2 - Skala Hirano -->
@@ -227,29 +313,27 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal do wyboru osoby -->
-    <div class="modal fade" id="selectPersonModal" tabindex="-1" role="dialog" aria-labelledby="selectPersonModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="selectPersonModalLabel">Znalezione osoby</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Zamknij"></button>
-                </div>
-                <div class="modal-body">
-                    <label for="personSelect" class="form-label">Wybierz osobę:</label>
-                    <select id="personSelect" class="form-select">
-                        <!-- Opcje zostaną załadowane dynamicznie przez JavaScript -->
-                    </select>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Anuluj</button>
-                    <button type="button" class="btn btn-primary" id="selectPersonButton">Wybierz</button>
+        <!-- Modal Autocomplete -->
+        <div class="modal fade" id="autocompleteModal" tabindex="-1" aria-labelledby="exampleModalLabel">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Autouzupełnianie</h5>
+                        <img alt="zapis" class="float-end" width="60" height="60"
+                             src="{{ url_for('static', filename='img/dane_osobowe.jpg') }}">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="autocompleteSelect">Pacjenci</label>
+                            <select id="autocompleteSelect" class="form-control select2"></select>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- Import Bootstrap JS and Popper.js -->
@@ -260,173 +344,427 @@
     <script>
         $(document).ready(function () {
 
-            // Inicjalizacja Select2 dla województwa, miejscowości i ulicy
-            $('#wojewodztwo').select2({
-                placeholder: "Wybierz województwo",
-                allowClear: true,
-                width: '100%'
-            }).val('22').trigger('change.select2');  // Ustawienie domyślnej wartości "Pomorskie"
+            const wojewodztwoSelect = $('#wojewodztwo');
+            const citySelect = $('#city_select');
+            const streetSelect = $('#street');
 
-            $('#city').select2({
-                placeholder: "Wybierz miejscowość",
-                allowClear: true,
-                width: '100%'
-            });
-
-            $('#street').select2({
-                placeholder: "Wybierz ulicę",
-                allowClear: true,
-                width: '100%'
-            });
-
-            // Wczytanie miejscowości po wybraniu województwa
-            $('#wojewodztwo').on('change', function () {
-                let wojewodztwo = $(this).val();
-                console.log("Wybrane województwo: " + wojewodztwo);
-
-                if (!wojewodztwo) {
-                    console.error("Brak wybranego województwa!");
-                    return;
-                }
-
-                $.ajax({
-                    url: '/get_miejscowosci',
-                    type: 'POST',
-                    data: {wojewodztwo: wojewodztwo},
-                    success: function (response) {
-                        $('#city').html('');  // Wyczyszczenie poprzednich opcji
-
-                        if (response.miejscowosci && response.miejscowosci.length > 0) {
-                            $.each(response.miejscowosci, function (index, city) {
-                                $('#city').append(new Option(city[1], city[0]));
-                            });
-                            $('#city').val(response.miejscowosci[0][0]).trigger('change.select2'); // Ustawienie domyślnej wartości
-                            $('#city').trigger('change');  // Ręczne wywołanie `change` dla aktualizacji ulic
-                        } else {
-                            console.error("Brak dostępnych miejscowości w odpowiedzi.");
-                        }
-                    },
-                    error: function () {
-                        alert("Błąd podczas pobierania miejscowości.");
+            // ### Funkcja pomocnicza ###
+            function setSelect2OptionByText(selectElement, textValue) {
+                // Sprawdź, czy element select ma id 'wojewodztwo'
+                if (selectElement.attr('id') === 'wojewodztwo') {
+                    // Jeśli tak, ustaw wartość na textValue
+                    selectElement.val(textValue).trigger('change.select2');
+                } else {
+                    // W przeciwnym razie wyszukaj opcję po tekście
+                    const option = selectElement.find('option').filter(function () {
+                        return $(this).text().trim() === textValue;
+                    });
+                    if (option.length > 0) {
+                        selectElement.val(option.val()).trigger('change.select2');
+                    } else {
+                        console.warn("Nie znaleziono opcji w select:", textValue, ' - ', selectElement.attr('id'));
                     }
-                });
-            });
-            // Wczytanie ulic po wybraniu miejscowości
-            $('#city').on('change', function () {
-                let miejscowosc = $('#city option:selected').text().trim();
-                let wojewodztwo = $('#wojewodztwo').val();
-
-                if (!miejscowosc || !wojewodztwo) {
-                    console.error("Brak miejscowości lub województwa");
-                    return;
-                }
-
-                $.ajax({
-                    url: '/get_ulice',
-                    type: 'POST',
-                    data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
-                    success: function (response) {
-                        $('#street').html('');  // Wyczyszczenie poprzednich opcji
-
-                        if (response.ulice && response.ulice.length > 0) {
-                            $.each(response.ulice, function (index, street) {
-                                $('#street').append(new Option(street, street));
-                            });
-                            // Ustaw pierwszą ulicę jako domyślną, jeśli dostępna
-                            $('#street').val(response.ulice[0]).trigger('change.select2');
-                        } else {
-                            console.error("Brak dostępnych ulic w odpowiedzi.");
-                        }
-                    },
-                    error: function () {
-                        alert("Błąd podczas pobierania ulic.");
-                    }
-                });
-            });
-
-            // Funkcja do ustawiania danych w formularzu po wyborze osoby
-            function setFormData(response) {
-                $('#firstname').val(response.firstname);
-                $('#lastname').val(response.lastname);
-                $('#numer').val(response.number);
-                $('#gender').val(response.gender);
-                $('#add_information').val(response.info);
-                $('#zdolny').prop('checked', response.able_to_work == 1);
-
-                // Ustaw województwo
-                if (response.stan) {
-                    $('#wojewodztwo').val(response.stan).trigger('change.select2');
-                }
-
-                // Ustaw miasto
-                if (response.city) {
-                    $('#city').append(new Option(response.city, response.city, true, true)).trigger('change.select2');
-                }
-
-                // Ustaw ulicę
-                if (response.street) {
-                    $('#street').append(new Option(response.street, response.street, true, true)).trigger('change.select2');
                 }
             }
 
-            // Po wybraniu osoby w modal, pobierz szczegóły i ustaw w formularzu
-            $('#selectPersonButton').on('click', function () {
-                var selectedId = $('#personSelect').val();
+            // ### Pobieranie ulic ###
+            function updateStreets(selectedStreet = null) {
+                return new Promise((resolve, reject) => {
+                    const miejscowosc = citySelect.find(":selected").text();
+                    const wojewodztwo = wojewodztwoSelect.val();
 
-                $.ajax({
-                    url: '/get_person_details',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({'id': selectedId}),
-                    success: function (response) {
-                        setFormData(response);  // Ustaw dane w formularzu
-                        $('#selectPersonModal').modal('hide');
-                    },
-                    error: function () {
-                        alert('Błąd podczas pobierania danych osoby.');
+                    // Walidacja danych wejściowych
+                    if (!miejscowosc || !wojewodztwo) {
+                        console.error("Brak miejscowości lub województwa do pobrania ulic.");
+                        return reject("Nie wybrano miejscowości lub województwa.");
+                    }
+                    // Wykonaj żądanie AJAX
+                    $.ajax({
+                        url: '/get_ulice',
+                        type: 'POST',
+                        data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
+                        success: function (response) {
+                            streetSelect.empty();
+
+                            const fragment = document.createDocumentFragment(); // Fragment do optymalizacji DOM
+
+                            if (response.ulice && response.ulice.length > 0) {
+                                // Dodaj ulice
+                                response.ulice.forEach(street => {
+                                    fragment.appendChild(new Option(street, street));
+                                });
+
+                                streetSelect.append(fragment).trigger('change.select2');
+
+                                // Ustaw wybraną ulicę, jeśli podano
+                                if (selectedStreet) {
+                                    setSelect2OptionByText(streetSelect, selectedStreet);
+                                }
+                                resolve("Ulice zostały załadowane.");
+                            } else {
+                                console.warn("Brak ulic dla wybranej miejscowości.");
+                                streetSelect.append(new Option("Brak dostępnych ulic !", "", false, false)).trigger('change.select2');
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error("Błąd podczas pobierania ulic:", textStatus, errorThrown);
+                            streetSelect.empty().append(new Option("Błąd w pobieraniu danych", "", false, false));
+                            streetSelect.trigger('change.select2');
+                        }
+                    });
+                });
+            }
+
+            // ### Pobieranie miast ###
+            function loadCities(wojewodztwo) {
+                return new Promise((resolve, reject) => {
+                    if (!wojewodztwo) {
+                        return reject("Brak wybranego województwa.");
+                    }
+                    $.ajax({
+                        url: '/get_miejscowosci',
+                        type: 'POST',
+                        data: {wojewodztwo: wojewodztwo},
+                        success: function (response) {
+
+                            // Resetuj pola miast i ulic
+                            citySelect.empty();
+                            streetSelect.empty();
+
+                            // Sprawdź, czy są miejscowości
+                            if (response.miejscowosci && response.miejscowosci.length > 0) {
+                                const fragment = document.createDocumentFragment();
+                                response.miejscowosci.forEach(city => {
+                                    // gdy Option(city[1], city[0]) to submit zwraca numer miasta zamiast nazwy !
+                                    const option = new Option(city[1], city[1]);
+                                    fragment.appendChild(option);
+                                });
+                                citySelect.append(fragment);
+                                // Wymuś odświeżenie Select2
+                                citySelect.trigger('change.select2');
+
+                                resolve(); // Rozwiązanie Promise
+
+                                // załaduj ulice
+                                updateStreets();
+                            } else {
+                                console.warn("Brak dostępnych miejscowości dla województwa:", wojewodztwo);
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error("Błąd podczas pobierania miejscowości:", textStatus, errorThrown);
+                        }
+                    });
+                });
+            }
+
+            // ### Inicjalizacja Select2 ###
+            function initializeSelect2() {
+
+                $('.select2').select2({
+                    language: "en",
+                    placeholder: "Wybierz",
+                    allowClear: false,
+                    width: '100%',
+                    debug: true,
+                    sorter: function (results) {
+                        // Pobranie tekstu wyszukiwanego przez użytkownika
+                        var query = $('.select2-search__field').val().toLowerCase();
+                        return results.sort(function (a, b) {
+                            // Sortowanie w oparciu o pozycję tekstu w opcji
+                            return a.text.toLowerCase().indexOf(query) - b.text.toLowerCase().indexOf(query);
+                        });
                     }
                 });
+
+                wojewodztwoSelect.val('22').trigger('change.select2'); // Default: POMORSKIE
+            }
+
+            // ### wypełnij select2 autocompleteSelect ###
+            function populateAutocompleteModal(results) {
+                const autocompleteSelect = $('#autocompleteSelect');
+                const fragment = document.createDocumentFragment();
+
+                // Wyczyść istniejące opcje
+                autocompleteSelect.empty();
+
+                // Dodaj opis na belce startowej wyszukiwania
+                const defaultOption = new Option('Lista rozwijana z wynikami ...', '', false, false);
+                fragment.appendChild(defaultOption);
+
+                // Dodaj nowe wyniki jako opcje, jeśli wyniki są dostępne
+                if (results && results.length > 0) {
+                    results.forEach((result) => {
+                        // dodaj imię, nazwisko i pesel z 'result'
+                        const displayText = result[1] + ' ' + result[2] + ' ' + result[3];
+                        const newOption = new Option(displayText, result[0], false, false);
+                        $(newOption).data('fullData', result); // dodaj cały 'result'
+                        fragment.appendChild(newOption);
+                    });
+                } else {
+                    // Dodaj opcję informującą o braku wyników
+                    const noResultsOption = new Option('Brak wyników !', '', false, false);
+                    fragment.appendChild(noResultsOption);
+                }
+
+                // Przenieś fragment do Select2
+                autocompleteSelect.append(fragment);
+
+                // Inicjalizuj lub odśwież Select2
+                autocompleteSelect.select2({
+                    dropdownParent: $('#autocompleteModal'),
+                    width: '100%'
+                });
+                // Aktualizacja ukrytego pola z wynikami wyboru - 'id' pacjenta
+                autocompleteSelect
+                    .off('change')
+                    .on('change', function () {
+                        const selectedOption = $(this).find(':selected');
+                        const fullData = selectedOption.data('fullData');
+                        const hiddenInput = $('#hiddenResultInput');
+                        hiddenInput.val(fullData ? fullData[0] : '');
+                    });
+                // Otwórz modal
+                $('#autocompleteModal').modal('show');
+            }
+
+
+            // ### Zdarzenia ###
+            function bindEvents() {
+                wojewodztwoSelect.on('change', function () {
+                    const wojewodztwo = $(this).val();
+                    if (wojewodztwo) {
+                        loadCities(wojewodztwo);
+                    } else {
+                        console.error("Brak wybranego wojewodztwa!");
+                    }
+                });
+
+                citySelect.on('change', function () {
+                    const selectedCity = citySelect.find(":selected").text();
+                    if (selectedCity && selectedCity !== "0") {
+                        updateStreets();
+                    }
+                });
+
+                $('#autocompleteSelect').on('select2:open', function () {
+                    const select2Element = $(this).data('select2');
+                    if (select2Element) {
+                        // Wymuś wybór pierwszej dostępnej opcji
+                        setTimeout(() => {
+                            const firstOption = $(this).find('option:first').val();
+                            if (firstOption) {
+                                $(this).val(firstOption).trigger('change.select2');
+                            }
+                        }, 80); // Czas oczekiwania, aby Select2 zdążył się otworzyć
+                    }
+                });
+
+                $('#autocompleteSelect').on('select2:select', function () {
+                    // Pobierz zapisane dane z wybranego elementu select2
+                    const selectedData = $(this).find('option:selected').data('fullData');
+
+                    // Zamknij modal
+                    $('#autocompleteModal').modal('hide');
+
+                    const data = {
+                        first_name: selectedData[1],
+                        surname: selectedData[2],
+                        pesel: selectedData[3],
+                        new_woj: selectedData[5],
+                        new_city: selectedData[6],
+                        new_street: selectedData[7],
+                        new_home_number: selectedData[8]
+                    };
+                    // Przenieś dane do pól
+                    transferDataToInputs(data);
+                });
+            }
+
+            async function transferDataToInputs(data) {
+                try {
+                    $('#first_name').val(data.first_name);
+                    $('#surname').val(data.surname);
+                    $('#pesel').val(data.pesel);
+                    $('#home_numer').val(data.new_home_number);
+
+                    const wojewodztwoSelect = $('#wojewodztwo');
+                    const citySelect = $('#city_select');
+
+                    // 1. Ustaw województwo
+                    setSelect2OptionByText(wojewodztwoSelect, data.new_woj);
+
+                    // 2. Poczekaj na załadowanie miast i ustaw miasto
+                    await loadCities(data.new_woj);
+
+                    setSelect2OptionByText(citySelect, data.new_city);
+
+                    // 3. Po ustawieniu poczekaj na załadowanie ulic i ustaw ulicę
+                    await updateStreets(data.new_street);
+                } catch (error) {
+                    console.error("Błąd podczas transferu danych:", error);
+                }
+            }
+
+            // ### Autouzupełnianie ###
+            function setupAutocomplete(inputId, field) {
+                $(inputId).on('input', function () {
+                    const query = $(this).val().trim();
+                    // Sprawdź, czy zapytanie zawiera co najmniej 3 znaki.
+                    if (query.length >= 3) {
+                        $.ajax({
+                            url: '/autocomplete', // Endpoint, który zwraca wyniki z bazy danych.
+                            method: 'GET',
+                            data: {query: query, field: field},
+                            success: function (response) {
+                                // Sprawdź, czy są wyniki w odpowiedzi
+                                if (response && response.length > 0) {
+                                    // Wywołaj modal i wypełnij jego zawartość
+                                    populateAutocompleteModal(response);
+                                } else {
+                                    console.log("Brak wyników dla zapytania:", query);
+                                }
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                console.error("Błąd podczas autouzupełniania:", textStatus, errorThrown);
+                            }
+                        });
+                    }
+                });
+            }
+
+            setupAutocomplete('#surname', 'surname');
+            setupAutocomplete('#pesel', 'pesel');
+
+            // Przesunięcie modala z wynikami na wierzch
+            $('#autocompleteModal').on('show.bs.modal', function () {
+                // Pobierz obecny z-index modala rodzica (modalForm)
+                const parentModalZIndex = parseInt($('#modalForm').css('z-index'));
+                // Ustaw wyższy z-index dla nowego modala
+                $(this).css('z-index', parentModalZIndex + 10);
+            });
+
+            $('#autocompleteModal').on('shown.bs.modal', function () {
+                // Pamiętać, aby backdrop nowego modala również miał poprawny z-index
+                const backdropZIndex = parseInt($(this).css('z-index')) - 1;
+                $('.modal-backdrop').last().css('z-index', backdropZIndex);
+            });
+            // Inicjalizacja Select2 dla autocompleteSelect
+            $('#autocompleteSelect').select2({
+                dropdownParent: $('#autocompleteModal'),
+                width: '100%'
+            });
+
+            function populateAutocompleteModal(results) {
+                const autocompleteSelect = $('#autocompleteSelect');
+                const fragment = document.createDocumentFragment();
+
+                // Wyczyść istniejące opcje
+                autocompleteSelect.empty();
+
+                // Dodaj opis na belce startowej wyszukiwania
+                const defaultOption = new Option('Lista rozwijana z wynikami ...', '', false, false);
+                fragment.appendChild(defaultOption);
+
+                // Dodaj nowe wyniki jako opcje, jeśli wyniki są dostępne
+                if (results && results.length > 0) {
+                    results.forEach((result) => {
+                        // dodaj imię, nazwisko i pesel z 'result'
+                        const displayText = result[1] + ' ' + result[2] + ' ' + result[3];
+                        const newOption = new Option(displayText, result[0], false, false);
+                        $(newOption).data('fullData', result); // dodaj cały 'result'
+                        fragment.appendChild(newOption);
+                    });
+                } else {
+                    // Dodaj opcję informującą o braku wyników
+                    const noResultsOption = new Option('Brak wyników !', '', false, false);
+                    fragment.appendChild(noResultsOption);
+                }
+
+                // Przenieś fragment do Select2
+                autocompleteSelect.append(fragment);
+
+                // Inicjalizuj lub odśwież Select2
+                autocompleteSelect.select2({
+                    dropdownParent: $('#autocompleteModal'),
+                    width: '100%'
+                });
+                // Aktualizacja ukrytego pola z wynikami wyboru - 'id' pacjenta
+                autocompleteSelect
+                    .off('change')
+                    .on('change', function () {
+                        const selectedOption = $(this).find(':selected');
+                        const fullData = selectedOption.data('fullData');
+                        const hiddenInput = $('#hiddenResultInput');
+                        hiddenInput.val(fullData ? fullData[0] : '');
+                    });
+                // Otwórz modal
+                $('#autocompleteModal').modal('show');
+            }
+
+            $('#autocompleteSelect').on('select2:select', function () {
+                // Pobierz zapisane dane z wybranego elementu select2
+                const selectedData = $(this).find('option:selected').data('fullData');
+
+                // Zamknij modal
+                $('#autocompleteModal').modal('hide');
+
+                const data = {
+                    first_name: selectedData[1],
+                    surname: selectedData[2],
+                    pesel: selectedData[3],
+                    new_woj: selectedData[5],
+                    new_city: selectedData[6],
+                    new_street: selectedData[7],
+                    new_home_number: selectedData[8]
+                };
+                // Przenieś dane do pól
+                transferDataToInputs(data);
+            });
+
+            // ### Inicjalizacja ###
+            initializeSelect2();
+            bindEvents();
+            setupAutocomplete('#surname', 'surname');
+            setupAutocomplete('#pesel', 'pesel');
+
+            // ### Obsługa formularza i walidacji pesela ###
+            const peselInput = document.querySelector('#pesel');
+            const form = document.querySelector('#medical_certificate_form');
+
+            // ### Walidacja PESEL ###
+            function validatePesel(pesel) {
+                if (!/^\d{11}$/.test(pesel)) {
+                    return false; // Nieprawidłowa długość lub zawiera znaki inne niż cyfry
+                }
+
+                const weights = [9, 7, 3, 1, 9, 7, 3, 1, 9, 7];
+                let sum = 0;
+
+                for (let i = 0; i < 10; i++) {
+                    sum += parseInt(pesel[i]) * weights[i];
+                }
+
+                const controlDigit = sum % 10;
+                return controlDigit === parseInt(pesel[10]);
+            }
+
+            // Walidacja przy próbie wysyłania formularza
+            form.addEventListener('submit', (event) => {
+                const peselValue = peselInput.value;
+
+                if (!validatePesel(peselValue)) {
+                    event.preventDefault();                 // Zatrzymanie wysyłania formularza
+                    showToast('PESEL jest nieprawidłowy!'); // Wyświetlenie toastu
+                    peselInput.style.borderColor = 'red';   // Wizualne oznaczenie błędu
+                }
             });
 
             // Funkcja czyszczenia formularza
             $('#clearForm').on('click', function () {
-                $('#firstname').val('');
-                $('#lastname').val('');
-                $('#numer').val('');
-                $('#wojewodztwo').val(null).trigger('change.select2');
-                $('#city').val(null).trigger('change.select2');
-                $('#street').val(null).trigger('change.select2');
-                $('#pesel').val('');
-                $('#dowod').val('');
-                $('#add_information').val('');
-                $('#zdolny').prop('checked', true);
-            });
+                $('#select2-typ-container').title = " Badanie profilaktyczne na wysokość";
 
-            // Wyszukiwanie osoby na podstawie nazwiska
-            $('#lastname').on('input', function () {
-                var lastname = $(this).val();
-
-                if (lastname.length >= 3) {
-                    $.ajax({
-                        url: '/search_by_lastname',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({'lastname': lastname}),
-                        success: function (response) {
-                            if (response.length > 0) {
-                                var options = '';
-                                response.forEach(function (person) {
-                                    options += '<option value="' + person.id + '">' + person.firstname + ' ' + person.lastname + ', ' + person.city + '</option>';
-                                });
-                                $('#personSelect').html(options);
-                                $('#selectPersonModal').modal('show');
-                            }
-                        },
-                        error: function () {
-                            alert('Błąd podczas wyszukiwania nazwiska.');
-                        }
-                    });
-                }
+                document.getElementById("medical_certificate_form").reset();
             });
 
             // KOPIUJ SKALĘ GRBAS do pola textarea
@@ -440,136 +778,9 @@
                 const infoField = document.getElementById("add_information");
                 infoField.value += grbasText;
             });
-
-            // Przekierowanie na stronę SZUKAJ
-            $('#searchButton').on('click', function () {
-                window.location.href = '/search';
-            });
-
-            // Przekierowanie na stronę RAPORTY
-            document.getElementById('raportButton').addEventListener('click', function () {
-                window.location.href = '/raport';
-            });
-
-            // ZAPISZ DANE JAKO PLIK PDF
-            $('#pdf_Form').on('click', function (e) {
-                e.preventDefault();
-
-                var formData = {
-                    'firstname': $('#firstname').val(),
-                    'lastname': $('#lastname').val(),
-                    'pesel': $('#pesel').val(),
-                    'dowod': $('#dowod').val(),
-                    'wojewodztwo': $('#wojewodztwo').val(),
-                    'city': $('#city option:selected').text().trim(),
-                    'street': $('#street option:selected').text().trim(),
-                    'numer': $('#numer').val(),
-                    'typ': $('#typ').val(),
-                    'zdolny': $('#zdolny').is(':checked') ? 'yes' : 'no',
-                    'add_information': $('#add_information').val(),
-                    'place': $('#place').val()
-                };
-
-                $.ajax({
-                    url: '/pdf',
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify(formData),
-                    success: function (response) {
-                        if (response.file) {
-                            window.location.href = '/pdf_download?file=' + encodeURIComponent(response.file);
-                        } else {
-                            alert('Błąd: brak ścieżki do pliku PDF.');
-                        }
-                    },
-                    error: function () {
-                        alert('Błąd przy generowaniu PDF.');
-                    }
-                });
-            });
-
-            // DRUKUJ DANE NA DRUKARCE
-            $('#printButton').on('click', function (e) {
-                e.preventDefault();
-
-                let formData = {
-                    'firstname': $('#firstname').val(),
-                    'lastname': $('#lastname').val(),
-                    'pesel': $('#pesel').val(),
-                    'dowod': $('#dowod').val(),
-                    'city': $('#city').val(),
-                    'street': $('#street').val(),
-                    'numer': $('#numer').val(),
-                    'typ': $('#typ').val(),
-                    'zdolny': $('#zdolny').is(':checked') ? 'yes' : 'no',
-                    'add_information': $('#add_information').val(),
-                    'place': $('#place').val()
-                };
-
-                $.ajax({
-                    url: '/print',
-                    type: 'POST',
-                    data: formData,
-                    success: function (response) {
-                        $('#printContainer').html(response);
-                        $('#mainForm').hide();
-                        $('#printContainer').show();
-                        window.print();
-                        $('#mainForm').show();
-                        $('#printContainer').hide();
-                    },
-                    error: function () {
-                        alert('Wystąpił błąd podczas drukowania.');
-                    }
-                });
-            });
-
-            $('#saveButton').on('click', function (e) {
-                e.preventDefault();
-
-                let isValid = true;
-
-                if (isValid) {
-                    var formData = {
-                        'typ': $('#typ').val(),
-                        'zdolny': $('#zdolny').is(':checked') ? '1' : '0',
-                        'add_information': $('#add_information').val(),
-                        'place': $('#place').val(),
-                        'gender': $('#gender').val()
-                    };
-
-                    $.ajax({
-                        url: '/save',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify(formData),
-                        success: function (response) {
-                            alert('Dane zostały zapisane pomyślnie');
-                        },
-                        error: function () {
-                            alert('Wystąpił błąd podczas zapisu danych');
-                        }
-                    });
-                }
-            });
         });
-
     </script>
 </div>
 
 </body>
 </html>
-
-
-{#<div class="container col-12" id="mainForm">#}
-{#    <!-- Pasek nawigacji -->#}
-{#    <div class="row"></div>#}
-{##}
-{#    <div class="row d-flex align-items-stretch">#}
-{#        <!-- Formularz 1 - orzeczenia -->#}
-{#        <div class="col-md-8 mb-3"></div>#}
-{##}
-{#        <!-- Formularz 2 - Skala Hirano -->#}
-{#        <div class="col-md-4 mb-3"></div>#}
-{#    </div>#}
-{#</div>#}
