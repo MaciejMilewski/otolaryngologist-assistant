@@ -90,6 +90,7 @@ def save():
             created_at=date.today(),
             type=typ,
             info=additional_info,
+            location=place,
             is_able_to_work=zdolny,
             month=datetime.today().month,
             year=datetime.today().year

@@ -96,6 +96,7 @@ class MedicalCertificate(db.Model):
     is_able_to_work = db.Column(db.Boolean)
     month = db.Column(db.Integer)
     year = db.Column(db.Integer)
+    location = db.Column(db.String)
 
 
 class Procedure(db.Model):
