@@ -1,11 +1,11 @@
 import json
+
 import logging
-import logging
-import os
-from datetime import datetime, date, timedelta
+
+from datetime import datetime, timedelta
 from io import BytesIO
 import plotly.graph_objects as go
-
+from bs4 import BeautifulSoup
 import pandas as pd
 import plotly
 from flask import Blueprint, render_template, abort, request, jsonify, redirect, url_for, send_file
@@ -18,6 +18,7 @@ from app.models import Patient, MedicalCertificate
 from app.utils.const import typ_badan, place
 from app.utils.medical_certificate_util import pdf_orzeczenie_lekarskie, pdf_zaswiadczenie, save_medical_certificate
 from app.utils.parquet_util import get_streets_from_memory
+from fpdf import FPDF
 
 medical_certificate_bp = Blueprint('medical_certificate', __name__)
 
@@ -99,13 +100,13 @@ def today_offset(offset_days=0):
     """
     return datetime.now() + timedelta(days=offset_days)
 
+
 def fetch_data_range_from_db(begin_date, end_date):
     """
     Fetches data about patients and their medical certificates from the database within a given date range.
 
     :param begin_date: The start of the date range for which data is to be fetched.
     :param end_date: The end of the date range for which data is to be fetched.
-    :param session: The SQLAlchemy session object.
     :return: A list of tuples containing data fetched from the database.
              Each tuple consists of (created_at, first_name, surname, city, info, type, is_able_to_work).
              Returns an empty list if an error occurs.
@@ -135,16 +136,24 @@ def fetch_data_range_from_db(begin_date, end_date):
         return []
 
 
+
+
 def process_grouped_data(df, selected_types, start_date=None, end_date=None):
     """
     Processes the DataFrame to prepare data for creating a Plotly chart.
 
     :param df: DataFrame containing the data to be processed.
     :param selected_types: List of types to filter the data by. If "all" is in the list, all types are included.
-    :param start_date: Optional start date to filter the data by created_at.
-    :param end_date: Optional end date to filter the data by created_at.
+    :param start_date: Optional start date to filter the data by created_at (string 'yyyy-mm-dd').
+    :param end_date: Optional end date to filter the data by created_at (string 'yyyy-mm-dd').
     :return: DataFrame with grouped and aggregated data, including a summary row.
     """
+    # Konwertujemy daty na obiekty datetime.date
+    if start_date:
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if end_date:
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+
     # Filtrujemy dane na podstawie zakresu dat
     if start_date:
         df = df[df['created_at'] >= start_date]
@@ -195,6 +204,7 @@ def process_grouped_data(df, selected_types, start_date=None, end_date=None):
     return pd.concat([grouped, summary_row], ignore_index=True)
 
 
+
 def create_plot(df, selected_types):
     """
     :param df: DataFrame containing the data to be plotted. It should at least have columns 'created' and 'type'.
@@ -215,7 +225,7 @@ def create_plot(df, selected_types):
     df['count'] = 1
 
     # Pivot table for plotting
-    pivot_df = df.pivot_table(index='created', columns='type', values='count', aggfunc='sum', fill_value=0)
+    pivot_df = df.pivot_table(index='created_at', columns='type', values='count', aggfunc='sum', fill_value=0)
 
     # Przekształcenie indeksu na listę unikalnych wartości daty jako kategorie
     dates = pivot_df.index.tolist()
@@ -281,6 +291,7 @@ def raport():
     if not data:
         return render_template(
             'medical_certificate_raport.html',
+            typ=typ_badan,
             alert_message="No data available",
             table_html="",
             sum_text="",
@@ -307,8 +318,131 @@ def raport():
     return render_template(
         'medical_certificate_raport.html',
         table_html=table_html,
+        typ=typ_badan,
         selected_types=selected_types,
         start_date=start_date,
         end_date=end_date,
-        plot=graph_json
+        data=graph_json
     )
+
+@medical_certificate_bp.route('/generate_pdf_for_raport', methods=['GET'])
+@login_required
+def generate_pdf_for_raport():
+    """
+    Generates a PDF report based on the provided HTML table and selected test types within a specified date range.
+    """
+    # Pobierz dane z zapytania
+    table_html = request.args.get('table_html', '')
+    selected_types = request.args.getlist("selected_types")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+
+    # Słownik do mapowania typów badań na nazwy
+    typ_badan_dict = {badanie['id']: badanie['name'] for badanie in typ_badan}
+
+
+    # Generowanie opisu wybranych typów badań
+    if selected_types and selected_types != ['all']:
+        badania_pdf = ", ".join(typ_badan_dict.get(typ, f"Typ {typ}") for typ in selected_types)
+    else:
+        badania_pdf = "wszystkie rodzaje badań !"
+
+    # Parsowanie HTML za pomocą BeautifulSoup
+    soup = BeautifulSoup(table_html, 'html.parser')
+
+    # Znajdź indeksy kolumn "MIASTO" i "INFO"
+    headers = [header.text.strip() for header in soup.find_all('th')]
+    columns_to_remove = [headers.index("MIASTO"), headers.index("INFO")]
+
+    # Usuń nagłówki kolumn "MIASTO" i "INFO"
+    headers = [header for i, header in enumerate(headers) if i not in columns_to_remove]
+
+    # Przetwórz wiersze i pomiń komórki odpowiadające "MIASTO" i "INFO"
+    rows = [
+        [cell.text.strip() for i, cell in enumerate(row.find_all('td')) if i not in columns_to_remove]
+        for row in soup.find_all('tr')
+    ]
+
+    # Tworzenie pliku PDF za pomocą FPDF
+    pdf = FPDF()
+    pdf.add_page()
+
+    # Dodanie czcionki TrueType
+    pdf.add_font('DejaVu', '', './Fonts/DejaVuSans.ttf', uni=True)
+    pdf.add_font('DejaVu-Bold', '', './Fonts/DejaVuSans-Bold.ttf', uni=True)
+
+    # Ustawienie czcionki podstawowej
+    pdf.set_font("DejaVu", size=10)
+
+    # Dodanie logo i tytułu
+    pdf.image('app/static/img/butterfly.png', 10, 8, 24, 24)
+    pdf.set_font("DejaVu-Bold", size=18)
+    pdf.cell(0, 10, "Raport", ln=True, align='C')  # Tytuł na środku
+    pdf.ln(3)
+
+    # Dodanie informacji o zakresie dat i typach badań
+    pdf.set_font("DejaVu", size=12)
+    pdf.cell(0, 10, f"Zakres dni od {start_date} do {end_date}", ln=True, align='C')
+    pdf.cell(0, 10, f"Typy badań: {badania_pdf}", ln=True, align='C')
+
+    # Dodanie odstępu przed tabelą
+    pdf.ln(7)
+
+    # Tabela - nagłówki
+    pdf.set_font("DejaVu-Bold", size=10)
+    pdf.set_fill_color(60, 120, 180)  # Niebieski odcień dla nagłówków
+    pdf.set_text_color(255, 255, 255)  # Biały tekst
+    pdf.set_draw_color(50, 50, 50)  # Obramowanie ciemnoszare
+    pdf.set_line_width(0.4)
+
+    # Usunięcie pustych wierszy z `rows`
+    filtered_rows = [row for row in rows if row]  # Filtruje puste wiersze
+
+    # Pobierz szerokość strony PDF (domyślnie A4 w FPDF)
+    page_width = pdf.w - 2 * pdf.l_margin  # Szerokość strony minus marginesy
+
+    # Obliczanie szerokości kolumn
+    if filtered_rows:
+        max_col_widths = [max(len(str(cell)) for cell in col) + 2 for col in zip(*([headers] + filtered_rows))]
+    else:
+        max_col_widths = [len(header) + 2 for header in headers]  # Gdy brak danych w wierszach
+
+    # Przeliczenie szerokości kolumn na procenty i dostosowanie do szerokości strony
+    total_max_width = sum(max_col_widths)
+    col_widths = [(page_width * w / total_max_width) for w in max_col_widths]
+
+    # Debugowanie
+    # print("Page Width:", page_width)
+    # print("Column Widths:", col_widths)
+
+    # Rysowanie nagłówków
+    pdf.set_font("DejaVu-Bold", size=10)
+    pdf.set_fill_color(60, 120, 180)    # Niebieskie tło
+    pdf.set_text_color(255, 255, 255)   # Biały tekst
+    pdf.set_draw_color(50, 50, 50)      # Obramowanie
+    pdf.set_line_width(0.4)
+
+    for idx, header in enumerate(headers):
+        pdf.cell(col_widths[idx], 10, header, border=1, align='C', fill=True)
+    pdf.ln()
+
+    # Rysowanie wierszy
+    pdf.set_font("DejaVu", size=10)     # Reset tekstu na czarny
+    pdf.set_text_color(0, 0, 0)         # Czarny tekst
+    for row_idx, row in enumerate(filtered_rows):
+        fill_color = (245, 245, 245) if row_idx % 2 == 0 else (255, 255, 255)
+        pdf.set_fill_color(*fill_color)
+        for col_idx, cell in enumerate(row):
+            pdf.cell(col_widths[col_idx], 10, cell, border=1, align='C', fill=True)
+        pdf.ln()
+
+    # Zapisz plik PDF w pamięci
+    pdf_data = pdf.output(dest='S')
+    # Konwersja str na bytes za pomocą kodowania latin1
+    pdf_bytes = pdf_data.encode('latin1')
+
+    buffer = BytesIO(pdf_bytes)
+    buffer.seek(0)
+
+    # Zwróć plik PDF jako odpowiedź
+    return send_file(buffer, mimetype='application/pdf', download_name="raport.pdf", as_attachment=True)

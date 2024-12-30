@@ -16,7 +16,7 @@ body {
     color: transparent;
     -webkit-background-clip: text;
     background-clip: text;
-    background-image: url(app/static/img/floral.jpg);
+    background-image: url(/static/img/floral.jpg);
     -webkit-text-stroke: 1px #7512d7;
     animation: gradientAnimation 20s linear infinite;
     animation-direction: alternate;
@@ -30,7 +30,7 @@ body {
     }
 }
 .table-container {
-    max-width: 90%;
+    max-width: 100%;
     margin: 0 auto;
     border: 1px solid #ddd;
     border-radius: 8px;

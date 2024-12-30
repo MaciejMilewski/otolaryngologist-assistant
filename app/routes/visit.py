@@ -55,7 +55,8 @@ def generuj():
     try:
         dane = request.form
 
-        zabiegi = ' '.join(dane.getlist('selectZabiegi')).lstrip()
+        # zabiegi = ' '.join(dane.getlist('selectZabiegi')).lstrip()
+        zabiegi = dane.getlist('selectZabiegi')
         ogolne = validate_request_badania(ogolne_items, dane)
         laryngologiczne = validate_request_badania(orl_items, dane)
         orl = validate_request_structure_main(dane)
