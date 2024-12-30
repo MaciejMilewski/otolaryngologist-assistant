@@ -348,10 +348,12 @@
                                                                     <strong>Miejsce:</strong> {{ certificate.location }}
                                                                 </div>
                                                                 <div class="card-body">
-                                                                    <p><strong>Typ:</strong> {{ certificate.type }}</p>
+                                                                    <p><strong>Typ:</strong>
+                                                                        {{ typ_badan_dict[certificate.type|string] }}
+                                                                    </p>
                                                                     <p><strong>Informacje
                                                                         dodatkowe:</strong> {{ certificate.info }}</p>
-                                                                    <p><strong>Decyzja orzeczenia:</strong> {{ "Tak" if certificate.is_able_to_work else "Nie" }}
+                                                                    <p><strong>Zdolność do pracy:</strong> {{ "Zdolny do pracy" if certificate.is_able_to_work else "Niezdolny do pracy" }}
                                                                     </p>
                                                                 </div>
                                                             </div>

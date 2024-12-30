@@ -5,6 +5,8 @@ from app import db
 
 from math import ceil
 
+from app.utils.const import typ_badan
+
 ITEMS_PER_PAGE = 5  # Liczba pacjentów na stronę
 VISITS_PER_PAGE = 5  # Liczba wizyt na stronę
 
@@ -17,6 +19,7 @@ def patient_main():
     try:
         current_page = int(request.args.get('page', 1))  # Paginacja pacjentów
         search_mode = request.form.get('search_mode', 'visit')  # Domyślny tryb to 'visit'
+        typ_badan_dict = {badanie['id']: badanie['name'] for badanie in typ_badan}
 
         filters = []
         joins_required = False
@@ -109,7 +112,8 @@ def patient_main():
             current_page=current_page,
             total_pages=total_pages,
             has_prev=current_page > 1,
-            has_next=current_page < total_pages
+            has_next=current_page < total_pages,
+            typ_badan_dict=typ_badan_dict
         )
     except Exception as e:
         print(f"Error in patient_main: {e}")
