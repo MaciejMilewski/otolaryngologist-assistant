@@ -1,7 +1,6 @@
 /* Kolor tła strony i przewijanie */
 body {
     background-color: #F2F5EA; /* Delikatniejszy odcień dla komfortu oczu */
-    overflow-y: hidden;
     scroll-behavior: smooth;
 }
 
