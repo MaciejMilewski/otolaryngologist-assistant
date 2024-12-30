@@ -1,8 +1,10 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from flask import request
 from fpdf import FPDF
 
+from app import db
+from app.models import Patient, MedicalCertificate
 from app.utils.const import typ_messages, typ_messages_no
 from app.utils.utils import pesel2birth, walidacja_pesela
 
@@ -171,3 +173,61 @@ def get_request_data(key):
     if not data or key not in data:
         raise ValueError(f"Brakuje klucza: {key}")
     return data[key]
+
+
+def save_medical_certificate(data):
+    """
+    Zapisuje pacjenta oraz orzeczenie lekarskie w bazie danych.
+
+    :param data: Słownik zawierający dane formularza.
+    :return: Słownik z informacjami o pacjencie i orzeczeniu lub wyjątek w razie błędu.
+    """
+    try:
+        pesel = data.get('pesel')
+        first_name = data.get('first_name')
+        surname = data.get('surname')
+        wojewodztwo = data.get('wojewodztwo')
+        city = data.get('city_select')
+        street = data.get('street')
+        home_number = data.get('home_numer')
+        typ = data.get('typ')
+        place = data.get('place')
+        additional_info = data.get('add_information')
+        zdolny = bool(int(data.get('zdolny', 0)))  # Przekonwertuj zdolny na boolean
+
+        # Sprawdzenie, czy pacjent istnieje w bazie
+        patient = Patient.query.filter_by(pesel=pesel).first()
+
+        if not patient:
+            gender = 'M' if int(pesel[10]) % 2 else "K"
+            patient = Patient(
+                first_name=first_name,
+                surname=surname,
+                pesel=pesel,
+                gender=gender,
+                state=wojewodztwo,
+                city=city,
+                street=street,
+                apartment_number=home_number
+            )
+            db.session.add(patient)
+            db.session.commit()  # Zapisz, aby pacjent miał ID
+
+        # Zapisz orzeczenie
+        certificate = MedicalCertificate(
+            patient_id=patient.id,
+            created_at=date.today(),
+            type=typ,
+            info=additional_info,
+            location=place,
+            is_able_to_work=zdolny,
+            month=datetime.today().month,
+            year=datetime.today().year
+        )
+        db.session.add(certificate)
+        db.session.commit()
+
+        return {"patient": patient, "certificate": certificate}
+    except Exception as e:
+        db.session.rollback()  # Wycofaj zmiany w przypadku błędu
+        raise e

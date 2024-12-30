@@ -16,7 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app import parquet_data, dane_woj, db
 from app.models import Patient, MedicalCertificate
 from app.utils.const import typ_badan, place
-from app.utils.medical_certificate_util import pdf_orzeczenie_lekarskie, pdf_zaswiadczenie
+from app.utils.medical_certificate_util import pdf_orzeczenie_lekarskie, pdf_zaswiadczenie, save_medical_certificate
 from app.utils.parquet_util import get_streets_from_memory
 
 medical_certificate_bp = Blueprint('medical_certificate', __name__)
@@ -53,50 +53,8 @@ def medical_certificate_main():
 @medical_certificate_bp.route('/save', methods=['POST'])
 def save():
     try:
-        # Pobierz dane z formularza
         form_data = request.form.to_dict()
-        pesel = form_data.get('pesel')
-        first_name = form_data.get('first_name')
-        surname = form_data.get('surname')
-        wojewodztwo = form_data.get('wojewodztwo')
-        city = form_data.get('city_select')
-        street = form_data.get('street')
-        home_number = form_data.get('home_numer')
-        typ = form_data.get('typ')
-        place = form_data.get('place')
-        additional_info = form_data.get('add_information')
-        zdolny = bool(int(form_data.get('zdolny', 0)))  # Przekonwertuj zdolny na boolean
-
-        # Sprawdzenie, czy pacjent istnieje w bazie
-        patient = Patient.query.filter_by(pesel=pesel).first()
-
-        if not patient:
-            gender = 'M' if int(pesel[10]) % 2 else "K"
-            patient = Patient(
-                first_name=first_name,
-                surname=surname,
-                pesel=pesel,
-                gender=gender,
-                state=wojewodztwo,
-                city=city,
-                street=street,
-                apartment_number=home_number
-            )
-            db.session.add(patient)
-            db.session.commit()  # Zapisz, aby pacjent miał ID
-
-        certificate = MedicalCertificate(
-            patient_id=patient.id,
-            created_at=date.today(),
-            type=typ,
-            info=additional_info,
-            location=place,
-            is_able_to_work=zdolny,
-            month=datetime.today().month,
-            year=datetime.today().year
-        )
-        db.session.add(certificate)
-        db.session.commit()
+        save_medical_certificate(form_data)
 
         return redirect(url_for('medical_certificate.medical_certificate_main'))
 
@@ -111,13 +69,13 @@ def medical_certificate_pdf():
     try:
         data = request.form.to_dict()
 
-        # Generowanie PDF w pamięci
+        save_medical_certificate(data)
+
         if data['typ'] == '11':
             pdf = pdf_orzeczenie_lekarskie(data)
         else:
             pdf = pdf_zaswiadczenie(data)
 
-        # Zapis PDF do obiektu BytesIO
         pdf_data = pdf.output(dest='S').encode('latin1')  # Zwraca dane jako ciąg bajtów
         pdf_buffer = BytesIO(pdf_data)  # Umieszcza dane w obiekcie BytesIO
         pdf_buffer.seek(0)  # Ustaw wskaźnik na początek bufora
