@@ -1,9 +1,8 @@
-import ast
 import os
 from datetime import datetime, date
 
 from fpdf import FPDF
-from sqlalchemy import and_, or_, inspect
+from sqlalchemy import inspect
 
 from app.models import Schedule
 
@@ -401,6 +400,9 @@ def pesel2birth(pesel):
 def generate_pdf(data):
     freq_list = ["250", "500", "1000", "2000", "3000", "4000", "6000", "8000"]
 
+    # Przekształcenie na listę
+    zabiegi_list = [item.strip() for item in data['zabiegi'].split('\n') if item.strip()]
+
     def bullet_point(text, bullet='•'):
         pdf.set_x(10)
         pdf.cell(10, 10, bullet)
@@ -470,18 +472,17 @@ def generate_pdf(data):
         pdf.multi_cell(0, 10, data['orl'])
 
     # Zabiegi
-    if data['zabiegi']:
+    if zabiegi_list:
         pdf.set_font("DejaVu-Bold", size=12)
         pdf.cell(0, 10, "Zabiegi:")
         pdf.ln(6)
         pdf.set_font("DejaVu", size=12)
 
-        lista_zabiegi = ast.literal_eval(data['zabiegi'])
-        for zabieg in lista_zabiegi:
+        for zabieg in zabiegi_list:
             bullet_point(zabieg)
 
     # Szept
-    if data['szepty']:
+    if 'szepty' in data and len(data['szepty']) > 11:
         pdf.set_font("DejaVu", size=12)
         pdf.cell(0, 10, f"W dniu {data['szepty']}")
         pdf.ln(10)

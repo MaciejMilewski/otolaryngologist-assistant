@@ -13,11 +13,11 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css" rel="stylesheet">
 
+    <!-- Import Select2 CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static',filename='css/visit_result.css') }}">
-
-    <!-- Select2 CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet">
 
     <!-- Import JQUERY JS -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -56,7 +56,7 @@
             <div class="col-md-10 offset-md-1 form-3-box wow fadeInUp">
 
                 <!-- Main form -->
-                <form action="{{ url_for('visit.drukuj') }}" method="post">
+                <form id="data-form" action="{{ url_for('visit.drukuj') }}" method="post">
 
                     <!-- Form content section -->
                     <fieldset class="form-group p-3 text-left">
@@ -92,8 +92,8 @@
                             <!-- 'Badanie szeptem' section -->
                             <div class="form-group text-left">
                                 <label for="szepty">Badanie szeptem:</label>
-                                <input type="text" class="form-control" id="szepty" name="szepty"
-                                       value="{{ (data_szeptu ~ ' ' ~ szept)|e }}">
+                                <textarea id="szepty" name="szepty"
+                                          class="form-control">{{ (data_szeptu ~ ' ' ~ szept)|e }}</textarea>
                             </div>
                         {% endif %}
 
@@ -153,8 +153,12 @@
 
                         {% if zabiegi %}
                             <!-- Procedures section -->
-                                <label for="zabiegi">Zabiegi:</label>
-                                <textarea id="zabiegi" name="zabiegi" class="form-control text-left" placeholder="">{{ zabiegi|e }}</textarea>
+                            <label for="editable-list">Zabiegi:</label>
+                            <ul id="editable-list">
+                                {% for item in zabiegi %}
+                                    <li contenteditable="true">{{ item }}</li>
+                                {% endfor %}
+                            </ul>
                         {% endif %}
 
                         {% if zalecenia %}
@@ -339,7 +343,7 @@
                             Powrót
                         </button>
                         <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Anuluj</button>
-                        <button type="submit" class="btn btn-warning">Gotowe</button>
+                        <button type="submit" class="btn btn-warning" id="save-modal">Gotowe</button>
                     </div>
 
                     <div hidden>
@@ -351,7 +355,9 @@
                         <input type="hidden" class="form-control" id="orl" name="orl" value="{{ orl }}">
                         <input type="hidden" class="form-control" id="szepty" name="szepty"
                                value="{{ data_szeptu|e }} {{ szept|e }}">
-                        <input type="hidden" class="form-control" id="zabiegi" name="zabiegi" value="{{ zabiegi|e }}">
+                        <!-- Ukryte pole textarea ZABIEGI w modal -->
+                        <label for="zabiegi" class="form-label ms-2"></label>
+                        <textarea id="zabiegi" name="zabiegi" style="display: none;"></textarea>
                         <input type="hidden" class="form-control" id="zalecenie" name="zalecenie"
                                value="{{ zalecenia|e }}">
                         <input type="hidden" class="form-control" id="data_audiogramu" name="data_audiogramu"
@@ -794,6 +800,29 @@
         syncTextareaToHiddenInputs();
     });
 
+    // Funkcja nasłuchuje czy jest 'submit' i pakuje edytowalne dane do textarea
+    // Synchronizuj dane z listy do textarea podczas zamykania modala
+    document.getElementById('modalForm').addEventListener('hide.bs.modal', function () {
+        const listItems = document.querySelectorAll('#editable-list li');
+        const textarea = document.getElementById('zabiegi');
+        textarea.value = Array.from(listItems).map(item => item.textContent.trim()).join('\n');
+    });
+
+    // Alternatywnie, synchronizuje dane, gdy użytkownik kliknie "Zapisz" w modal
+    document.getElementById('save-modal').addEventListener('click', function () {
+        const listItems = document.querySelectorAll('#editable-list li');
+        const textarea = document.getElementById('zabiegi');
+        textarea.value = Array.from(listItems).map(item => item.textContent.trim()).join('\n');
+        // Zamknij modal po zapisaniu danych
+        $('#modalForm').modal('hide');
+    });
+
+    // Upewnia się, że dane są zsynchronizowane przed wysłaniem formularza
+    document.getElementById('data-form').addEventListener('submit', function () {
+        const listItems = document.querySelectorAll('#editable-list li');
+        const textarea = document.getElementById('zabiegi');
+        textarea.value = Array.from(listItems).map(item => item.textContent.trim()).join('\n');
+    });
 
 </script>
 </body>

@@ -41,8 +41,7 @@
                         <img src="{{ url_for('static',filename='img/logo.png') }}" alt="" width="60" height="60"
                              class="d-inline-block align-text-top">
                     </a>
-                    <a class="navbar-brand"><h5>{% if current_user.login.is_authenticated %}
-                        <b>{{ current_user.login }}</b>{% endif %}</h5>
+                    <a class="navbar-brand"><h5>{% if current_user.is_authenticated %}<b>{{ user }}</b>{% endif %}</h5>
                     </a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                             data-bs-target="#navbarSupportedContent"

@@ -294,7 +294,6 @@ def zapis_wizyty_do_bazy():
             flash("Nie można zapisać wizyty, ponieważ nie udało się znaleźć pacjenta.", "danger")
             return redirect('/visit')
 
-        print("zabiegi:", dane.get('zabieg2'))
         new_visit = Visit(
             user_id=current_user.id,
             patient_id=patient_id,
