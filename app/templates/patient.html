@@ -34,6 +34,8 @@
     </div>
 
     <div class="container col-12">
+
+        <!-- Pasek nawigacji -->
         <div class="row">
             <nav class="navbar fixed-top navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
                 <div class="container-fluid">
@@ -165,6 +167,7 @@
                                             <strong>Adres:</strong> {{ patient.city }}, {{ patient.street }} {{ patient.apartment_number }}
                                         </p>
 
+                                        <!-- Badania -->
                                         {% if patient.limited_visits %}
                                             <h5>Wizyty:</h5>
                                             <ul class="list-group">
@@ -257,7 +260,8 @@
                                                                 <p><strong>Rozpoznanie:</strong> {{ visit.diagnosis }}
                                                                 </p>
                                                                 {% if visit_nfz_info %}
-                                                                    <p><strong>Kod NFZ:</strong> {{ visit.nfz_info }}</p>
+                                                                    <p><strong>Kod NFZ:</strong> {{ visit.nfz_info }}
+                                                                    </p>
                                                                 {% endif %}
                                                                 <p>
                                                                     <strong>Zalecenia:</strong> {{ visit.recommendations }}
@@ -267,7 +271,8 @@
                                                     </li>
                                                 {% endfor %}
                                             </ul>
-                                            <!-- Paginacja wizyt -->
+
+                                            <!-- Paginacja badań -->
                                             <nav aria-label="Pagination for visits">
                                                 <ul class="pagination justify-content-center">
                                                     <li class="page-item {% if not patient.visit_has_prev %}disabled{% endif %}">
@@ -289,6 +294,135 @@
                                         {% else %}
                                             <p>Brak wizyt dla tego pacjenta.</p>
                                         {% endif %}
+
+                                        <!-- Orzecznia -->
+                                        {% if patient.limited_medical_certificates %}
+                                            <h5>Orzecznia:</h5>
+                                            <ul class="list-group">
+                                                {% for visit in patient.limited_medical_certificates %}
+                                                    <li class="list-group-item">
+                                                        <div class="card mb-4">
+                                                            <div class="card-header bg-light">
+                                                                <strong>Data
+                                                                    badania:</strong> {{ visit.examination_date }} |
+                                                                <strong>Miejsce badania:</strong> {{ visit.location }}
+                                                            </div>
+                                                            <div class="card-body">
+                                                                <p>
+                                                                    <strong>Pacjent:</strong> {{ patient.first_name }} {{ patient.surname }},
+                                                                    PESEL: {{ patient.pesel }}</p>
+                                                                <p>
+                                                                    <strong>Adres:</strong> {{ patient.city }}, {{ patient.street }} {{ patient.apartment_number }}
+                                                                </p>
+                                                                <hr>
+                                                                <div class="text-start">
+                                                                    <p><strong>Wywiad:</strong> {{ visit.interview }}
+                                                                    </p>
+                                                                    <p><strong>Dane
+                                                                        ogólne:</strong> {{ visit.general_info }}</p>
+                                                                    <p><strong>Dane
+                                                                        laryngologiczne:</strong> {{ visit.examination }}
+                                                                    </p>
+                                                                    <p><strong>Badanie
+                                                                        laryngologiczne:</strong> {{ visit.orl }}</p>
+                                                                    {% if visit.routine %}
+                                                                        <p><strong>Zabiegi:</strong> {{ visit.routine }}
+                                                                        </p>
+                                                                    {% endif %}
+                                                                    {% if visit.whisper_test %}
+                                                                        <p><strong>Badanie
+                                                                            szeptem:</strong> {{ visit.whisper_test }}
+                                                                        </p>
+                                                                    {% endif %}
+                                                                    {% if visit.audiogram %}
+                                                                        <p>
+                                                                            <strong>Audiogram:</strong> {{ visit.audiogram }}
+                                                                        </p>
+                                                                    {% endif %}
+                                                                </div>
+                                                                {% if visit.audiogram_date %}
+                                                                    <p class="text-center"><strong>Data wykonania
+                                                                        audiogramu:</strong> {{ visit.audiogram_date }}
+                                                                    </p>
+                                                                    <hr>
+                                                                    <h5 class="text-center">Audiogram</h5>
+
+
+                                                                    <table class="table table-sm table-bordered text-center">
+                                                                        <thead class="table-light text-center">
+                                                                        <tr>
+                                                                            <th class="text-center">250 Hz</th>
+                                                                            <th class="text-center">500 Hz</th>
+                                                                            <th class="text-center">1000 Hz</th>
+                                                                            <th class="text-center">2000 Hz</th>
+                                                                            <th class="text-center">3000 Hz</th>
+                                                                            <th class="text-center">4000 Hz</th>
+                                                                            <th class="text-center">6000 Hz</th>
+                                                                            <th class="text-center">8000 Hz</th>
+                                                                        </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                        <tr>
+                                                                            <td class="text-center">{{ visit.ul_250 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_500 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_1000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_2000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_3000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_4000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_6000 }}</td>
+                                                                            <td class="text-center">{{ visit.ul_8000 }}</td>
+                                                                        </tr>
+                                                                        <tr>
+                                                                            <td class="text-center">{{ visit.up_250 }}</td>
+                                                                            <td class="text-center">{{ visit.up_500 }}</td>
+                                                                            <td class="text-center">{{ visit.up_1000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_2000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_3000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_4000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_6000 }}</td>
+                                                                            <td class="text-center">{{ visit.up_8000 }}</td>
+                                                                        </tr>
+                                                                        </tbody>
+                                                                    </table>
+                                                                {% endif %}
+                                                                <p><strong>Rozpoznanie:</strong> {{ visit.diagnosis }}
+                                                                </p>
+                                                                {% if visit_nfz_info %}
+                                                                    <p><strong>Kod NFZ:</strong> {{ visit.nfz_info }}
+                                                                    </p>
+                                                                {% endif %}
+                                                                <p>
+                                                                    <strong>Zalecenia:</strong> {{ visit.recommendations }}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+
+                                            <!-- Paginacja orzeczeń -->
+                                            <nav aria-label="Pagination for visits">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item {% if not patient.visit_has_prev %}disabled{% endif %}">
+                                                        <a class="page-link"
+                                                           href="{{ url_for('patient.patient_main', patient_id=patient.id, visit_page=patient.visit_current_page - 1) }}">Poprzednia</a>
+                                                    </li>
+                                                    {% for page_num in range(1, patient.visit_total_pages + 1) %}
+                                                        <li class="page-item {% if page_num == patient.visit_current_page %}active{% endif %}">
+                                                            <a class="page-link"
+                                                               href="{{ url_for('patient.patient_main', patient_id=patient.id, visit_page=page_num) }}">{{ page_num }}</a>
+                                                        </li>
+                                                    {% endfor %}
+                                                    <li class="page-item {% if not patient.visit_has_next %}disabled{% endif %}">
+                                                        <a class="page-link"
+                                                           href="{{ url_for('patient.patient_main', patient_id=patient.id, visit_page=patient.visit_current_page + 1) }}">Następna</a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        {% else %}
+                                            <p>Brak orzeczeń dla tego pacjenta.</p>
+                                        {% endif %}
+
                                     </div>
                                 </div>
                             </div>
