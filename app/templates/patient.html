@@ -211,70 +211,68 @@
                                                                                 szeptem:</strong> {{ visit.whisper_test }}
                                                                             </p>
                                                                         {% endif %}
-                                                                        {% if visit.audiogram %}
-                                                                            <p>
-                                                                                <strong>Audiogram:</strong> {{ visit.audiogram }}
+                                                                        {% if visit.audiogram_data %}
+                                                                            <p class="text-center">
+                                                                                <strong>Data wykonania
+                                                                                    audiogramu:</strong> {{ visit.audiogram_data.audiogram_date }}
+                                                                            </p>
+                                                                            <hr>
+                                                                            <h5 class="text-center">Audiogram</h5>
+
+                                                                            <table class="table table-sm table-bordered text-center">
+                                                                                <thead class="table-light text-center">
+                                                                                <tr>
+                                                                                    <th class="text-center">250 Hz</th>
+                                                                                    <th class="text-center">500 Hz</th>
+                                                                                    <th class="text-center">1000 Hz</th>
+                                                                                    <th class="text-center">2000 Hz</th>
+                                                                                    <th class="text-center">3000 Hz</th>
+                                                                                    <th class="text-center">4000 Hz</th>
+                                                                                    <th class="text-center">6000 Hz</th>
+                                                                                    <th class="text-center">8000 Hz</th>
+                                                                                </tr>
+                                                                                </thead>
+                                                                                <tbody>
+                                                                                <tr>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_250 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_500 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_1000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_2000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_3000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_4000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_6000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.ul_8000 or 'Brak' }}</td>
+                                                                                </tr>
+                                                                                <tr>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_250 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_500 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_1000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_2000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_3000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_4000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_6000 or 'Brak' }}</td>
+                                                                                    <td class="text-center">{{ visit.audiogram_data.up_8000 or 'Brak' }}</td>
+                                                                                </tr>
+                                                                                </tbody>
+                                                                            </table>
+                                                                        {% else %}
+                                                                            <p class="text-center">Brak danych
+                                                                                audiogramu dla tej wizyty.</p>
+                                                                        {% endif %}
+
+                                                                        <p>
+                                                                            <strong>Rozpoznanie:</strong> {{ visit.diagnosis }}
+                                                                        </p>
+                                                                        {% if visit_nfz_info %}
+                                                                            <p><strong>Kod
+                                                                                NFZ:</strong> {{ visit.nfz_info }}
                                                                             </p>
                                                                         {% endif %}
+                                                                        <p>
+                                                                            <strong>Zalecenia:</strong> {{ visit.recommendations }}
+                                                                        </p>
                                                                     </div>
-                                                                    {% if visit.audiogram_date %}
-                                                                        <p class="text-center"><strong>Data wykonania
-                                                                            audiogramu:</strong> {{ visit.audiogram_date }}
-                                                                        </p>
-                                                                        <hr>
-                                                                        <h5 class="text-center">Audiogram</h5>
-
-
-                                                                        <table class="table table-sm table-bordered text-center">
-                                                                            <thead class="table-light text-center">
-                                                                            <tr>
-                                                                                <th class="text-center">250 Hz</th>
-                                                                                <th class="text-center">500 Hz</th>
-                                                                                <th class="text-center">1000 Hz</th>
-                                                                                <th class="text-center">2000 Hz</th>
-                                                                                <th class="text-center">3000 Hz</th>
-                                                                                <th class="text-center">4000 Hz</th>
-                                                                                <th class="text-center">6000 Hz</th>
-                                                                                <th class="text-center">8000 Hz</th>
-                                                                            </tr>
-                                                                            </thead>
-                                                                            <tbody>
-                                                                            <tr>
-                                                                                <td class="text-center">{{ visit.ul_250 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_500 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_1000 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_2000 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_3000 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_4000 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_6000 }}</td>
-                                                                                <td class="text-center">{{ visit.ul_8000 }}</td>
-                                                                            </tr>
-                                                                            <tr>
-                                                                                <td class="text-center">{{ visit.up_250 }}</td>
-                                                                                <td class="text-center">{{ visit.up_500 }}</td>
-                                                                                <td class="text-center">{{ visit.up_1000 }}</td>
-                                                                                <td class="text-center">{{ visit.up_2000 }}</td>
-                                                                                <td class="text-center">{{ visit.up_3000 }}</td>
-                                                                                <td class="text-center">{{ visit.up_4000 }}</td>
-                                                                                <td class="text-center">{{ visit.up_6000 }}</td>
-                                                                                <td class="text-center">{{ visit.up_8000 }}</td>
-                                                                            </tr>
-                                                                            </tbody>
-                                                                        </table>
-                                                                    {% endif %}
-                                                                    <p>
-                                                                        <strong>Rozpoznanie:</strong> {{ visit.diagnosis }}
-                                                                    </p>
-                                                                    {% if visit_nfz_info %}
-                                                                        <p><strong>Kod
-                                                                            NFZ:</strong> {{ visit.nfz_info }}
-                                                                        </p>
-                                                                    {% endif %}
-                                                                    <p>
-                                                                        <strong>Zalecenia:</strong> {{ visit.recommendations }}
-                                                                    </p>
                                                                 </div>
-                                                            </div>
                                                         </li>
                                                     {% endfor %}
                                                 </ul>
@@ -323,7 +321,8 @@
                                                                     </p>
                                                                     <p><strong>Informacje
                                                                         dodatkowe:</strong> {{ certificate.info }}</p>
-                                                                    <p><strong>Zdolność do pracy:</strong> {{ "Brak przeciwskazań do pracy" if certificate.is_able_to_work else "Przeciwskazania do pracy" }}
+                                                                    <p><strong>Zdolność do
+                                                                        pracy:</strong> {{ "Brak przeciwskazań do pracy" if certificate.is_able_to_work else "Przeciwskazania do pracy" }}
                                                                     </p>
                                                                 </div>
                                                             </div>

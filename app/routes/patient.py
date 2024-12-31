@@ -2,7 +2,7 @@ import logging
 
 from flask import Blueprint, render_template, request, abort
 from flask_login import login_required, current_user
-from app.models import Patient, Visit, MedicalCertificate
+from app.models import Patient, Visit, MedicalCertificate, Audiogram
 from app import db
 
 from math import ceil
@@ -20,21 +20,23 @@ patient_bp = Blueprint('patient', __name__)
 @login_required
 def patient_main():
     try:
-        current_page = int(request.args.get('page', 1))  # Paginacja pacjentów
-        visit_page = int(request.args.get('visit_page', 1))  # Paginacja wizyt
-        certificate_page = int(request.args.get('certificate_page', 1))  # Paginacja orzeczeń
+        # Paginacja
+        current_page = int(request.args.get('page', 1))
+        visit_page = int(request.args.get('visit_page', 1))
+        certificate_page = int(request.args.get('certificate_page', 1))
         search_mode = request.form.get('search_mode', 'visit')
         if request.args.get('search_mode'):
             search_mode = request.args.get('search_mode')
 
+        # Filtry
         filters = []
-        typ_badan_dict = {badanie['id']: badanie['name'] for badanie in typ_badan}
         joins_required = False
 
-        # Wyniki do przekazania do szablonu (puste domyślnie)
+        # Wyniki domyślne
         patients = []
         total_pages = 0
 
+        # Obsługa filtrów z formularza
         if request.method == 'POST':
             first_name = request.form.get('first_name')
             surname = request.form.get('surname')
@@ -59,21 +61,37 @@ def patient_main():
                 filters.append(Visit.examination_date.between(start_date, end_date))
                 joins_required = True
 
-        # Pobieranie pacjentów z paginacją
+        # Pobieranie pacjentów
         query = db.session.query(Patient).filter(*filters)
         total_patients = query.count()
         total_pages = ceil(total_patients / ITEMS_PER_PAGE)
 
         patients = query.offset((current_page - 1) * ITEMS_PER_PAGE).limit(ITEMS_PER_PAGE).all()
 
-        # Dodanie paginacji wizyt i orzeczeń do każdego pacjenta
+        # Dodanie paginacji i danych wizyt z audiogramami
         for patient in patients:
-            # Wizyty
-            visit_query = db.session.query(Visit).filter_by(patient_id=patient.id)
+            # Wizyty z powiązanym audiogramem (jeśli istnieje)
+            visit_query = (
+                db.session.query(Visit)
+                .outerjoin(Audiogram, Visit.id == Audiogram.visit_id)
+                .filter(Visit.patient_id == patient.id)
+                .options(db.contains_eager(Visit.audiograms))
+            )
+
             total_visits = visit_query.count()
             visit_total_pages = ceil(total_visits / VISITS_PER_PAGE)
 
-            patient.limited_visits = visit_query.offset((visit_page - 1) * VISITS_PER_PAGE).limit(VISITS_PER_PAGE).all()
+            visits = visit_query.offset((visit_page - 1) * VISITS_PER_PAGE).limit(VISITS_PER_PAGE).all()
+
+            # Wzbogacenie wizyt o dane audiogramu (jeśli istnieje)
+            for visit in visits:
+                visit.audiogram_data = (
+                    db.session.query(Audiogram)
+                    .filter_by(visit_id=visit.id)
+                    .first()
+                )
+
+            patient.limited_visits = visits
             patient.visit_current_page = visit_page
             patient.visit_total_pages = visit_total_pages
             patient.visit_has_prev = visit_page > 1
@@ -95,15 +113,15 @@ def patient_main():
         # Zwrot odpowiedzi
         return render_template(
             'patient.html',
-            user=current_user.login,
+            current_user=current_user.login,
             results=patients,
             current_page=current_page,
             total_pages=total_pages,
             has_prev=current_page > 1,
             has_next=current_page < total_pages,
-            typ_badan_dict=typ_badan_dict,
             search_mode=search_mode
         )
     except Exception as e:
         logging.error(f"Error in patient_main: {e}")
         return abort(500)
+

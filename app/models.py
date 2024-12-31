@@ -22,6 +22,7 @@ class Patient(db.Model):
 
     # Relacja z Visit
     visits = db.relationship('Visit', backref='patient', lazy='select')
+    audiograms = db.relationship('Audiogram', backref='patient', lazy='select')
     certificates = db.relationship('MedicalCertificate', backref='patient', lazy=True)
 
 
@@ -55,7 +56,7 @@ class Visit(db.Model):
     __tablename__ = 'visit'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'))
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), index=True)
     diagnosis = db.Column(db.String(255))
     location = db.Column(db.String(100))
     interview = db.Column(db.Text)
@@ -65,9 +66,19 @@ class Visit(db.Model):
     recommendations = db.Column(db.String, nullable=False)
     whisper_test = db.Column(db.String)
     nfz_info = db.Column(db.String)
-    audiogram_date = db.Column(db.Date, default=None)
-    examination_date = db.Column(db.Date, default=None)
+    examination_date = db.Column(db.Date)
     routine = db.Column(db.String)
+
+    # Relacja z Audiogram
+    audiograms = db.relationship('Audiogram', backref='visit', lazy='select')
+
+
+class Audiogram(db.Model):
+    __tablename__ = 'audiogram'
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False, index=True)
+    visit_id = db.Column(db.Integer, db.ForeignKey('visit.id'), nullable=True, index=True)
+    audiogram_date = db.Column(db.Date)
     ul_250 = db.Column(db.Integer)
     ul_500 = db.Column(db.Integer)
     ul_1000 = db.Column(db.Integer)

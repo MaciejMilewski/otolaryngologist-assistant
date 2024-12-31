@@ -396,6 +396,8 @@
         const modalButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-action]');
         const modalForm = document.querySelector('#modalFormAction');
 
+        {#<button type="submit" class="btn btn-warning" id="save-modal">Gotowe</button>#}
+
         const printUrl = "{{ url_for('visit.drukuj') }}";
         const saveUrl = "{{ url_for('visit.zapis_wizyty_do_bazy') }}";
 

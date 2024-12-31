@@ -7,12 +7,12 @@ from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 
 from app import db, parquet_data, dane_woj
-from app.models import Procedure, Patient, Visit
+from app.models import Procedure, Patient, Visit, Audiogram
 from app.utils.const import place
 from app.utils.parquet_util import get_streets_from_memory
 
 from app.utils.utils import (ogolne_items, orl_items, validate_request_badania, validate_request_structure_main,
-                             validate_request_szept, zalecenia, generate_pdf)
+                             validate_request_szept, zalecenia, generate_pdf, prepare_audiogram_data)
 
 from typing import List, Optional
 
@@ -197,103 +197,42 @@ def drukuj():
                      as_attachment=True)
 
 
-
 @visit_bp.route('/zapis', methods=['POST'])
 @login_required
 def zapis_wizyty_do_bazy():
-
     dane = request.form
-
-    gender = 'M' if int(dane.get("pesel")[10]) % 2 else "K"
-
-    # 'hiddenResultInput' - zwraca id pacjenta, który jest już zapisany w tabeli 'patient' - przez autocomplete !
-    hidden_result_input = dane.get("hiddenResultInput", "")
-
     try:
-        if hidden_result_input == "":
-            # sprawdzić po 'peselu' czy zapisywany aktualnie pacjent jest już w tabeli 'patient' ?
-            result = db.session.execute(db.select(Patient.id).filter(Patient.pesel == dane.get("pesel"))).first()
+        # Płeć na podstawie PESEL
+        pesel = dane.get("pesel")
+        gender = 'M' if int(pesel[10]) % 2 else 'K'
 
-            # 1. jeżeli NIE, to zapisać jego dane w tabeli 'pacjent' (name,pesel,adres)
-            if result is None:
-                new_patient = Patient(first_name=dane.get("first_name"),
-                                      surname=dane.get("surname"),
-                                      pesel=dane.get("pesel"),
-                                      gender=gender,
-                                      state=dane.get("wojewodztwo"),
-                                      city=dane.get("city_select"),
-                                      street=dane.get("street"),
-                                      apartment_number=dane.get("home_numer"))
-                db.session.add(new_patient)
-                db.session.commit()
-                patient_saved_id = db.session.execute(
-                    db.select(Patient.id).filter(Patient.pesel == dane.get("pesel"))
-                ).scalar()
-                patient_id = patient_saved_id
-            else:
-                patient_id = result[0]
+        # Pobranie lub stworzenie pacjenta
+        hidden_result_input = dane.get("hiddenResultInput", "")
+        if hidden_result_input:
+            patient_id = hidden_result_input
         else:
-            patient_id = dane.get("hiddenResultInput")
+            patient = db.session.execute(
+                db.select(Patient).filter_by(pesel=pesel)
+            ).scalar_one_or_none()
 
-        # Obsługa daty audiogramu i usunięcie zbędnych pól, jeśli brak danych
-        # Inicjalizacja pól audiogramu domyślnie jako None
-        ul_250 = ul_500 = ul_1000 = ul_2000 = ul_3000 = ul_4000 = ul_6000 = ul_8000 = None
-        up_250 = up_500 = up_1000 = up_2000 = up_3000 = up_4000 = up_6000 = up_8000 = None
-        data_audiogramu = None
+            if not patient:
+                patient = Patient(
+                    first_name=dane.get("first_name"),
+                    surname=dane.get("surname"),
+                    pesel=pesel,
+                    gender=gender,
+                    state=dane.get("wojewodztwo"),
+                    city=dane.get("city_select"),
+                    street=dane.get("street"),
+                    apartment_number=dane.get("home_numer")
+                )
+                db.session.add(patient)
+                db.session.commit()
+            patient_id = patient.id
 
-        if dane.get("data_audiogramu"):
-            # Pobierz dane audiogramu
-            data_audiogramu = datetime.strptime(dane.get("data_audiogramu"), "%Y-%m-%d")
-            ul_250 = dane.get('UL__250')
-            ul_500 = dane.get('UL__500')
-            ul_1000 = dane.get('UL__1000')
-            ul_2000 = dane.get('UL__2000')
-            ul_3000 = dane.get('UL__3000')
-            ul_4000 = dane.get('UL__4000')
-            ul_6000 = dane.get('UL__6000')
-            ul_8000 = dane.get('UL__8000')
-            up_250 = dane.get('UP__250')
-            up_500 = dane.get('UP__500')
-            up_1000 = dane.get('UP__1000')
-            up_2000 = dane.get('UP__2000')
-            up_3000 = dane.get('UP__3000')
-            up_4000 = dane.get('UP__4000')
-            up_6000 = dane.get('UP__6000')
-            up_8000 = dane.get('UP__8000')
+        audiogram_date, audiogram_values = prepare_audiogram_data(dane)
 
-            # Sprawdzenie, czy jakakolwiek wartość audiogramu jest niewypełniona
-            czy_audiogram_ma_dane = any([
-                data_audiogramu,
-                ul_250, ul_500, ul_1000, ul_2000, ul_3000, ul_4000, ul_6000, ul_8000,
-                up_250, up_500, up_1000, up_2000, up_3000, up_4000, up_6000, up_8000
-            ])
-
-            if not czy_audiogram_ma_dane:
-                # Jeśli brak danych, zerujemy datę audiogramu i wszystkie pola
-                data_audiogramu = None
-                ul_250 = None
-                ul_500 = None
-                ul_1000 = None
-                ul_2000 = None
-                ul_3000 = None
-                ul_4000 = None
-                ul_6000 = None
-                ul_8000 = None
-                up_250 = None
-                up_500 = None
-                up_1000 = None
-                up_2000 = None
-                up_3000 = None
-                up_4000 = None
-                up_6000 = None
-                up_8000 = None
-
-        # 3. zapisać resztę danych w tabeli 'Visit'
-
-        if patient_id is None:
-            flash("Nie można zapisać wizyty, ponieważ nie udało się znaleźć pacjenta.", "danger")
-            return redirect('/visit')
-
+        # Zapis wizyty
         new_visit = Visit(
             user_id=current_user.id,
             patient_id=patient_id,
@@ -306,31 +245,32 @@ def zapis_wizyty_do_bazy():
             recommendations=dane.get('zalecenie'),
             whisper_test=dane.get('szepty'),
             nfz_info=dane.get('kody_nfz'),
-            audiogram_date=data_audiogramu,
             examination_date=date.today(),
-            routine=dane.get('zabiegi'),
-            ul_250=ul_250,
-            ul_500=ul_500,
-            ul_1000=ul_1000,
-            ul_2000=ul_2000,
-            ul_3000=ul_3000,
-            ul_4000=ul_4000,
-            ul_6000=ul_6000,
-            ul_8000=ul_8000,
-            up_250=up_250,
-            up_500=up_500,
-            up_1000=up_1000,
-            up_2000=up_2000,
-            up_3000=up_3000,
-            up_4000=up_4000,
-            up_6000=up_6000,
-            up_8000=up_8000)
-
+            routine=dane.get('zabiegi')
+        )
         db.session.add(new_visit)
         db.session.commit()
+
+        # Zapis audiogramu (jeśli są dane)
+        if audiogram_date:
+            new_audiogram = Audiogram(
+                patient_id=patient_id,
+                visit_id=new_visit.id,
+                audiogram_date=audiogram_date,
+                **{key: value for key, value in audiogram_values.items() if value is not None}
+            )
+            db.session.add(new_audiogram)
+            db.session.commit()
+
         flash("Zapisano pomyślnie dane wizyty w bazie danych!", "success")
         return redirect('/visit')
+
     except IntegrityError as e:
         db.session.rollback()
         flash(f"Błąd zapisu bazy danych: {e}", "danger")
         return redirect('/visit')
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Nieoczekiwany błąd: {e}", "danger")
+        return redirect('/visit')
+

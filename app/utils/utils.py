@@ -574,3 +574,17 @@ def get_icd_10():
         print(f"Error: Unable to read the file. Details: {e}")
         return []
     return get_data_icd_10
+
+
+# Sprawdzenie i przygotowanie danych audiogramu
+def prepare_audiogram_data(dane):
+    if not dane.get("data_audiogramu"):
+        return None, {}
+
+    data_audiogramu = datetime.strptime(dane.get("data_audiogramu"), "%Y-%m-%d")
+    pola_audiogramu = {f"{prefix}_{hz}": dane.get(f"{prefix.upper()}__{hz}")
+                       for prefix in ('ul', 'up')
+                       for hz in ('250', '500', '1000', '2000', '3000', '4000', '6000', '8000')}
+    if any(pola_audiogramu.values()):
+        return data_audiogramu, pola_audiogramu
+    return None, {}
