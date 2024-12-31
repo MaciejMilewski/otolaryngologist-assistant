@@ -95,7 +95,7 @@ def patient_main():
         # Zwrot odpowiedzi
         return render_template(
             'patient.html',
-            current_user=current_user.login,
+            user=current_user.login,
             results=patients,
             current_page=current_page,
             total_pages=total_pages,
