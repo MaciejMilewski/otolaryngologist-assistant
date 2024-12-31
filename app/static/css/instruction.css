@@ -1,12 +1,12 @@
 
 body {
     background-color: Lavender; /* Jasne tło */
-    font-family: 'Arial', sans-serif;
+    font-family: system-ui;
     margin: 0;
     padding-top: 5.5rem; /* Dostosowanie dla fixed-top navbar */
 }
 
- /*Nagłówki*/
+/*Nagłówki*/
 h4 {
     color: #495057; /* Stonowany kolor */
     text-transform: uppercase;
@@ -64,7 +64,7 @@ h4 {
 
 /* Przyciski */
 .btn {
-    font-size: 0.85rem;
+    font-size: 16px;
     border-radius: 5px;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
@@ -123,7 +123,7 @@ h4 {
 #pagination button {
     margin: 0 5px;
     border: none;
-    font-size: 0.85rem;
+    font-size: 16px;
     padding: 0.4rem 0.8rem;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
@@ -141,7 +141,7 @@ h4 {
 
 /* Powiadomienia */
 .alert {
-    font-size: 0.9rem;
+    font-size: 16px;
     border-radius: 5px;
 }
 
