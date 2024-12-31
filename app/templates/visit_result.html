@@ -396,8 +396,6 @@
         const modalButtons = document.querySelectorAll('[data-bs-toggle="modal"][data-action]');
         const modalForm = document.querySelector('#modalFormAction');
 
-        {#<button type="submit" class="btn btn-warning" id="save-modal">Gotowe</button>#}
-
         const printUrl = "{{ url_for('visit.drukuj') }}";
         const saveUrl = "{{ url_for('visit.zapis_wizyty_do_bazy') }}";
 
@@ -811,11 +809,33 @@
     });
 
     // Alternatywnie, synchronizuje dane, gdy użytkownik kliknie "Zapisz" w modal
-    document.getElementById('save-modal').addEventListener('click', function () {
+    document.getElementById('save-modal').addEventListener('click', function (event) {
+        const modalForm = document.querySelector('#modalFormAction');
+        const requiredFields = modalForm.querySelectorAll('[required]');
+        let isValid = true;
+
+        // Walidacja pól required
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('is-invalid'); // Dodanie klasy błędu
+                isValid = false;
+            } else {
+                field.classList.remove('is-invalid'); // Usunięcie klasy błędu
+            }
+        });
+
+        if (!isValid) {
+            event.preventDefault(); // Zatrzymanie dalszego przetwarzania
+            showToast('Proszę wypełnić wszystkie wymagane pola!');
+            return;
+        }
+
+        // Synchronizacja danych z listy do textarea
         const listItems = document.querySelectorAll('#editable-list li');
         const textarea = document.getElementById('zabiegi');
         textarea.value = Array.from(listItems).map(item => item.textContent.trim()).join('\n');
-        // Zamknij modal po zapisaniu danych
+
+        // Zamknięcie modala tylko w przypadku, gdy wszystkie pola są poprawnie wypełnione
         $('#modalForm').modal('hide');
     });
 
