@@ -1,11 +1,13 @@
+import logging
 import os
 from datetime import datetime, date
 
 from fpdf import FPDF
 from sqlalchemy import inspect
+from sqlalchemy.exc import IntegrityError
 
-from app.models import Schedule
-
+from app import db
+from app.models import Schedule, Audiogram, Visit, Patient
 
 ogolne_items = ['diabetes', 'hipertensio', 'arytmia', 'infarctus', 'heart failure', 'pacemaker', 'udar',
                 'antykoagulanty', 'lipemia', 'sterydy', 'astma', 'tarczyca', 'kidney failure', 'dna',
@@ -59,7 +61,6 @@ def validate_request_badania(lista, data_request):
 
 
 def validate_request_szept(data_request):
-
     ul = data_request.get('szept_UL')
     up = data_request.get('szept_UP')
 
@@ -314,7 +315,7 @@ def validate_request_structure_main(data_request):
     result += '.'
 
     if data_request['Weber'] != 'nie badano' or data_request['Rinne_left'] != 'nie badano' or \
-       data_request['Rinne_right'] != 'nie badano':
+            data_request['Rinne_right'] != 'nie badano':
         result += ' Badanie Stroikowe : '
         if data_request.get('Weber'):
             result += 'Weber - '
@@ -333,6 +334,7 @@ def validate_request_structure_main(data_request):
             result += 'Bing prawy - '
             result += "".join([data_request['Bing_right'], ', '])
     return result
+
 
 def zalecenia(data_request) -> str:
     lista_zalecen = ['Okresowa kontrola w Poradni Laryngologicznej, ', 'zakaz palenia tytoniu i pochodnych',
@@ -537,7 +539,7 @@ def generate_pdf(data):
     pdf.set_font("DejaVu", size=12)
     pdf.cell(0, 10, "podpis i pieczątka", align='R')
 
-    return pdf
+    return pdf.output(dest='S').encode('latin1')
 
 
 def walidacja_pesela(pesel):
@@ -588,3 +590,93 @@ def prepare_audiogram_data(dane):
     if any(pola_audiogramu.values()):
         return data_audiogramu, pola_audiogramu
     return None, {}
+
+
+def save_visit_to_db(data, user_id):
+    """
+    Zapisuje dane wizyty do bazy danych.
+
+    :param data: Dane przesłane z formularza
+    :param user_id: ID użytkownika wykonującego operację
+    :return: Obiekt zapisanej wizyty
+    :raises: IntegrityError, Exception
+    """
+    try:
+        # Płeć na podstawie PESEL
+        pesel = data.get("pesel")
+        if not pesel or len(pesel) != 11:
+            raise ValueError("Nieprawidłowy PESEL.")
+
+        gender = 'M' if int(pesel[10]) % 2 else 'K'
+
+        # Pobranie lub stworzenie pacjenta
+        hidden_result_input = data.get("hiddenResultInput")
+        if hidden_result_input:
+            try:
+                patient_id = int(hidden_result_input)
+            except ValueError:
+                raise ValueError("Nieprawidłowy ID pacjenta w hiddenResultInput.")
+        else:
+            patient = db.session.execute(
+                db.select(Patient).filter_by(pesel=pesel)
+            ).scalar_one_or_none()
+
+            if not patient:
+                patient = Patient(
+                    first_name=data.get("first_name"),
+                    surname=data.get("surname"),
+                    pesel=pesel,
+                    gender=gender,
+                    state=data.get("wojewodztwo"),
+                    city=data.get("city_select"),
+                    street=data.get("street"),
+                    apartment_number=data.get("home_numer")
+                )
+                db.session.add(patient)
+                db.session.commit()
+            patient_id = patient.id
+
+        audiogram_date, audiogram_values = prepare_audiogram_data(data)
+
+        # Zapis wizyty
+        new_visit = Visit(
+            user_id=user_id,
+            patient_id=patient_id,
+            diagnosis=data.get('diagnoza'),
+            location=data.get('siteZapis'),
+            interview=data.get('wywiad'),
+            general_info=data.get('ogolne'),
+            orl=data.get('orl'),
+            examination=data.get('laryngolog'),
+            recommendations=data.get('zalecenie'),
+            whisper_test=data.get('szepty'),
+            nfz_info=data.get('kody_nfz'),
+            examination_date=date.today(),
+            routine=data.get('zabiegi')
+        )
+        db.session.add(new_visit)
+        db.session.commit()
+
+        # Zapis audiogramu (jeśli są dane)
+        if audiogram_date:
+            new_audiogram = Audiogram(
+                patient_id=patient_id,
+                visit_id=new_visit.id,
+                audiogram_date=audiogram_date,
+                **{key: value for key, value in audiogram_values.items() if value is not None}
+            )
+            db.session.add(new_audiogram)
+            db.session.commit()
+
+        return new_visit
+    except IntegrityError as e:
+        db.session.rollback()
+        logging.error(f"IntegrityError: {e}")
+        raise e
+    except ValueError as ve:
+        logging.error(f"Błąd walidacji danych: {ve}")
+        raise ve
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f"Nieoczekiwany błąd: {e}")
+        raise e

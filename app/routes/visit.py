@@ -1,3 +1,4 @@
+import logging
 from datetime import date, datetime
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
@@ -12,7 +13,7 @@ from app.utils.const import place
 from app.utils.parquet_util import get_streets_from_memory
 
 from app.utils.utils import (ogolne_items, orl_items, validate_request_badania, validate_request_structure_main,
-                             validate_request_szept, zalecenia, generate_pdf, prepare_audiogram_data)
+                             validate_request_szept, zalecenia, generate_pdf, prepare_audiogram_data, save_visit_to_db)
 
 from typing import List, Optional
 
@@ -180,21 +181,27 @@ def get_ulice():
         return jsonify({'ulice': []}), 200  # Zwracamy pustą listę ulic, ale status OK
 
 
-@visit_bp.route('/drukuj', methods=['GET', 'POST'])
+@visit_bp.route('/drukuj', methods=['POST'])
 @login_required
 def drukuj():
-    # Generowanie PDF
-    pdf = generate_pdf(request.form)
+    dane = request.form
+    try:
+        save_visit_to_db(dane, current_user.id)
 
-    # Zapisanie PDF w pamięci
-    pdf_data = pdf.output(dest='S').encode('latin1')
-    buffer = BytesIO(pdf_data)
-    buffer.seek(0)
+        pdf = generate_pdf(dane)
 
-    # Zwrócenie pliku PDF jako odpowiedź
-    return send_file(buffer, mimetype='application/pdf',
-                     download_name=f"{request.form['first_name']}_{request.form['surname']}.pdf",
-                     as_attachment=True)
+        buffer = BytesIO(pdf)
+        buffer.seek(0)
+
+        return send_file(buffer, mimetype='application/pdf',
+                         download_name=f"{dane.get("first_name")}_{dane.get("surname")}.pdf",
+                         as_attachment=True)
+    except IntegrityError as e:
+        logging.error(f"Błąd podczas generowania PDF: {str(e)}")
+        return redirect('/visit')
+    except Exception as e:
+        logging.error(f"Nieoczekiwany błąd podczas generowania PDF: {str(e)}")
+        return redirect('/visit')
 
 
 @visit_bp.route('/zapis', methods=['POST'])
@@ -202,75 +209,12 @@ def drukuj():
 def zapis_wizyty_do_bazy():
     dane = request.form
     try:
-        # Płeć na podstawie PESEL
-        pesel = dane.get("pesel")
-        gender = 'M' if int(pesel[10]) % 2 else 'K'
-
-        # Pobranie lub stworzenie pacjenta
-        hidden_result_input = dane.get("hiddenResultInput", "")
-        if hidden_result_input:
-            patient_id = hidden_result_input
-        else:
-            patient = db.session.execute(
-                db.select(Patient).filter_by(pesel=pesel)
-            ).scalar_one_or_none()
-
-            if not patient:
-                patient = Patient(
-                    first_name=dane.get("first_name"),
-                    surname=dane.get("surname"),
-                    pesel=pesel,
-                    gender=gender,
-                    state=dane.get("wojewodztwo"),
-                    city=dane.get("city_select"),
-                    street=dane.get("street"),
-                    apartment_number=dane.get("home_numer")
-                )
-                db.session.add(patient)
-                db.session.commit()
-            patient_id = patient.id
-
-        audiogram_date, audiogram_values = prepare_audiogram_data(dane)
-
-        # Zapis wizyty
-        new_visit = Visit(
-            user_id=current_user.id,
-            patient_id=patient_id,
-            diagnosis=dane.get('diagnoza'),
-            location=dane.get('siteZapis'),
-            interview=dane.get('wywiad'),
-            general_info=dane.get('ogolne'),
-            orl=dane.get('orl'),
-            examination=dane.get('laryngolog'),
-            recommendations=dane.get('zalecenie'),
-            whisper_test=dane.get('szepty'),
-            nfz_info=dane.get('kody_nfz'),
-            examination_date=date.today(),
-            routine=dane.get('zabiegi')
-        )
-        db.session.add(new_visit)
-        db.session.commit()
-
-        # Zapis audiogramu (jeśli są dane)
-        if audiogram_date:
-            new_audiogram = Audiogram(
-                patient_id=patient_id,
-                visit_id=new_visit.id,
-                audiogram_date=audiogram_date,
-                **{key: value for key, value in audiogram_values.items() if value is not None}
-            )
-            db.session.add(new_audiogram)
-            db.session.commit()
-
+        save_visit_to_db(dane, current_user.id)
         flash("Zapisano pomyślnie dane wizyty w bazie danych!", "success")
         return redirect('/visit')
-
     except IntegrityError as e:
-        db.session.rollback()
         flash(f"Błąd zapisu bazy danych: {e}", "danger")
         return redirect('/visit')
     except Exception as e:
-        db.session.rollback()
         flash(f"Nieoczekiwany błąd: {e}", "danger")
         return redirect('/visit')
-
