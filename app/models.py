@@ -68,6 +68,7 @@ class Visit(db.Model):
     nfz_info = db.Column(db.String)
     examination_date = db.Column(db.Date)
     routine = db.Column(db.String)
+    is_active = db.Column(db.Boolean, default=True)
 
     # Relacja z Audiogram
     audiograms = db.relationship('Audiogram', backref='visit', lazy='select')
@@ -101,6 +102,7 @@ class MedicalCertificate(db.Model):
     __tablename__ = 'medical_certificate'
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=True)
     created_at = db.Column(db.Date)
     type = db.Column(db.INTEGER)
     info = db.Column(db.String)
@@ -108,6 +110,9 @@ class MedicalCertificate(db.Model):
     month = db.Column(db.Integer)
     year = db.Column(db.Integer)
     location = db.Column(db.String)
+    is_active = db.Column(db.Boolean, default=True)
+
+    user = db.relationship('User', backref='medical_certificates', lazy=True)
 
 
 class Procedure(db.Model):
