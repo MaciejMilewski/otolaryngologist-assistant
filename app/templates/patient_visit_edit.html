@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/logo.png') }}">
+
+    <title>Pacjenci</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_visit_edit.css') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="{{ url_for('static', filename='js/jquery-3.6.0.js') }}"></script>
+</head>
+<body>
+<div class="container col-xxl-12">
+    <h3 class="mb-4 text-center text-secondary font-weight-bold">
+        Edycja
+        {% if visit_type == 'visit' %}
+            badania lekarskiego
+        {% elif visit_type == 'medical_certificate' %}
+            orzeczenia
+        {% else %}
+            {{ visit_type | capitalize }}
+        {% endif %}
+    </h3>
+
+    <form method="POST">
+
+        {% if visit_type == 'visit' %}
+
+            <!-- Dane wizyty -->
+            <div class="mb-3">
+                <label for="location" class="form-label">Miejsce:</label>
+                <select class="form-select" id="location" name="location">
+                    {% for place_item in place %}
+                        <option value="{{ place_item.id }}"
+                                {% if place_item.id == record.location|string %}selected{% endif %}>
+                            {{ place_item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="examination_date" class="form-label">Data badania:</label>
+                <input type="date" class="form-control" id="examination_date" name="examination_date"
+                       value={{ record.examination_date }}>
+            </div>
+            <div class="mb-3">
+                <label for="interview" class="form-label">Wywiad:</label>
+                <textarea class="form-control" id="interview" name="interview">{{ record.interview }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="general_info" class="form-label">Ogólne schorzenia:</label>
+                <textarea class="form-control" id="general_info"
+                          name="general_info">{{ record.general_info }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="examination" class="form-label">Laryngologiczne schorzenia:</label>
+                <textarea class="form-control" id="examination" name="examination">{{ record.examination }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="orl" class="form-label">Badanie laryngologiczne:</label>
+                <textarea class="form-control" id="orl" name="orl">{{ record.orl }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="whisper_test" class="form-label">Badanie szeptem:</label>
+                <textarea class="form-control" id="whisper_test"
+                          name="whisper_test">{{ record.whisper_test }}</textarea>
+            </div>
+            <!-- Dane audiogramu (jeśli istnieją) -->
+            {% if audiogram %}
+                <hr>
+                <h5 class="mt-4 text-center">Audiogram</h5>
+                <div class="mb-3">
+                    <label for="audiogram_date" class="form-label">Data wykonania audiogramu:</label>
+                    <input type="date" class="form-control" id="audiogram_date" name="audiogram_date"
+                           value={{ audiogram.audiogram_date }}>
+                </div>
+                <table class="table table-bordered audiogram-table text-center align-middle">
+                    <thead>
+                    <tr>
+                        <th>Ucho</th>
+                        <th>250 Hz</th>
+                        <th>500 Hz</th>
+                        <th>1 kHz</th>
+                        <th>2 kHz</th>
+                        <th>3 kHz</th>
+                        <th>4 kHz</th>
+                        <th>6 kHz</th>
+                        <th>8 kHz</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Lewe</td>
+                        <td><input type="number" class="form-control text-center" id="ul_250" name="ul_250"
+                                   value={{ audiogram.ul_250 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_500" name="ul_500"
+                                   value={{ audiogram.ul_500 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_1000" name="ul_1000"
+                                   value={{ audiogram.ul_1000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_2000" name="ul_2000"
+                                   value={{ audiogram.ul_2000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_3000" name="ul_3000"
+                                   value={{ audiogram.ul_3000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_4000" name="ul_4000"
+                                   value={{ audiogram.ul_4000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_6000" name="ul_6000"
+                                   value={{ audiogram.ul_6000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="ul_8000" name="ul_8000"
+                                   value={{ audiogram.ul_8000 }}></td>
+                    </tr>
+                    <tr>
+                        <td>Prawe</td>
+                        <td><input type="number" class="form-control text-center" id="up_250" name="up_250"
+                                   value={{ audiogram.up_250 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_500" name="up_500"
+                                   value={{ audiogram.up_500 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_1000" name="up_1000"
+                                   value={{ audiogram.up_1000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_2000" name="up_2000"
+                                   value={{ audiogram.up_2000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_3000" name="up_3000"
+                                   value={{ audiogram.up_3000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_4000" name="up_4000"
+                                   value={{ audiogram.up_4000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_6000" name="up_6000"
+                                   value={{ audiogram.up_6000 }}></td>
+                        <td><input type="number" class="form-control text-center" id="up_8000" name="up_8000"
+                                   value={{ audiogram.up_8000 }}></td>
+                    </tr>
+                    </tbody>
+                </table>
+            {% endif %}
+            <div class="mb-3">
+                <label for="routine" class="form-label">Zabiegi:</label>
+                <textarea class="form-control text-center" id="routine" name="routine">{{ record.routine }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="diagnosis" class="form-label">Diagnoza:</label>
+                <textarea class="form-control" id="diagnosis" name="diagnosis">{{ record.diagnosis }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label for="nfz_info" class="form-label">NFZ informacja:</label>
+                <input type="text" class="form-control" id="nfz_info" name="nfz_info" value={{ record.nfz_info }}>
+            </div>
+            <div class="mb-3">
+                <label for="recommendations" class="form-label">Zalecenia:</label>
+                <textarea class="form-control" id="recommendations" name="recommendations">{{ record.recommendations }}</textarea>
+            </div>
+
+
+        {% elif visit_type == 'medical_certificate' %}
+
+            <div class="mb-3">
+                <label for="created_at" class="form-label">Data utworzenia</label>
+                <input type="date" class="form-control" id="created_at" name="created_at"
+                       value={{ record.created_at }}>
+            </div>
+            <div class="mb-3">
+                <label for="type" class="form-label">Typ orzeczenia</label>
+                <select class="form-select" id="type" name="type">
+                    {% for item in typ_badan %}
+                        <option value={{ item.id }} {% if item.id == record.type|string %}selected{% endif %}>
+                            {{ item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="info" class="form-label">Informacje</label>
+                <textarea class="form-control" id="info" name="info">{{ record.info }}</textarea>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="is_able_to_work" name="is_able_to_work"
+                       {% if record.is_able_to_work %}checked{% endif %}>
+                <label class="form-check-label" for="is_able_to_work">Zdolny do pracy</label>
+            </div>
+            <div class="mb-3">
+                <label for="location" class="form-label">Miejsce</label>
+                <select class="form-select" id="location" name="location">
+                    {% for place_item in place %}
+                        <option value={{ place_item.id }}
+                                {% if place_item.id == record.location|string %}selected{% endif %}>
+                            {{ place_item.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+
+        <a href="{{ url_for('patient.patient_main') }}" class="btn btn-secondary">Anuluj</a>
+    </form>
+</div>
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+</body>
+</html>

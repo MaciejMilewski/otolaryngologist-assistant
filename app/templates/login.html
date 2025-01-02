@@ -1,48 +1,35 @@
 <!DOCTYPE html>
-
 <html lang="pl">
-
 <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="{{ url_for('static',filename='img/logo.png') }}">
 
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="shortcut icon" href="{{url_for('static',filename='img/logo.png')}}">
+    <title>Asystent laryngologa</title>
 
-  <title>Asystent laryngologa</title>
+    <meta name="description" content="Asystent laryngologa">
+    <meta name="keywords" content="laryngologia, dokumentacja medyczna">
+    <meta http-equiv="X-Ua-Compatible" content="IE=edge">
 
-  <meta name="description" content="Asystent laryngologa">
-  <meta name="keywords" content="laryngologia, dokumentacja medyczna">
-  <meta http-equiv="X-Ua-Compatible" content="IE=edge">
-
-  <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
-  <link rel="stylesheet" href="{{url_for('static',filename='css/login.css')}}">
-
-  <script>
-	window.onload= function() {	Particles.init({selector:'.background'}); };
-  </script>
-
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static',filename='css/login.css') }}">
 </head>
-
 <body>
+<canvas class="background"></canvas>
 
-  <canvas class="background"></canvas>
-
-  <div class="form-signin justify-content-md-center">
-
+<div class="form-signin justify-content-md-center">
     <form action="{{ url_for('auth.login') }}" method="post">
 
-{#        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+        {#        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
 
         <div class="container col-12">
-
             <div class="row">
-
                 <div class="col">
 
                     {% with messages = get_flashed_messages(with_categories=True) %}
                         {% if messages %}
                             {% for category, message in messages %}
-                                <div class="alert alert-{{category}} text-center" role="alert">
+                                <div class="alert alert-{{ category }} text-center" role="alert">
                                     {{ message }}
                                 </div>
                             {% endfor %}
@@ -50,10 +37,9 @@
                     {% endwith %}
 
                 </div>
-
                 <div class="col-4 text-center">
 
-                    <img class="mb-4" src="{{url_for('static',filename='img/head.png')}}" alt="head"
+                    <img class="mb-4" src="{{ url_for('static',filename='img/head.png') }}" alt="head"
                          width="168" height="140">
                     <h3 class="h3 mb-3 fw-bold">PANEL LOGOWANIA</h3>
 
@@ -79,32 +65,17 @@
                     <br>
                     <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">Zaloguj się</button>
                     <br>
-                    <p><a href="{{url_for('start.home')}}">Strona główna</a></p>
+                    <p><a href="{{ url_for('start.home') }}">Strona główna</a></p>
                 </div>
                 <div class="col">
-
-{#                    <img align="right" src="{{url_for('static',filename='img/moon.png')}}" id="theme-icon">#}
 
                 </div>
             </div>
         </div>
     </form>
 
-  </div>
+</div>
 
-  <script src="static/js/particles.min.js"></script>
-  <script>
-		var particles = Particles.init({
-			selector: '.background',
-			maxParticles: 125,
-			sizeVariations: 15,
-			speed: 0.6,
-      		color: ['#DA0463', '#d27979', '#DBEDF3', '#4dff4d','#001122'],
-  			connectParticles: true
-		});
-  </script>
-
-  <script src="{{url_for('static',filename='js/bootstrap.min.js')}}"></script>
-  <script src="{{url_for('static',filename='js/theme-switcher.js')}}"></script>
+<script src="{{ url_for('static',filename='js/bootstrap.min.js') }}"></script>
 </body>
 </html>

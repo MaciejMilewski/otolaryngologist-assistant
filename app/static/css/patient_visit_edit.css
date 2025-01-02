@@ -1,0 +1,39 @@
+/* Styl dla tabeli */
+table {
+  width: 100%; /* Ustawienie tabeli na szerokość strony */
+  border-collapse: collapse; /* Usunięcie odstępów między komórkami */
+}
+
+table th, table td {
+  text-align: center; /* Wyśrodkowanie tekstu w poziomie */
+  vertical-align: middle; /* Wyśrodkowanie tekstu w pionie */
+  padding: 5px; /* Margines wewnętrzny */
+
+}
+
+/* Ozdobny styl dla nagłówków tabeli */
+table th {
+  background-color: #f2f2f2; /* Delikatny szary kolor tła */
+  /*font-weight: bold;  Pogrubienie czcionki */
+}
+
+
+
+/* Styl dla pól input, gdy użytkownik najeżdża myszką */
+input:focus {
+  outline: none; /* Usunięcie domyślnego obramowania */
+  border-color: #4CAF50; /* Kolor ramki na zielono przy aktywnym polu */
+}
+
+/* Opcjonalnie, styl dla kontenera formularza, jeśli używasz */
+form {
+  text-align: left; /* Wyśrodkowanie formularza i jego zawartości */
+  margin: 20px auto;
+}
+label {
+    font-weight: bold;
+    color: gray;
+}
+textarea {
+    text-align: left;
+}
