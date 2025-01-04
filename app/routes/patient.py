@@ -11,6 +11,7 @@ ITEMS_PER_PAGE = 5  # Liczba pacjentów na stronę
 VISITS_PER_PAGE = 5  # Liczba wizyt na stronę
 CERTIFICATES_PER_PAGE = 5
 
+
 patient_bp = Blueprint('patient', __name__)
 
 

@@ -89,6 +89,9 @@
 <!-- GŁÓWNY FORMULARZ -->
 
 <form action="{{ url_for('procedure.procedure_wynik_nfz') }}" method="post">
+
+    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token }}">
+
     <div class="row">
         <div class="col-lg-1">
         </div>
@@ -262,7 +265,8 @@
                         aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="bmiForm" class="d-flex align-items-center">
+                <form action="/body_mass_index" method="post" id="bmiForm" class="d-flex align-items-center">
+                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token }}">
                     <div class="input-group me-2">
                         <label for="weight" class="input-group-text"></label>
                         <input type="number" class="form-control" id="weight" name="weight" placeholder="Masa (kg)"
@@ -296,7 +300,10 @@
                         aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="icd10Form" onkeydown="return event.key != 'Enter';">
+                <form action="/search_icd10" method="post" id="icd10Form" onkeydown="return event.key != 'Enter';">
+
+                    <input type="hidden" id="csrf_token" name="csrf_token" value="{{ csrf_token }}">
+
                     <div class="mb-3">
                         <label for="icd10Code" class="form-label">Wpisz szukaną frazę ...</label>
                         <input type="text" class="form-control" id="icd10Code" name="icd10Code" required>
@@ -327,25 +334,40 @@
             const selectedItem = JSON.parse(`{{ data | tojson | safe }}`).find(item => item.id === parseInt(this.value, 10));
             if (selectedItem) {
                 itemDetailsTextarea.value = selectedItem.title.trim() + '\n\n' + selectedItem.description.trim() +
-                '\n\n' + selectedItem.group.trim() + ' - ' + selectedItem.icd9.trim();
+                    '\n\n' + selectedItem.group.trim() + ' - ' + selectedItem.icd9.trim();
                 itemDetailsModal.show();
             }
         });
     });
 
     // Obsługa BMI
-    document.getElementById('bmiSubmit').addEventListener('click', function () {
+    document.getElementById('bmiSubmit').addEventListener('click', function (event) {
+        event.preventDefault();
         const weight = document.getElementById('weight').value;
         const height = document.getElementById('height').value;
+        const csrfToken = document.getElementById('csrf_token').value;
+
+        // Walidacja danych wejściowych
+        if (!weight || !height) {
+            document.getElementById('bmiResult').innerHTML = `<div class="alert alert-danger">Proszę podać masę ciała i wzrost!</div>`;
+            return;
+        }
 
         fetch('/body_mass_index', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
             body: JSON.stringify({weight, height})
         })
             .then(response => response.json())
             .then(data => {
-                document.getElementById('bmiResult').innerHTML = `<div class="alert alert-success">Twoje BMI wynosi: ${data.bmi}</div>`;
+                if (data.error) {
+                    document.getElementById('bmiResult').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                } else {
+                    document.getElementById('bmiResult').innerHTML = `<div class="alert alert-success">Twoje BMI wynosi: ${data.bmi}</div>`;
+                }
             })
             .catch(error => {
                 document.getElementById('bmiResult').innerHTML = `<div class="alert alert-danger">Wystąpił błąd: ${error.message}</div>`;
@@ -354,10 +376,13 @@
 
     document.getElementById('icd10Submit').addEventListener('click', function () {
         const icd10Code = document.getElementById('icd10Code').value;
-
+        const csrfToken = document.getElementById('csrf_token').value;
         fetch('/search_icd10', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
             body: JSON.stringify({icd10Code: icd10Code})
         })
             .then(response => {

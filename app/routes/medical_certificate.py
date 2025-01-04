@@ -1,24 +1,23 @@
-import json
-
 import logging
 
 from datetime import datetime, timedelta
 from io import BytesIO
-import plotly.graph_objects as go
+
 from bs4 import BeautifulSoup
 import pandas as pd
-import plotly
+
 from flask import Blueprint, render_template, abort, request, jsonify, redirect, url_for, send_file
 from flask_login import current_user, login_required
 from jinja2 import TemplateNotFound
-from sqlalchemy.exc import SQLAlchemyError
 
 from app import parquet_data, dane_woj, db
-from app.models import Patient, MedicalCertificate
+
 from app.utils.const import typ_badan, place
 from app.utils.medical_certificate_util import pdf_orzeczenie_lekarskie, pdf_zaswiadczenie, save_medical_certificate
 from app.utils.parquet_util import get_streets_from_memory
 from fpdf import FPDF
+
+from app.utils.utils import create_plot, process_grouped_data, fetch_data_range_from_db
 
 medical_certificate_bp = Blueprint('medical_certificate', __name__)
 
@@ -93,174 +92,6 @@ def medical_certificate_pdf():
         return jsonify({'błąd': 'Nie udało się wygenerować PDF'}), 500
 
 
-def today_offset(offset_days=0):
-    """
-    :param offset_days: Number of days to offset from the current date. Defaults to 0.
-    :return: The current date and time offset by the specified number of days.
-    """
-    return datetime.now() + timedelta(days=offset_days)
-
-
-def fetch_data_range_from_db(begin_date, end_date):
-    """
-    Fetches data about patients and their medical certificates from the database within a given date range.
-
-    :param begin_date: The start of the date range for which data is to be fetched.
-    :param end_date: The end of the date range for which data is to be fetched.
-    :return: A list of tuples containing data fetched from the database.
-             Each tuple consists of (created_at, first_name, surname, city, info, type, is_able_to_work).
-             Returns an empty list if an error occurs.
-    """
-    try:
-        # Pobieranie danych z tabel połączonych kluczem patient_id
-        results = (
-            db.session.query(
-                MedicalCertificate.created_at,
-                Patient.first_name,
-                Patient.surname,
-                Patient.city,
-                MedicalCertificate.info,
-                MedicalCertificate.type,
-                MedicalCertificate.is_able_to_work
-            )
-            .join(Patient, Patient.id == MedicalCertificate.patient_id)
-            .filter(MedicalCertificate.created_at.between(begin_date, end_date))
-            .all()
-        )
-        return results
-    except SQLAlchemyError as db_error:
-        logging.error(f"Database error: {db_error}")
-        return []
-    except Exception as unexpected_error:
-        logging.error(f"Unexpected error: {unexpected_error}")
-        return []
-
-
-
-
-def process_grouped_data(df, selected_types, start_date=None, end_date=None):
-    """
-    Processes the DataFrame to prepare data for creating a Plotly chart.
-
-    :param df: DataFrame containing the data to be processed.
-    :param selected_types: List of types to filter the data by. If "all" is in the list, all types are included.
-    :param start_date: Optional start date to filter the data by created_at (string 'yyyy-mm-dd').
-    :param end_date: Optional end date to filter the data by created_at (string 'yyyy-mm-dd').
-    :return: DataFrame with grouped and aggregated data, including a summary row.
-    """
-    # Konwertujemy daty na obiekty datetime.date
-    if start_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-    if end_date:
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
-
-    # Filtrujemy dane na podstawie zakresu dat
-    if start_date:
-        df = df[df['created_at'] >= start_date]
-    if end_date:
-        df = df[df['created_at'] <= end_date]
-
-    # Filtrujemy typy badań
-    if "all" in selected_types:
-        grouped = df.groupby(["created_at", "first_name", "surname", "city", "info"]).agg(
-            num_examinations=("created_at", "size"),
-            able_to_work=("is_able_to_work", "sum")
-        ).reset_index()
-    else:
-        selected_types_int = [int(t) for t in selected_types]
-        grouped = df[df["type"].isin(selected_types_int)].groupby(
-            ["created_at", "first_name", "surname", "city", "info"]
-        ).agg(
-            num_examinations=("created_at", "size"),
-            able_to_work=("is_able_to_work", "sum")
-        ).reset_index()
-
-    # Obliczamy sumy
-    total_examinations = grouped["num_examinations"].sum()
-    total_able_to_work = grouped["able_to_work"].sum()
-
-    # Zmieniamy nazwy kolumn na bardziej czytelne
-    grouped = grouped.rename(columns={
-        'created_at': 'DATA',
-        'first_name': 'IMIĘ',
-        'surname': 'NAZWISKO',
-        'city': 'MIASTO',
-        'info': 'INFO',
-        'num_examinations': 'ILOŚĆ',
-        'able_to_work': 'PRACA T/N'
-    })
-
-    # Dodajemy wiersz podsumowania
-    summary_row = pd.DataFrame({
-        'DATA': ['SUMA'],
-        'IMIĘ': ['-'],
-        'NAZWISKO': ['-'],
-        'MIASTO': ['-'],
-        'INFO': ['-'],
-        'ILOŚĆ': [total_examinations],
-        'PRACA T/N': [total_able_to_work]
-    })
-
-    return pd.concat([grouped, summary_row], ignore_index=True)
-
-
-
-def create_plot(df, selected_types):
-    """
-    :param df: DataFrame containing the data to be plotted. It should at least have columns 'created' and 'type'.
-    :param selected_types: List of integers representing the types to filter data before plotting.
-                           Use ["all"] to include all types.
-    :return: A JSON string representing the Plotly figure.
-    """
-    df = pd.DataFrame(df)
-
-    # Filtrujemy dane na podstawie `selected_types`
-    if "all" not in selected_types:
-        # Konwersja `selected_types` string do typu int, aby dopasować do typu kolumny 'type'
-        selected_types = [int(t) for t in selected_types]
-        # Filtrowanie, usuwamy wiersze w których typ nie występuje w selected_types
-        df = df[df['type'].isin(selected_types)]
-
-    # Dodajemy kolumnę zliczającą wystąpienia
-    df['count'] = 1
-
-    # Pivot table for plotting
-    pivot_df = df.pivot_table(index='created_at', columns='type', values='count', aggfunc='sum', fill_value=0)
-
-    # Przekształcenie indeksu na listę unikalnych wartości daty jako kategorie
-    dates = pivot_df.index.tolist()
-
-    # Odwrócenie kolejności kolumn w `pivot_df`
-    reversed_columns = pivot_df.columns[::-1]
-
-    # Create Plotly stacked bar chart
-    fig = go.Figure()
-
-    for column in reversed_columns:
-        fig.add_trace(
-            go.Bar(
-                x=dates,  # dates - typ category, poprzednio było pivot_df.index,
-                y=pivot_df[column],
-                name=f"Typ {column}",
-                hovertemplate=f"Typ {column}, data: %{{x}}<br>Ilość: %{{y}}<extra></extra>",
-                showlegend=True  # Wymusza wyświetlanie legendy
-            )
-        )
-
-    fig.update_layout(
-        barmode='stack',
-        title='Rys. Badania wykonane w szukanym okresie.',
-        xaxis=dict(
-            title='Daty',
-            type='category',  # Ustawienie osi X jako kategoria
-            tickangle=-45  # Kąt nachylenia etykiet
-        ),
-        yaxis=dict(title='Ilość badań')
-    )
-
-    return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-
-
 @medical_certificate_bp.route('/raport', methods=['GET', 'POST'])
 @login_required
 def raport():
@@ -325,17 +156,17 @@ def raport():
         data=graph_json
     )
 
-@medical_certificate_bp.route('/generate_pdf_for_raport', methods=['GET'])
+@medical_certificate_bp.route('/generate_pdf_for_raport', methods=['POST'])
 @login_required
 def generate_pdf_for_raport():
     """
     Generates a PDF report based on the provided HTML table and selected test types within a specified date range.
     """
     # Pobierz dane z zapytania
-    table_html = request.args.get('table_html', '')
-    selected_types = request.args.getlist("selected_types")
-    start_date = request.args.get("start_date")
-    end_date = request.args.get("end_date")
+    table_html = request.form.get('table_html', '')
+    selected_types = request.form.getlist("selected_types")
+    start_date = request.form.get("start_date")
+    end_date = request.form.get("end_date")
 
     # Słownik do mapowania typów badań na nazwy
     typ_badan_dict = {badanie['id']: badanie['name'] for badanie in typ_badan}

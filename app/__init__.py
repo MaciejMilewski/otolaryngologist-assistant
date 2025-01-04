@@ -3,6 +3,9 @@ import os
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
+from flask import session, request, abort
+from itsdangerous import URLSafeTimedSerializer
+
 import pandas as pd
 from dotenv import load_dotenv
 from flask import Flask
@@ -64,6 +67,15 @@ def create_app():
     login_manager.login_view = 'auth.login'
     setup_logging(app)
 
+
+    app.config['SQLALCHEMY_ECHO'] = True  # Włącz logowanie zapytań SQL
+    # Konfiguracja ciasteczek sesji
+    app.config.update(
+      # SESSION_COOKIE_SECURE=True,    # Wymusza HTTPS dla ciasteczek
+        SESSION_COOKIE_HTTPONLY=True,  # Blokuje dostęp do ciasteczek z JavaScript
+        SESSION_COOKIE_SAMESITE='Lax'  # Zapobiega wysyłaniu ciasteczek w nieautoryzowanych żądaniach cross-site
+    )
+
     try:
         test_response = client_soap.service.PobierzListeWojewodztw(DataStanu=datetime.now().strftime('%Y-%m-%d'))
         if not test_response:
@@ -91,6 +103,55 @@ def create_app():
         with app.app_context():
             from app.models import User
             return User.query.get(int(user_id))
+
+        # Funkcje CSRF
+
+    def verify_csrf_token():
+        """Weryfikuje token CSRF dla żądań POST, PUT, PATCH, DELETE."""
+        secret_key = app.config['SECRET_KEY']
+        serializer = URLSafeTimedSerializer(secret_key)
+
+        # Pobierz token z sesji i żądania
+        session_token = session.get('csrf_token')
+        request_token = request.form.get('csrf_token') or request.headers.get('X-CSRFToken')
+
+        # Sprawdzenie obecności tokenów
+        if not session_token or not request_token:
+            app.logger.error(f"Brak tokena CSRF. Sesja: {session_token}, Żądanie: {request_token}")
+            abort(400, "Brak tokena CSRF lub żądanie jest nieważne")
+
+        if not session_token or not request_token:
+            abort(400, description="Brak tokena CSRF lub żądanie jest nieważne")
+
+        try:
+            decoded_token = serializer.loads(request_token, max_age=3600)  # 1-godzinna ważność tokena
+        except Exception as e:
+            abort(400, description="Nieprawidłowy lub przeterminowany token CSRF")
+
+        if session_token != request_token:
+            abort(400, description="Token CSRF jest nieprawidłowy")
+
+    @app.before_request
+    def verify_csrf():
+        """Weryfikacja tokena CSRF dla żądań POST, PUT, PATCH, DELETE."""
+        if request.method in ['POST', 'PUT', 'PATCH', 'DELETE']:
+            verify_csrf_token()
+
+    @app.context_processor
+    def inject_csrf_token():
+        """Dodanie tokena CSRF do kontekstu dla formularzy HTML."""
+        return dict(csrf_token=generate_csrf_token())
+
+    def generate_csrf_token():
+        """Generuje unikalny token CSRF i zapisuje go do sesji."""
+        secret_key = app.config['SECRET_KEY']
+        serializer = URLSafeTimedSerializer(secret_key)
+        # Generowanie tokena na podstawie unikalnego identyfikatora użytkownika (lub sesji)
+        user_identifier = session.get('user_id', 'guest')
+        token = serializer.dumps(user_identifier)
+        session['csrf_token'] = token
+        return token
+
 
     # TODO: dodaj blueprinty dla reszty routes
     from app.routes.auth import auth_bp
@@ -124,6 +185,25 @@ def create_app():
     app.register_blueprint(schedule_bp)
 
     return app
+
+# Funkcja dostępna globalnie w pliku __init__.py
+def verify_csrf_token():
+    from flask import current_app as app  # Użyj kontekstu aplikacji
+    token = session.get('csrf_token', None)
+    request_token = request.form.get('csrf_token', None)
+    if not token or not request_token:
+        abort(400, "Brak tokena CSRF lub żądanie jest nieważne")
+
+    secret_key = app.config['SECRET_KEY']
+    serializer = URLSafeTimedSerializer(secret_key)
+    try:
+        serializer.loads(request_token, max_age=3600)
+    except Exception:
+        abort(400, "Nieprawidłowy lub przeterminowany token CSRF")
+
+    if token != request_token:
+        abort(400, "Token CSRF jest nieprawidłowy")
+    return True  # Jeśli wszystko jest poprawne
 
 
 def load_parquet_files(directory='app/static/parquet', expected_file_count=16):

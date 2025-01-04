@@ -115,6 +115,8 @@
 
     <form action="{{ url_for('antibiotic.calculations') }}" method="post">
 
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
         <div class="row py-5 row-cols-1 row-cols-lg-3">
             <div class="feature col border rounded-4">
                 <h4 class="fs-2 border-bottom border-success">

@@ -18,7 +18,8 @@
   <link rel="stylesheet" href="{{url_for('static',filename='css/start.css')}}">
 </head>
 <body>
-{#  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
   <nav class="navbar fixed-top navbar-expand-lg navbar-light" style="background-color: #e3f2fd;">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">

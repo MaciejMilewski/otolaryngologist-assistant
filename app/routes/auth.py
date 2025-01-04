@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, login_required, logout_user, current_user
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from app import db
+from app import db, verify_csrf_token
 from app.models import User
 
 auth_bp = Blueprint('auth', __name__)
@@ -17,6 +17,9 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
+
+        # Weryfikuj token CSRF ->@app.before_request zabezpiecza wszystkie trasy
+
         username = request.form.get('login')
         password = request.form.get('pwd')
 
@@ -28,7 +31,7 @@ def login():
             flash('Zalogowano pomyślnie!', 'success')
             if user.is_admin:
                 return redirect(url_for('admin.users'))
-            return render_template('visit.html', user=current_user.login)  # Zmień 'main.home' na endpoint Twojej głównej strony
+            return render_template('visit.html', user=current_user.login)
         else:
             flash('Nieprawidłowy login lub hasło.', 'danger')
     return render_template('login.html')
@@ -46,6 +49,9 @@ def logout():
 @login_required
 def change_password():
     if request.method == 'POST':
+
+        verify_csrf_token()  # Weryfikuj token CSRF
+
         if request.form.get('psw') != request.form.get('psw-repeat'):
             flash('WPISANE HASŁA SĄ RÓŻNE !', 'danger')
             return redirect('change_password', code=302)
@@ -67,6 +73,9 @@ def change_password():
 @auth_bp.route('/create_user', methods=['GET', 'POST'])
 def create_user():
     if request.method == 'POST':
+
+        verify_csrf_token()  # Weryfikuj token CSRF
+
         username = request.form.get('username')
         password = request.form.get('password')
         if username and password:

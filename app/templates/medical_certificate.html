@@ -106,6 +106,9 @@
             <!-- Formularz 1 - orzeczenia -->
             <div class="col-md-8 mb-3">
                 <form action="{{ url_for('medical_certificate.save') }}" method="post" id="medical_certificate_form">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
                     <div class="card h-100">
                         <div class="card-header mb-3 py-3">
                             <h4 class="mb-0"><span class="badge bg-success">ORZECZENIA LEKARSKIE</span></h4>
@@ -379,10 +382,15 @@
                         return reject("Nie wybrano miejscowości lub województwa.");
                     }
                     // Wykonaj żądanie AJAX
+                    // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
+                    const csrfToken = document.getElementById('csrf_token').value;
                     $.ajax({
                         url: '/get_ulice',
                         type: 'POST',
                         data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
+                        headers: {
+                            'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
+                        },
                         success: function (response) {
                             streetSelect.empty();
 
@@ -421,10 +429,15 @@
                     if (!wojewodztwo) {
                         return reject("Brak wybranego województwa.");
                     }
+                    // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
+                    const csrfToken = document.getElementById('csrf_token').value;
                     $.ajax({
                         url: '/get_miejscowosci',
                         type: 'POST',
                         data: {wojewodztwo: wojewodztwo},
+                        headers: {
+                            'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
+                        },
                         success: function (response) {
 
                             // Resetuj pola miast i ulic

@@ -102,8 +102,13 @@
 
         <!-- Formularz wyszukiwania -->
         <div class="container mt-5 pt-5">
+
             <h4 class="mb-4">Wpisz dane i kryteria wyszukiwania:</h4>
+
             <form method="POST" action="{{ url_for('patient.patient_main') }}">
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label for="first_name" class="form-label">Imię:</label>
@@ -198,6 +203,9 @@
                                                                             <form method="POST"
                                                                                   action="{{ url_for('patient.deactivate_visit', visit_id=visit.id) }}"
                                                                                   style="display: inline;">
+
+                                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
                                                                                 <button type="submit"
                                                                                         class="btn btn-danger btn-sm me-2"
                                                                                         onclick="return confirm('Czy na pewno chcesz usunąć tę wizytę?');">
@@ -371,6 +379,7 @@
                                                                             <form method="POST"
                                                                                   action="{{ url_for('patient.deactivate_certificate', record_id=certificate.id) }}"
                                                                                   style="display: inline;">
+                                                                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                                                                 <button type="submit"
                                                                                         class="btn btn-danger btn-sm me-2"
                                                                                         onclick="return confirm('Czy na pewno chcesz usunąć to orzeczenie?');">

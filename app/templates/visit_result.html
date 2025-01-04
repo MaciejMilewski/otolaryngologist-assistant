@@ -58,6 +58,8 @@
                 <!-- Main form -->
                 <form id="data-form" action="{{ url_for('visit.drukuj') }}" method="post">
 
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
                     <!-- Form content section -->
                     <fieldset class="form-group p-3 text-left">
                         <legend class="w-auto px-2 text-center">{{ today|default('Brak daty') }}</legend>
@@ -187,7 +189,8 @@
                             &nbsp;
                             <div>
                                 <!-- Back button -->
-                                <button type="button" onclick="history.back();" class="btn btn-primary">
+                                <button type="button" class="btn btn-primary" id="back-button"
+                                        onclick="window.location.href='{{ url_for('visit.main_form') }}';">
                                     <i class="bi bi-back"></i> - Powrót
                                 </button>
                             </div>
@@ -244,6 +247,9 @@
                 <div id="toast" class="toast"></div>
 
                 <form id="modalFormAction" method="post">
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
                     <!-- Location -->
                     <div class="row justify-content-end mb-4">
                         <div class="col-6">
@@ -454,10 +460,15 @@
                     return reject("Nie wybrano miejscowości lub województwa.");
                 }
                 // Wykonaj żądanie AJAX
+                // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
+                const csrfToken = document.getElementById('csrf_token').value;
                 $.ajax({
                     url: '/get_ulice',
                     type: 'POST',
                     data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
+                    headers: {
+                        'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
+                    },
                     success: function (response) {
                         streetSelect.empty();
 
@@ -496,10 +507,14 @@
                 if (!wojewodztwo) {
                     return reject("Brak wybranego województwa.");
                 }
+                const csrfToken = document.getElementById('csrf_token').value;
                 $.ajax({
                     url: '/get_miejscowosci',
                     type: 'POST',
                     data: {wojewodztwo: wojewodztwo},
+                    headers: {
+                        'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
+                    },
                     success: function (response) {
 
                         // Resetuj pola miast i ulic

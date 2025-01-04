@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, abort, request, flash
 from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 
+from app import verify_csrf_token
+
 antibiotic_bp = Blueprint('antibiotic', __name__)
 
 # Funkcja zwraca wagę po oczyszczeniu z tekstu
