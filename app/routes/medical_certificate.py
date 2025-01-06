@@ -10,41 +10,44 @@ from flask import Blueprint, render_template, abort, request, jsonify, redirect,
 from flask_login import current_user, login_required
 from jinja2 import TemplateNotFound
 
-from app import parquet_data, dane_woj, db
+from app import parquet_data, region_data, db
 
 from app.utils.const import typ_badan, place
 from app.utils.medical_certificate_util import pdf_orzeczenie_lekarskie, pdf_zaswiadczenie, save_medical_certificate
 from app.utils.parquet_util import get_streets_from_memory
 from fpdf import FPDF
 
-from app.utils.utils import create_plot, process_grouped_data, fetch_data_range_from_db
+from app.utils.utils import create_plot, process_grouped_data, fetch_data_range_from_db, handle_form_request
 
 medical_certificate_bp = Blueprint('medical_certificate', __name__)
+
+
 
 
 @medical_certificate_bp.route('/medical_certificate', methods=['GET'])
 @login_required
 def medical_certificate_main():
     try:
-        wojewodztwo_default = '22'  # Domyślne województwo - "POMORSKIE" (kod '22')
+        voivvoivodeship_default = '22'  # Domyślne województwo - "POMORSKIE" (kod '22')
 
         if 'POMORSKIE' in parquet_data:
-            miejscowosc_choices = parquet_data["POMORSKIE"]['Nazwa'].tolist()
+            city_list = parquet_data["POMORSKIE"]['Nazwa'].tolist()
         else:
-            miejscowosc_choices = []
+            city_list = []
 
-        default_miejscowosc = "Pruszcz Gdański"
+        default_city = "Pruszcz Gdański"
 
-        ulica_choices = get_streets_from_memory("POMORSKIE", default_miejscowosc)
+        streets_list = get_streets_from_memory("POMORSKIE", default_city)
+
         return render_template('medical_certificate.html',
                                user=current_user.login,
                                typ=typ_badan,
                                place=place,
-                               woj=dane_woj,
-                               woj_default=wojewodztwo_default,
-                               cities=miejscowosc_choices,
-                               city_default=default_miejscowosc,
-                               streets=ulica_choices,
+                               woj=region_data,
+                               woj_default=voivvoivodeship_default,
+                               cities=city_list,
+                               city_default=default_city,
+                               streets=streets_list,
                                today=datetime.now().strftime('%Y-%m-%d'))
     except TemplateNotFound:
         return abort(404)
@@ -60,7 +63,7 @@ def save():
 
     except Exception as e:
         db.session.rollback()
-        logging.error(f"Błąd podczas zapisywania orzeczenia lekarskiego: {e}")
+        logging.error(f"Error when saving medical certificate: {e}")
         return "Wystąpił błąd podczas przetwarzania zapytania.", 500
 
 
@@ -77,8 +80,8 @@ def medical_certificate_pdf():
             pdf = pdf_zaswiadczenie(data)
 
         pdf_data = pdf.output(dest='S').encode('latin1')  # Zwraca dane jako ciąg bajtów
-        pdf_buffer = BytesIO(pdf_data)  # Umieszcza dane w obiekcie BytesIO
-        pdf_buffer.seek(0)  # Ustaw wskaźnik na początek bufora
+        pdf_buffer = BytesIO(pdf_data)
+        pdf_buffer.seek(0)
 
         # Wysyłanie PDF jako pliku do pobrania
         return send_file(
@@ -88,7 +91,7 @@ def medical_certificate_pdf():
             as_attachment=True
         )
     except Exception as error_building:
-        logging.error(f"Błąd podczas generowania PDF: {str(error_building)}")
+        logging.error(f"Error generating PDF: {str(error_building)}")
         return jsonify({'błąd': 'Nie udało się wygenerować PDF'}), 500
 
 
@@ -108,10 +111,7 @@ def raport():
         default_start_date = (datetime.today() + timedelta(days=days_offset)).strftime("%Y-%m-%d")
         return request.form.get("start_date", default_start_date), request.form.get("end_date", default_end_date)
 
-    # Pobieranie wybranych typów badań z formularza
-    selected_types = request.form.getlist("selected_types")
-    if "all" in selected_types or not selected_types:
-        selected_types = ["all"]
+    selected_types = handle_form_request()
 
     # Inicjalizacja zakresu dat
     start_date, end_date = initialize_dates()
@@ -155,6 +155,7 @@ def raport():
         end_date=end_date,
         data=graph_json
     )
+
 
 @medical_certificate_bp.route('/generate_pdf_for_raport', methods=['POST'])
 @login_required

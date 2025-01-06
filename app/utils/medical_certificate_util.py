@@ -229,5 +229,5 @@ def save_medical_certificate(data):
 
         return {"patient": patient, "certificate": certificate}
     except Exception as e:
-        db.session.rollback()  # Wycofaj zmiany w przypadku błędu
+        db.session.rollback()
         raise e

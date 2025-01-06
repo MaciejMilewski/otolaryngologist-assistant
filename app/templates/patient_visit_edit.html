@@ -15,16 +15,21 @@
 </head>
 <body>
 <div class="container col-xxl-12">
-    <h3 class="mb-4 text-center text-secondary font-weight-bold">
-        Edycja
-        {% if visit_type == 'visit' %}
-            badania lekarskiego
-        {% elif visit_type == 'medical_certificate' %}
-            orzeczenia
-        {% else %}
-            {{ visit_type | capitalize }}
-        {% endif %}
-    </h3>
+
+    <div class="card text-light bg-secondary mb-3">
+        <div class="card-header text-center">
+            <h3 class="mb-0 font-weight-bold">
+                Edycja
+                {% if visit_type == 'visit' %}
+                    badania lekarskiego
+                {% elif visit_type == 'medical_certificate' %}
+                    orzeczenia
+                {% else %}
+                    {{ visit_type | capitalize }}
+                {% endif %}
+            </h3>
+        </div>
+    </div>
 
     <form method="POST">
 
@@ -150,9 +155,9 @@
             </div>
             <div class="mb-3">
                 <label for="recommendations" class="form-label">Zalecenia:</label>
-                <textarea class="form-control" id="recommendations" name="recommendations">{{ record.recommendations }}</textarea>
+                <textarea class="form-control" id="recommendations"
+                          name="recommendations">{{ record.recommendations }}</textarea>
             </div>
-
 
         {% elif visit_type == 'medical_certificate' %}
 
@@ -185,7 +190,7 @@
                 <select class="form-select" id="location" name="location">
                     {% for place_item in place %}
                         <option value={{ place_item.id }}
-                                {% if place_item.id == record.location|string %}selected{% endif %}>
+                                        {% if place_item.id == record.location|string %}selected{% endif %}>
                             {{ place_item.name }}
                         </option>
                     {% endfor %}

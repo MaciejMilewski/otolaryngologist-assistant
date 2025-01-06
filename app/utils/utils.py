@@ -1,3 +1,4 @@
+import ast
 import logging
 import os
 import json
@@ -9,7 +10,7 @@ from fpdf import FPDF
 from sqlalchemy import inspect
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app.models import MedicalCertificate
-
+from flask import request
 from app import db
 from app.models import Schedule, Audiogram, Visit, Patient
 
@@ -27,6 +28,14 @@ orl_items = ['hypoacusis', 'tinnitus', 'glue_ear', 'otitis', 'otosclerosis', 'me
              'tonsilitis_chronica', 'post_adenotomii', 'post_adenotonsils', 'post_tonsils', 'sleep_apnea',
              'rinithis_chronica', 'sjogren', 'torbiel', 'noduli_vocali', 'polypus_vocale', 'paresis_vacales',
              'paresis_iatrogenic', 'occupational_disease', 'post_larynx', 'cleft_palate']
+
+
+# Funkcja zwraca wagę po oczyszczeniu z tekstu
+def parse_weight(weight):
+    try:
+        return float(weight.replace(',', '.'))
+    except (ValueError, AttributeError):
+        return None
 
 
 def validate_event_collision(user_id, start_date, end_date, exclude_event_id=None):
@@ -741,60 +750,86 @@ def process_grouped_data(df, selected_types, start_date=None, end_date=None):
     :param end_date: Optional end date to filter the data by created_at (string 'yyyy-mm-dd').
     :return: DataFrame with grouped and aggregated data, including a summary row.
     """
-    # Konwertujemy daty na obiekty datetime.date
-    if start_date:
-        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
-    if end_date:
-        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    try:
+        # Konwertujemy daty na obiekty datetime.date
+        if start_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+        if end_date:
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
 
-    # Filtrujemy dane na podstawie zakresu dat
-    if start_date:
-        df = df[df['created_at'] >= start_date]
-    if end_date:
-        df = df[df['created_at'] <= end_date]
+        # Sprawdzamy i konwertujemy kolumnę created_at, jeśli wymaga konwersji
+        if not pd.api.types.is_datetime64_any_dtype(df['created_at']):
+            df['created_at'] = pd.to_datetime(df['created_at']).dt.date
 
-    # Filtrujemy typy badań
-    if "all" in selected_types:
-        grouped = df.groupby(["created_at", "first_name", "surname", "city", "info"]).agg(
-            num_examinations=("created_at", "size"),
-            able_to_work=("is_able_to_work", "sum")
-        ).reset_index()
-    else:
-        selected_types_int = [int(t) for t in selected_types]
-        grouped = df[df["type"].isin(selected_types_int)].groupby(
-            ["created_at", "first_name", "surname", "city", "info"]
-        ).agg(
-            num_examinations=("created_at", "size"),
-            able_to_work=("is_able_to_work", "sum")
-        ).reset_index()
+        # Filtrujemy dane na podstawie zakresu dat
+        if start_date or end_date:
+            mask = True
+            if start_date:
+                mask &= df['created_at'] >= start_date
+            if end_date:
+                mask &= df['created_at'] <= end_date
+            df = df[mask]
 
-    # Obliczamy sumy
-    total_examinations = grouped["num_examinations"].sum()
-    total_able_to_work = grouped["able_to_work"].sum()
+        # Sprawdzamy poprawność selected_types
+        if isinstance(selected_types, str) and selected_types.strip().lower() == "all":
+            # Jeśli selected_types to pojedynczy string "all"
+            grouped = df.groupby(["created_at", "first_name", "surname", "city", "info"]).agg(
+                num_examinations=("created_at", "size"),
+                able_to_work=("is_able_to_work", "sum")
+            ).reset_index()
+        elif isinstance(selected_types, list) and "all" in selected_types:
+            # Jeśli selected_types to lista zawierająca "all"
+            grouped = df.groupby(["created_at", "first_name", "surname", "city", "info"]).agg(
+                num_examinations=("created_at", "size"),
+                able_to_work=("is_able_to_work", "sum")
+            ).reset_index()
+        else:
+            try:
+                # Próba konwersji wartości na int
+                selected_types_int = [int(t) for t in selected_types]
+            except (ValueError, TypeError) as e:
+                raise ValueError(
+                    "Invalid `selected_types`. Must be a list containing integers or the string 'all'."
+                ) from e
 
-    # Zmieniamy nazwy kolumn na bardziej czytelne
-    grouped = grouped.rename(columns={
-        'created_at': 'DATA',
-        'first_name': 'IMIĘ',
-        'surname': 'NAZWISKO',
-        'city': 'MIASTO',
-        'info': 'INFO',
-        'num_examinations': 'ILOŚĆ',
-        'able_to_work': 'PRACA T/N'
-    })
+            grouped = df[df["type"].isin(selected_types_int)].groupby(
+                ["created_at", "first_name", "surname", "city", "info"]
+            ).agg(
+                num_examinations=("created_at", "size"),
+                able_to_work=("is_able_to_work", "sum")
+            ).reset_index()
 
-    # Dodajemy wiersz podsumowania
-    summary_row = pd.DataFrame({
-        'DATA': ['SUMA'],
-        'IMIĘ': ['-'],
-        'NAZWISKO': ['-'],
-        'MIASTO': ['-'],
-        'INFO': ['-'],
-        'ILOŚĆ': [total_examinations],
-        'PRACA T/N': [total_able_to_work]
-    })
+        # Obliczamy sumy
+        total_examinations = grouped["num_examinations"].sum()
+        total_able_to_work = grouped["able_to_work"].sum()
 
-    return pd.concat([grouped, summary_row], ignore_index=True)
+        # Zmieniamy nazwy kolumn na bardziej czytelne
+        grouped = grouped.rename(columns={
+            'created_at': 'DATA',
+            'first_name': 'IMIĘ',
+            'surname': 'NAZWISKO',
+            'city': 'MIASTO',
+            'info': 'INFO',
+            'num_examinations': 'ILOŚĆ',
+            'able_to_work': 'PRACA T/N'
+        })
+
+        # Dodajemy wiersz podsumowania
+        summary_row = pd.DataFrame({
+            'DATA': ['SUMA'],
+            'IMIĘ': ['-'],
+            'NAZWISKO': ['-'],
+            'MIASTO': ['-'],
+            'INFO': ['-'],
+            'ILOŚĆ': [total_examinations],
+            'PRACA T/N': [total_able_to_work]
+        })
+
+        return pd.concat([grouped, summary_row], ignore_index=True)
+
+    except Exception as e:
+        raise Exception("An error occurred during processing.") from e
+
 
 
 def create_plot(df, selected_types):
@@ -852,3 +887,37 @@ def create_plot(df, selected_types):
 
     return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
 
+def process_selected_types(raw_types):
+    """
+    Processes and cleans selected types list by:
+    - Parsing any string representations of lists.
+    - Removing duplicates, preserving order.
+    - Discarding 'all' if other entries exist.
+    :param raw_types: List[str] - Raw list of selected types input.
+    :return: List[str] - Processed list of selected types.
+    """
+    # Parse the selected types from input
+    parsed_types = []
+    for item in raw_types:
+        try:
+            if isinstance(item, str) and item.startswith('[') and item.endswith(']'):
+                parsed_types.extend(ast.literal_eval(item))
+            else:
+                parsed_types.append(item)
+        except (ValueError, SyntaxError) as e:
+            logging.warning(f"Failed to parse selected_types item: {item}. Error: {e}")
+            parsed_types.append(item)
+
+    # Clean the parsed list: remove 'all' and duplicates
+    if 'all' in parsed_types and len(parsed_types) > 1:
+        parsed_types = [typ for typ in parsed_types if typ != 'all']
+    return list(dict.fromkeys(parsed_types))
+
+
+def handle_form_request():
+    """
+    Handles logic for processing selected types from the form.
+    :return: List[str] - Processed selected types.
+    """
+    raw_types = request.form.getlist("selected_types")
+    return process_selected_types(raw_types) if raw_types else ['all']

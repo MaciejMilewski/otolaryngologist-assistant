@@ -1,10 +1,8 @@
-import sqlite3
-
 from flask import Blueprint, render_template, redirect, url_for, request, flash, abort
-from flask_login import login_user, login_required, logout_user, current_user
+from flask_login import login_required, current_user
 from jinja2 import TemplateNotFound
 from sqlalchemy import exc
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 
 from app import db
 from app.models import User
@@ -17,8 +15,8 @@ admin_bp = Blueprint('admin', __name__)
 def users():
     try:
         if current_user.is_admin:
-            users = db.session.query(User).all()
-            return render_template('admin.html', users=users)
+            all_users = db.session.query(User).all()
+            return render_template('admin.html', users=all_users)
         return redirect(url_for('visit.main_form'))
     except TemplateNotFound:
         return abort(404)
@@ -47,10 +45,11 @@ def user_update():
             db.session.rollback()
             flash('Podobny login lub e-mail już istnieje !', 'info')
             return redirect(url_for('admin'))
-        except sqlite3.Error as e:
+        except exc.SQLAlchemyError as e:
             db.session.rollback()
             flash('Nie ma połączenia z bazą danych {}'.format(e), 'danger')
             return redirect(url_for('admin.users'))
+
         flash(f'Dane użytkownika "{user_to_update.login}" zaktualizowano !', 'success')
         return redirect(url_for('admin.users'))
     flash('Nieautoryzowana próba dostępu !', 'danger')
@@ -81,7 +80,7 @@ def user_insert():
             db.session.rollback()
             flash('Podobny login lub e-mail już istnieje !', 'info')
             return redirect(url_for('admin'))
-        except sqlite3.Error as e:
+        except exc.SQLAlchemyError as e:
             db.session.rollback()
             flash('Nie ma połączenia z bazą danych {}'.format(e), 'danger')
             return redirect(url_for('admin.users'))
@@ -97,9 +96,12 @@ def user_delete(id_user):
     if current_user.is_admin:
         try:
             user_to_delete = db.session.query(User).filter_by(id=id_user).first()
+            if user_to_delete is None:
+                flash(f'Użytkownik nie istnieje!', 'warning')
+                return redirect(url_for('admin.users'))
             db.session.delete(user_to_delete)
             db.session.commit()
-        except sqlite3.Error:
+        except exc.SQLAlchemyError:
             db.session.rollback()
             flash('Nie ma połączenia z bazą danych !', 'danger')
             return redirect(url_for('admin'))

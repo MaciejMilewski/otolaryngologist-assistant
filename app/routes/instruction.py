@@ -1,3 +1,4 @@
+import logging
 import os
 
 from flask import Blueprint, render_template, abort, send_from_directory, jsonify
@@ -5,7 +6,6 @@ from flask_login import current_user, login_required
 from jinja2 import TemplateNotFound
 
 instruction_bp = Blueprint('instruction', __name__)
-
 
 # Katalog zawierający pliki Instrukcji PDF
 PDF_FOLDER= os.getcwd() + '\\app\\static\pdfs'
@@ -23,7 +23,8 @@ def instruction_main():
         return render_template('instruction.html', user=current_user.login, pdf_files=pdf_files)
     except TemplateNotFound:
         return abort(404)
-    except Exception as e:  # Obługa innych potencjalnych błędów
+    except Exception as e:
+        logging.error(('Error: %s' % e))
         return jsonify({'error': str(e)}), 500
 
 @instruction_bp.route('/pdfs/<filename>')
@@ -51,6 +52,7 @@ def list_pdfs():
         pdf_files.sort(key=lambda x: x['name'])  # Domyślne sortowanie po nazwie
         return jsonify(pdf_files)
     except Exception as e:
+        logging.error(('Error: %s' % e))
         return jsonify({"error": str(e)}), 500
     except TemplateNotFound:
         return abort(404)

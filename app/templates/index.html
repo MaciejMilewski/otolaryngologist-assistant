@@ -1,9 +1,6 @@
 <!DOCTYPE html>
-
 <html lang="pl">
-
 <head>
-
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="{{url_for('static',filename='img/logo.png')}}">
@@ -12,7 +9,6 @@
 
   <meta name="description" content="Asystent laryngologa">
   <meta name="keywords" content="laryngologia, dokumentacja medyczna">
-  <meta http-equiv="X-Ua-Compatible" content="IE=edge">
 
   <link rel="stylesheet" href="{{url_for('static',filename='css/bootstrap.min.css')}}">
   <link rel="stylesheet" href="{{url_for('static',filename='css/start.css')}}">
@@ -36,10 +32,6 @@
             <a class="btn btn-outline-primary" type="button" href="{{url_for('auth.login')}}">Logowanie</a>
           </li>
         </ul>
-{#        <form action="{{url_for('reject')}}"  method="POST" class="d-flex">#}
-{#          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
-{#          <button class="btn btn-danger" type="submit">Wyjście</button>#}
-{#        </form>#}
       </div>
     </div>
   </nav>

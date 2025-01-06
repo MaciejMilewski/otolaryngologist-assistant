@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime
 
-from app import parquet_data, client_soap, dane_woj
+from app import parquet_data, client_soap, region_data
 
 
 def get_streets_from_memory(wojewodztwo, city_looking_for):
@@ -22,7 +22,7 @@ def get_streets_from_memory(wojewodztwo, city_looking_for):
     looking_for_row = df.loc[df['Nazwa'] == city_looking_for]
 
     # Uzyskaj kod województwa na podstawie długiej nazwy województwa
-    kod_wojewodztwa = get_key_by_value(dane_woj, wojewodztwo)
+    kod_wojewodztwa = get_key_by_value(region_data, wojewodztwo)
 
     if not looking_for_row.empty:
         for _, row in looking_for_row.iterrows():

@@ -9,7 +9,7 @@ from app.models import Patient, Visit, MedicalCertificate, Audiogram
 
 ITEMS_PER_PAGE = 5  # Liczba pacjentów na stronę
 VISITS_PER_PAGE = 5  # Liczba wizyt na stronę
-CERTIFICATES_PER_PAGE = 5
+CERTIFICATES_PER_PAGE = 5 # Liczba orzeczeń na stronę
 
 
 patient_bp = Blueprint('patient', __name__)
@@ -100,7 +100,7 @@ def patient_main():
 
             visits = visit_query.offset((visit_page - 1) * VISITS_PER_PAGE).limit(VISITS_PER_PAGE).all()
 
-            # Wzbogacenie wizyt o audiogramy
+            # Uzupełnienie wizyt o audiogramy
             for visit in visits:
                 visit.audiogram_data = (
                     db.session.query(Audiogram).filter_by(visit_id=visit.id).first()
@@ -237,7 +237,7 @@ def edit_visit(visit_type, record_id):
 
 @patient_bp.route('/visit/delete/<int:visit_id>', methods=['POST'])
 @login_required
-# nie ma usuwania rekordów, tylko ich dezaktywacja is_active = False, czyli 0
+# Nie ma usuwania rekordów, tylko ich dezaktywacja is_active = False, czyli 0
 def delete_visit(visit_id):
     visit = Visit.query.get_or_404(visit_id)
     db.session.delete(visit)
@@ -256,7 +256,6 @@ def deactivate_visit(visit_id):
         flash('Nie masz uprawnień do dezaktywacji tej wizyty.', 'danger')
         return redirect(url_for('patient.patient_main'))
 
-    # Ustawienie is_active na 0
     visit.is_active = False
     db.session.commit()
 
@@ -274,10 +273,8 @@ def deactivate_certificate(record_id):
         flash('Nie masz uprawnień do dezaktywacji tego orzeczenia.', 'danger')
         return redirect(url_for('patient.patient_main'))
 
-    # Ustawienie pola is_active na False
     certificate.is_active = False
     db.session.commit()
 
-    # Powiadomienie użytkownika o sukcesie
     flash('Orzeczenie zostało dezaktywowane!', 'success')
     return redirect(url_for('patient.patient_main'))

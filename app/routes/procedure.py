@@ -8,11 +8,11 @@ from app.models import Procedure
 from app.utils.const import W0, W1, W2, W3, W9, W10, W16
 from app.utils.utils import get_icd_10, object_to_dict
 
-procedure_bp = Blueprint('procedure', __name__)
-
-
 # Zmienna globalna przechowująca dane ICD-10
 data_icd = get_icd_10()
+
+
+procedure_bp = Blueprint('procedure', __name__)
 
 
 @procedure_bp.route('/procedure', methods=['GET'])
@@ -39,9 +39,9 @@ def procedure_main():
         return abort(404)
 
 
-@procedure_bp.route('/procedure_wynik_nfz', methods=['POST'])
+@procedure_bp.route('/procedure_result_nfz', methods=['POST'])
 @login_required
-def procedure_wynik_nfz():
+def procedure_result_nfz():
     try:
         lista_w1 = request.form.getlist('selektor_W1')
         lista_w2 = request.form.getlist('selektor_W2')

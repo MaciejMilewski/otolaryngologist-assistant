@@ -461,15 +461,20 @@
                 }
                 // Wykonaj żądanie AJAX
                 // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
-                const csrfToken = document.getElementById('csrf_token').value;
+                const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
                 $.ajax({
                     url: '/get_ulice',
                     type: 'POST',
-                    data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
+                    contentType: 'application/json',
+                    data: JSON.stringify({miejscowosc: miejscowosc, wojewodztwo: wojewodztwo}),
                     headers: {
                         'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
                     },
                     success: function (response) {
+                        if (!response || !response.ulice) {
+                            console.error("Błąd:/get_ulice - Nieprawidłowa odpowiedź z serwera.", response);
+                            return;
+                        }
                         streetSelect.empty();
 
                         const fragment = document.createDocumentFragment(); // Fragment do optymalizacji DOM
@@ -507,15 +512,20 @@
                 if (!wojewodztwo) {
                     return reject("Brak wybranego województwa.");
                 }
-                const csrfToken = document.getElementById('csrf_token').value;
+                const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
                 $.ajax({
                     url: '/get_miejscowosci',
                     type: 'POST',
-                    data: {wojewodztwo: wojewodztwo},
+                    contentType: 'application/json',
+                    data: JSON.stringify({wojewodztwo: wojewodztwo}),
                     headers: {
                         'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
                     },
                     success: function (response) {
+                        if (!response) {
+                            console.error("Błąd: /get_miejscowosci - Nieprawidłowa odpowiedź z serwera.", response);
+                            return;
+                        }
 
                         // Resetuj pola miast i ulic
                         citySelect.empty();
@@ -632,7 +642,7 @@
                 const selectedCity = citySelect.find(":selected").text();
                 if (selectedCity && selectedCity !== "0") {
                     updateStreets();
-                }
+                } else { console.log("error citySelect", selectedCity) }
             });
 
             $('#autocompleteSelect').on('select2:open', function () {

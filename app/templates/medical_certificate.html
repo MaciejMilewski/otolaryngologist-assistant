@@ -381,13 +381,14 @@
                         console.error("Brak miejscowości lub województwa do pobrania ulic.");
                         return reject("Nie wybrano miejscowości lub województwa.");
                     }
-                    // Wykonaj żądanie AJAX
+
                     // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
-                    const csrfToken = document.getElementById('csrf_token').value;
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
                     $.ajax({
                         url: '/get_ulice',
                         type: 'POST',
-                        data: {miejscowosc: miejscowosc, wojewodztwo: wojewodztwo},
+                        contentType: 'application/json',
+                        data: JSON.stringify({miejscowosc: miejscowosc, wojewodztwo: wojewodztwo}),
                         headers: {
                             'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
                         },
@@ -430,11 +431,12 @@
                         return reject("Brak wybranego województwa.");
                     }
                     // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
-                    const csrfToken = document.getElementById('csrf_token').value;
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
                     $.ajax({
                         url: '/get_miejscowosci',
                         type: 'POST',
-                        data: {wojewodztwo: wojewodztwo},
+                        contentType: 'application/json',
+                        data: JSON.stringify({wojewodztwo: wojewodztwo}),
                         headers: {
                             'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
                         },

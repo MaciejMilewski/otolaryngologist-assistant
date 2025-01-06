@@ -11,13 +11,7 @@ typ_badan = [
     {'id': '10', 'name': 'Badanie profilaktyczne kierowców kategorii C+E'},
     {'id': '11', 'name': 'Zaświadczenie o stanie zdrowia'}
 ]
-place = [
-    {'id': '1', 'name': 'Pruszcz Gdański'},
-    {'id': '2', 'name': 'Starogard Gdański'},
-    {'id': '3', 'name': 'Gdańsk'},
-    {'id': '4', 'name': 'Sopot'},
-    {'id': '5', 'name': 'Tczew'},
-]
+
 typ_messages = {
                     '1': "W badaniu laryngologicznym wykonanym w dniu dzisiejszym nie stwierdzono istotnych przeciwwskazań do dalszej pracy w charakterze nauczyciela.",
                     '2': "W badaniu laryngologicznym wykonanym w dniu dzisiejszym nie stwierdzono przeciwwskazań do pracy na wysokości powyżej trzech metrów.",
@@ -51,7 +45,6 @@ place = [
     {'id': '5', 'name': 'Tczew'},
     {'id': '6', 'name': 'Gdynia'}
 ]
-
 
 W0 = {
       'W01 -  48 pkt': 'Porada pohospitalizacyjna - do 30 dni od wypisu',

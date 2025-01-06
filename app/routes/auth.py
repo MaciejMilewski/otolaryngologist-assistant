@@ -18,8 +18,6 @@ auth_bp = Blueprint('auth', __name__)
 def login():
     if request.method == 'POST':
 
-        # Weryfikuj token CSRF ->@app.before_request zabezpiecza wszystkie trasy
-
         username = request.form.get('login')
         password = request.form.get('pwd')
 
@@ -31,7 +29,7 @@ def login():
             flash('Zalogowano pomyślnie!', 'success')
             if user.is_admin:
                 return redirect(url_for('admin.users'))
-            return render_template('visit.html', user=current_user.login)
+            return redirect(url_for('visit.main_form'))
         else:
             flash('Nieprawidłowy login lub hasło.', 'danger')
     return render_template('login.html')

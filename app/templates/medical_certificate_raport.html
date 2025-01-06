@@ -18,6 +18,9 @@
 
     <!-- Import PLOTLY JS -->
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@latest"></script>
+
+    <!-- Import BOOTSTRAP BUNDLE MIN JS -->
+    <script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
 </head>
 <body>
 
@@ -105,14 +108,14 @@
             <strong>UWAGA: {{ alert_message|e }}</strong>
         </div>
     {% else %}
+
         <h1 class="heading box">R A P O R T Y</h1>
-        <form method="post" action="{{ url_for('medical_certificate.generate_pdf_for_raport') }}" class="d-flex justify-content-center align-items-center mb-4">
+
+        <form method="post" action="{{ url_for('medical_certificate.raport') }}"
+              class="d-flex justify-content-center align-items-center mb-4">
+
             <!-- Ukryte pola z danymi -->
             <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-            <input type="hidden" name="table_html" value="{{ table_html }}">
-            <input type="hidden" name="selected_types" value="{{ selected_types }}">
-            <input type="hidden" name="start_date" value="{{ start_date }}">
-            <input type="hidden" name="end_date" value="{{ end_date }}">
 
             <!-- Formularz wyboru -->
             <div class="dropdown me-3">
@@ -120,34 +123,51 @@
                         data-bs-toggle="dropdown" aria-expanded="false">
                     Wybierz typy badań
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="dropdownTypes">
+                <ul class="dropdown-menu" id="selected_types" aria-labelledby="dropdownTypes">
                     <li>
                         <label class="dropdown-item">
                             <input type="checkbox" name="selected_types" value="all"
-                                   {% if "all" in selected_types %}checked{% endif %}>
+                                   {% if 'all' in selected_types %}checked{% endif %}>
                             Wszystkie
                         </label>
                     </li>
-                    {% for data_type in typ %}
-                        <li>
-                            <label class="dropdown-item">
-                                <input type="checkbox" name="selected_types" value="{{ data_type.id }}"
-                                       {% if data_type.id in selected_types %}checked{% endif %}>&nbsp;{{ data_type.id }}. {{ data_type.name }}
-                            </label>
-                        </li>
-                    {% endfor %}
+                    {% if typ %}
+                        {% for data_type in typ %}
+                            <li>
+                                <label class="dropdown-item">
+                                    <input type="checkbox" name="selected_types" value="{{ data_type.id }}"
+                                           {% if data_type.id in selected_types %}checked{% endif %}>
+                                    {{ data_type.id }}. {{ data_type.name }}
+                                </label>
+                            </li>
+                        {% endfor %}
+                    {% else %}
+                        <li class="dropdown-item text-muted">Brak dostępnych typów badań</li>
+                    {% endif %}
                 </ul>
             </div>
+
             <div class="d-flex align-items-center me-3">
                 <label for="start_date" class="form-label me-2">Data początkowa:</label>
                 <input type="date" id="start_date" name="start_date" class="form-control" value="{{ start_date }}">
             </div>
+
             <div class="d-flex align-items-center me-3">
                 <label for="end_date" class="form-label me-2">Data końcowa:</label>
                 <input type="date" id="end_date" name="end_date" class="form-control" value="{{ end_date }}">
             </div>
+
+            <!-- Przyciski -->
             <button type="submit" class="btn btn-primary me-3">Zastosuj</button>
-            <button type="submit" name="generate_pdf" value="1" class="btn btn-secondary ms-3">Zapisz PDF</button>
+
+            <!-- Formularz dla PDF -->
+            <form method="POST" action="{{ url_for('medical_certificate.generate_pdf_for_raport') }}" class="ms-auto">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="selected_types" value="{{ selected_types }}">
+                <input type="hidden" name="start_date" value="{{ start_date }}">
+                <input type="hidden" name="end_date" value="{{ end_date }}">
+                <button type="submit" class="btn btn-secondary">Zapisz PDF</button>
+            </form>
         </form>
 
         <!-- Tabela wyników -->
@@ -185,8 +205,33 @@
         <br><br>
     {% endif %}
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    // Znajdź checkbox "Wszystkie"
+    const allCheckbox = document.querySelector('input[value="all"]');
+    // Znajdź pozostałe checkboxy (bez "Wszystkie")
+    const otherCheckboxes = document.querySelectorAll('input[name="selected_types"]:not([value="all"])');
 
-<!-- Import BOOTSTRAP BUNDLE MIN JS -->
-<script src="{{ url_for('static',filename='js/bootstrap.bundle.min.js') }}"></script>
+    // Kiedy zaznaczony zostanie checkbox "Wszystkie"
+    allCheckbox.addEventListener("change", function () {
+        if (this.checked) {
+            // Odznacz wszystkie pozostałe checkboxy
+            otherCheckboxes.forEach(cb => {
+                cb.checked = false;
+            });
+        }
+    });
+
+    // Kiedy zaznaczony zostanie dowolny inny checkbox
+    otherCheckboxes.forEach(cb => {
+        cb.addEventListener("change", function () {
+            if (this.checked) {
+                // Odznacz checkbox "Wszystkie"
+                allCheckbox.checked = false;
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>

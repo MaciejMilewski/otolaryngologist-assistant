@@ -1,10 +1,11 @@
 from datetime import datetime
 
 from flask_login import UserMixin
-from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Index
 
+# from flask_sqlalchemy import SQLAlchemy
 # db = SQLAlchemy()
+
 from app import db
 
 
@@ -33,7 +34,7 @@ class User(db.Model, UserMixin):
     pwd = db.Column(db.String(100), nullable=False)
     name = db.Column(db.String(100))
     email = db.Column(db.String(100), unique=True)
-    date_joined = db.Column(db.Date, default=datetime.utcnow())
+    date_joined = db.Column(db.Date, default=lambda : datetime.utcnow().date())
     isActive = db.Column(db.Boolean, default=True)
     is_admin = db.Column(db.Boolean, default=False)
 
@@ -55,8 +56,8 @@ class User(db.Model, UserMixin):
 class Visit(db.Model):
     __tablename__ = 'visit'
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'), nullable=False, index=True)
     diagnosis = db.Column(db.String(255))
     location = db.Column(db.String(100))
     interview = db.Column(db.Text)
@@ -65,7 +66,7 @@ class Visit(db.Model):
     examination = db.Column(db.String, nullable=False)
     recommendations = db.Column(db.String, nullable=False)
     whisper_test = db.Column(db.String)
-    nfz_info = db.Column(db.String)
+    nfz_info = db.Column(db.String(255))
     examination_date = db.Column(db.Date)
     routine = db.Column(db.String)
     is_active = db.Column(db.Boolean, default=True)
@@ -102,7 +103,7 @@ class MedicalCertificate(db.Model):
     __tablename__ = 'medical_certificate'
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patient.id'))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), index=True, nullable=False)
     created_at = db.Column(db.Date)
     type = db.Column(db.INTEGER)
     info = db.Column(db.String)

@@ -1,6 +1,5 @@
-import sqlite3
+import logging
 from datetime import date, timedelta, datetime
-from sqlite3 import connect
 
 from flask import Blueprint, render_template, abort, flash, request, redirect, url_for, jsonify
 from flask_login import current_user, login_required
@@ -38,6 +37,7 @@ def get_schedule_events(user_id, start, end):
             for event in events
         ]
     except SQLAlchemyError as e:
+        logging.error(f"Database error: {str(e)}")
         flash(f"Błąd bazy danych: {str(e)}", 'danger')
         return []
 
@@ -51,7 +51,7 @@ def schedule_main():
 
         calendar_view = 'dayGridMonth'
         events = get_schedule_events(current_user.id, start, end)
-        print(events)
+
         return render_template('schedule.html', events=events, calendar_view=calendar_view, user=current_user.login)
     except TemplateNotFound:
         return abort(404)
@@ -73,11 +73,11 @@ def schedule_insert():
         start_time = request.form.get('start_time', "00:00").strip()
         end_time = request.form.get('end_time', "23:59").strip()
 
-        # Tworzenie obiektów datetime
         try:
             start_date = datetime.strptime(f"{start} {start_time}", "%Y-%m-%d %H:%M")
             end_date = datetime.strptime(f"{end} {end_time}", "%Y-%m-%d %H:%M")
         except ValueError as e:
+            logging.warning(f"Schedule : {e}")
             flash("Nieprawidłowy format daty lub czasu.", "danger")
             return redirect(url_for('schedule.schedule_main'))
 
@@ -106,14 +106,13 @@ def schedule_insert():
             db.session.commit()
             flash('Wydarzenie zostało dodane!', 'success')
         except SQLAlchemyError as e:
+            logging.error(f"Database error: {str(e)}")
             db.session.rollback()
             flash(f"Błąd podczas dodawania wydarzenia: {str(e)}", 'danger')
 
     start = date.today().replace(day=1)
     ender = date.today().replace(day=1) + timedelta(days=120)
     list_events = get_schedule_events(current_user.id, start, ender)
-    print("Po dodaniu")
-    print(list_events)
 
     return render_template("schedule.html", events=list_events, calendar_view=calendar_view, user=current_user.login)
 
@@ -144,6 +143,7 @@ def schedule_delete():
 
     except SQLAlchemyError as e:
         db.session.rollback()
+        logging.error(f"Database error: {str(e)}")
         flash(f"Błąd podczas usuwania wydarzenia: {str(e)}", "danger")
 
     # Przeładuj kalendarz z wydarzeniami
@@ -176,7 +176,6 @@ def schedule_drop():
         current_user.id, start_date, end_date, exclude_event_id=event_id
     )
     if not event_collision:
-        # flash(error_message, "danger")
         return jsonify({"status": "error", "message": error_message}), 400
 
     try:
@@ -196,6 +195,7 @@ def schedule_drop():
 
     except SQLAlchemyError as e:
         db.session.rollback()
+        logging.error(f"Database error: {str(e)}")
         return jsonify({"status": "error", "message": f"Błąd podczas aktualizacji wydarzenia: {str(e)}"}), 500
 
 
@@ -217,7 +217,6 @@ def schedule_update():
     if not event_id:
         return redirect(url_for('schedule.schedule_main'))
 
-    # Tworzenie obiektów datetime
     try:
         start_datetime = datetime.strptime(f"{start_date} {start_time}", "%Y-%m-%d %H:%M")
         end_datetime = datetime.strptime(f"{end_date} {end_time}", "%Y-%m-%d %H:%M")
@@ -253,6 +252,7 @@ def schedule_update():
 
     except SQLAlchemyError as e:
         db.session.rollback()
+        logging.error(f"Database error: {str(e)}")
         flash(f"Błąd podczas aktualizacji wydarzenia: {str(e)}", "danger")
 
     # Przeładuj kalendarz z wydarzeniami
