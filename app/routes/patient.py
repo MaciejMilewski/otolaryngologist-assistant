@@ -57,10 +57,9 @@ def patient_main():
             search_what_prefix += f"{start_date} - {end_date} "
             joins_required = True
 
-        # Pobieranie pacjentów powiązanych z aktualnym użytkownikiem
         visit_query = (
             db.session.query(Patient.id)
-            .join(Visit, Visit.patient_id == Patient.id)  # Jawne łączenie
+            .join(Visit, Visit.patient_id == Patient.id)
             .filter(Visit.user_id == current_user.id, Visit.is_active == True)
         )
 
@@ -70,7 +69,6 @@ def patient_main():
             .filter(MedicalCertificate.user_id == current_user.id, MedicalCertificate.is_active == True)
         )
 
-        # Łączenie wyników z wizyt i certyfikatów
         patient_ids = visit_query.union(certificate_query).subquery()
 
         query = db.session.query(Patient).filter(Patient.id.in_(db.session.query(patient_ids)))

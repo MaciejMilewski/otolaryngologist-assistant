@@ -606,23 +606,13 @@ def prepare_audiogram_data(dane):
 
 
 def save_visit_to_db(data, user_id):
-    """
-    Zapisuje dane wizyty do bazy danych.
-
-    :param data: Dane przesłane z formularza
-    :param user_id: ID użytkownika wykonującego operację
-    :return: Obiekt zapisanej wizyty
-    :raises: IntegrityError, Exception
-    """
     try:
-        # Płeć na podstawie PESEL
         pesel = data.get("pesel")
         if not pesel or len(pesel) != 11:
             raise ValueError("Nieprawidłowy PESEL.")
 
         gender = 'M' if int(pesel[10]) % 2 else 'K'
 
-        # Pobranie lub stworzenie pacjenta
         hidden_result_input = data.get("hiddenResultInput")
         if hidden_result_input:
             try:
@@ -670,7 +660,6 @@ def save_visit_to_db(data, user_id):
         db.session.add(new_visit)
         db.session.commit()
 
-        # Zapis audiogramu (jeśli są dane)
         if audiogram_date:
             new_audiogram = Audiogram(
                 patient_id=patient_id,

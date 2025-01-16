@@ -8,10 +8,9 @@ from jinja2 import TemplateNotFound
 instruction_bp = Blueprint('instruction', __name__)
 
 # Katalog zawierający pliki Instrukcji PDF
-PDF_FOLDER= os.getcwd() + '\\app\\static\pdfs'
+PDF_FOLDER = os.getcwd() + '\\app\\static\pdfs'
 if not os.path.exists(PDF_FOLDER):
-            os.makedirs('PDF_FOLDER', exist_ok=True)
-
+    os.makedirs('PDF_FOLDER', exist_ok=True)
 
 
 @instruction_bp.route('/instruction', methods=['GET'])
@@ -26,6 +25,7 @@ def instruction_main():
     except Exception as e:
         logging.error(('Error: %s' % e))
         return jsonify({'error': str(e)}), 500
+
 
 @instruction_bp.route('/pdfs/<filename>')
 @login_required

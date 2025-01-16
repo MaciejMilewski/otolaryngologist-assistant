@@ -61,7 +61,6 @@ def generate_csrf_token():
     """Generuje unikalny token CSRF i zapisuje go do sesji."""
     secret_key = Config.SECRET_KEY
     serializer = URLSafeTimedSerializer(secret_key)
-    # Generowanie tokena na podstawie unikalnego identyfikatora użytkownika (lub sesji)
     user_identifier = session.get('user_id', 'guest')
     token = serializer.dumps(user_identifier)
     session['csrf_token'] = token
@@ -69,30 +68,22 @@ def generate_csrf_token():
 
 
 def verify_csrf_token():
-    """Weryfikuje token CSRF dla żądań POST, PUT, PATCH, DELETE."""
-    # Pobranie klucza sekretnego
     secret_key = Config.SECRET_KEY
     if not secret_key:
         logging.error("SECRET_KEY is not configured.")
         abort(500, "Internal Server Error")
-
     serializer = URLSafeTimedSerializer(secret_key)
-
-    # Pobranie tokenu z sesji i żądania
     session_token = session.get('csrf_token')
     request_token = request.form.get('csrf_token') or request.headers.get('X-CSRFToken')
 
-    # Sprawdzenie, czy tokeny są obecne
     if not session_token or not request_token:
         logging.warning("Missing CSRF token.")
         abort(400, description="Invalid or missing CSRF token.")
 
     try:
-        # Dekodowanie tokena z żądania i sesji przy użyciu serializera
         decoded_request_token = serializer.loads(request_token, max_age=3600)  # ważność: 1 godzina
         decoded_session_token = serializer.loads(session_token, max_age=3600)
 
-        # Sprawdzenie, czy token z sesji i żądania są zgodne
         if decoded_request_token != decoded_session_token:
             logging.warning("CSRF token mismatch.")
             abort(400, description="Invalid CSRF token.")

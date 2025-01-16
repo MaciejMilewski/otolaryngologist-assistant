@@ -64,7 +64,7 @@ def save():
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error when saving medical certificate: {e}")
-        return "Wystąpił błąd podczas przetwarzania zapytania.", 500
+        return "Error when saving medical certificate.", 500
 
 
 @medical_certificate_bp.route('/medical_certificate_pdf', methods=['POST'])

@@ -175,13 +175,22 @@
                 </div>
                 <div class="select-wrapper">
                     <i class="bi bp3-icon-diagnosis"></i>
-                    <select class="selectpicker show-tick" multiple title="ZABIEGI" data-size="10" id="selectZabiegi"
-                            name="selectZabiegi" data-style="btn-primary" data-selected-text-format="static"
+                    <select class="selectpicker show-tick"
+                            multiple title="ZABIEGI" data-size="10" id="selectZabiegi"
+                            name="selectZabiegi" data-style="btn-primary"
+                            data-selected-text-format="static"
                             aria-label="Zabiegi">
                         {% if zabiegi %}
                             {% for item in zabiegi %}
-                                {% if item.title and item.group and item.icd9 and item.description %}
-                                    <option value="{{ (item.title | e) + ', ' + (item.group | e) + ' - ' + (item.icd9 | e) + '. ' + (item.description | e) }}">
+                                {% if item.title
+                                and item.group
+                                and item.icd9
+                                and item.description %}
+                                    <option
+                                        value="{{ (item.title | e) +
+                                         ', ' + (item.group | e) +
+                                          ' - ' + (item.icd9 | e) +
+                                           '. ' + (item.description | e) }}">
                                         {{ item.title | e }}
                                     </option>
                                 {% endif %}

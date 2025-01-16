@@ -222,14 +222,10 @@ def zapis_wizyty_do_bazy():
     dane = request.form
     try:
         save_visit_to_db(dane, current_user.id)
-
-        flash("Zapisano pomyślnie dane wizyty w bazie danych!", "success")
         return redirect('/visit')
     except IntegrityError as e:
         logging.error(f"Database write error: {e}")
-        flash(f"Błąd zapisu bazy danych: {e}", "danger")
         return redirect('/visit')
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
-        flash(f"Nieoczekiwany błąd: {e}", "danger")
         return redirect('/visit')
