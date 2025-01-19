@@ -175,10 +175,11 @@ def get_request_data(key):
     return data[key]
 
 
-def save_medical_certificate(data):
+def save_medical_certificate(data, user_id):
     """
     Zapisuje pacjenta oraz orzeczenie lekarskie w bazie danych.
 
+    :param user_id:
     :param data: Słownik zawierający dane formularza.
     :return: Słownik z informacjami o pacjencie i orzeczeniu lub wyjątek w razie błędu.
     """
@@ -216,6 +217,7 @@ def save_medical_certificate(data):
         # Zapisz orzeczenie
         certificate = MedicalCertificate(
             patient_id=patient.id,
+            user_id=user_id,
             created_at=date.today(),
             type=typ,
             info=additional_info,

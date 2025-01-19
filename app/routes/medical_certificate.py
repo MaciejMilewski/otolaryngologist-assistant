@@ -53,11 +53,12 @@ def medical_certificate_main():
         return abort(404)
 
 
+@login_required
 @medical_certificate_bp.route('/save', methods=['POST'])
 def save():
     try:
         form_data = request.form.to_dict()
-        save_medical_certificate(form_data)
+        save_medical_certificate(form_data, current_user.id)
 
         return redirect(url_for('medical_certificate.medical_certificate_main'))
 
