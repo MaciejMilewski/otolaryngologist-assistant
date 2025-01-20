@@ -40,7 +40,10 @@ def add_personal_data(pdf, data, birth=None):
     pdf.set_font('DejaVu', size=10)
     pdf.cell(0, 10, f"Nazwisko i imię: {data['first_name'].upper()} {data['surname'].upper()}", ln=True)
     pdf.multi_cell(0, 10, f"Data urodzenia: {birth or '??-??-????'}")
-    pdf.multi_cell(0, 10, f"Adres zamieszkania: {data['city_select'].upper()}, ul. {data['street'].upper()} {data['home_numer']}")
+    if data['street']:
+        pdf.multi_cell(0, 10, f"Adres zamieszkania: {data['city_select'].upper()}, ul. {data['street'].upper()} {data['home_numer']}")
+    else:
+        pdf.multi_cell(0, 10, f"Adres zamieszkania: {data['city_select'].upper()} {data['home_numer']}")
     pdf.ln(5)
 
 
@@ -62,7 +65,12 @@ def pdf_zaswiadczenie(data):
     pdf.cell(0, 10, "Dane osobowe:", ln=True, align='L')
     pdf.set_font('DejaVu', size=10)
     pdf.cell(0, 10, f"{data['first_name'].upper()} {data['surname'].upper()}", ln=True)
-    pdf.multi_cell(0, 10, f"{data['city_select'].upper()}, ul. {data['street'].upper()} {data['home_numer']}")
+
+    if data['street']:
+        pdf.multi_cell(0, 10, f"{data['city_select'].upper()}, ul. {data['street'].upper()} {data['home_numer']}")
+    else:
+        pdf.multi_cell(0, 10, f"{data['city_select'].upper()} {data['home_numer']}")
+
     pdf.ln(5)
 
     # Treść zaświadczenia

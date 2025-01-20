@@ -56,7 +56,7 @@
 
     <div class="container-xxl">
         <div class="row col-12">
-            {#      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
             <nav class="navbar navbar-expand">
                 <div class="container-fluid">
                     <a class="navbar-brand">
@@ -161,7 +161,7 @@
                                             </div>
                                             <div class="modal-body">
                                                 <form action="{{ url_for('admin.user_update') }}" method="POST">
-                                                    {#                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                                     <input type="hidden" name="id" id="id" value="{{ row.id }}">
                                                     <input type="hidden" name="surname" id="surname"
                                                            value="{{ row.name }}">
@@ -251,7 +251,7 @@
                         <div class="modal-body">
 
                             <form action="{{ url_for('admin.user_insert') }}" method="POST">
-                                {#                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                                 <div class="form-floating">
                                     <input type="text" class="form-control" id="surname_new" name="surname_new"
                                            required>

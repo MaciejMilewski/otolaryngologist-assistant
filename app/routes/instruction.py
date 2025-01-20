@@ -13,7 +13,6 @@ if not os.path.exists(PDF_FOLDER):
             os.makedirs('PDF_FOLDER', exist_ok=True)
 
 
-
 @instruction_bp.route('/instruction', methods=['GET'])
 @login_required
 def instruction_main():
@@ -26,6 +25,7 @@ def instruction_main():
     except Exception as e:
         logging.error(('Error: %s' % e))
         return jsonify({'error': str(e)}), 500
+
 
 @instruction_bp.route('/pdfs/<filename>')
 @login_required

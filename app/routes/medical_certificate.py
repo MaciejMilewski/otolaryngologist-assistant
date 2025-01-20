@@ -22,8 +22,6 @@ from app.utils.utils import create_plot, process_grouped_data, fetch_data_range_
 medical_certificate_bp = Blueprint('medical_certificate', __name__)
 
 
-
-
 @medical_certificate_bp.route('/medical_certificate', methods=['GET'])
 @login_required
 def medical_certificate_main():
@@ -108,6 +106,7 @@ def raport():
 
     :return: Rendered HTML template including a data table and possibly a plot.
     """
+
     # Funkcja pomocnicza do inicjalizacji dat
     def initialize_dates():
         days_offset = -120
@@ -175,7 +174,6 @@ def generate_pdf_for_raport():
 
     # Słownik do mapowania typów badań na nazwy
     typ_badan_dict = {badanie['id']: badanie['name'] for badanie in typ_badan}
-
 
     # Generowanie opisu wybranych typów badań
     if selected_types and selected_types != ['all']:
@@ -253,9 +251,9 @@ def generate_pdf_for_raport():
 
     # Rysowanie nagłówków
     pdf.set_font("DejaVu-Bold", size=10)
-    pdf.set_fill_color(60, 120, 180)    # Niebieskie tło
-    pdf.set_text_color(255, 255, 255)   # Biały tekst
-    pdf.set_draw_color(50, 50, 50)      # Obramowanie
+    pdf.set_fill_color(60, 120, 180)  # Niebieskie tło
+    pdf.set_text_color(255, 255, 255)  # Biały tekst
+    pdf.set_draw_color(50, 50, 50)  # Obramowanie
     pdf.set_line_width(0.4)
 
     for idx, header in enumerate(headers):
@@ -263,8 +261,8 @@ def generate_pdf_for_raport():
     pdf.ln()
 
     # Rysowanie wierszy
-    pdf.set_font("DejaVu", size=10)     # Reset tekstu na czarny
-    pdf.set_text_color(0, 0, 0)         # Czarny tekst
+    pdf.set_font("DejaVu", size=10)  # Reset tekstu na czarny
+    pdf.set_text_color(0, 0, 0)  # Czarny tekst
     for row_idx, row in enumerate(filtered_rows):
         fill_color = (245, 245, 245) if row_idx % 2 == 0 else (255, 255, 255)
         pdf.set_fill_color(*fill_color)

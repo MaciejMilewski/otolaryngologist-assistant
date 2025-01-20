@@ -1,17 +1,12 @@
-import sqlite3
-
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, login_required, logout_user, current_user
+from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from app import db, verify_csrf_token
 from app.models import User
 
 auth_bp = Blueprint('auth', __name__)
-
-# W template url_for('nazwa_blueprint.nazwa_funkcji_z_route')
-# W funkcji z route return return render_template('nazwa_template')
-# W funkcji z route w rule 'adres url jaki ma się wyświetlić'
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -58,7 +53,7 @@ def change_password():
             user[0].pwd = generate_password_hash(request.form['psw'])
             db.session.flush()
             db.session.commit()
-        except sqlite3.Error:
+        except SQLAlchemyError:
             db.session.rollback()
             flash('- nie ma połączenia z bazą danych !', 'danger')
             return redirect(url_for('login'))
@@ -66,30 +61,3 @@ def change_password():
         return redirect(url_for('auth.login'))
 
     return render_template('change_password.html')
-
-
-@auth_bp.route('/create_user', methods=['GET', 'POST'])
-def create_user():
-    if request.method == 'POST':
-
-        verify_csrf_token()  # Weryfikuj token CSRF
-
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username and password:
-            hashed_password = generate_password_hash(password)
-            user = User(login=username, pwd=hashed_password)
-            user.is_admin = True
-            db.session.add(user)
-            db.session.commit()
-            return 'User created successfully!'
-        return 'Invalid input!'
-    return '''
-        <form method="POST">
-            <label>Username:</label>
-            <input type="text" name="username"><br>
-            <label>Password:</label>
-            <input type="password" name="password"><br>
-            <button type="submit">Create User</button>
-        </form>
-    '''
