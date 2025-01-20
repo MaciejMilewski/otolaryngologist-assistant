@@ -245,7 +245,6 @@ def deactivate_visit(visit_id):
     # Sprawdź, czy użytkownik ma prawo edytować
     if visit.user_id != current_user.id:
         logging.error(f"Error in deactivate visit: {current_user.id} != {visit.user_id}")
-        flash('Nie masz uprawnień do dezaktywacji tej wizyty.', 'danger')
         return redirect(url_for('patient.patient_main'))
 
     visit.is_active = False
@@ -263,11 +262,9 @@ def deactivate_certificate(record_id):
     # Sprawdzenie, czy użytkownik ma prawo do dezaktywacji
     if certificate.user_id != current_user.id:
         logging.error(f"Error in deactivate certificate: {current_user.id} != {certificate.user_id}")
-        flash('Nie masz uprawnień do dezaktywacji tego orzeczenia.', 'danger')
         return redirect(url_for('patient.patient_main'))
 
     certificate.is_active = False
     db.session.commit()
 
-    flash('Orzeczenie zostało dezaktywowane!', 'success')
     return redirect(url_for('patient.patient_main'))
