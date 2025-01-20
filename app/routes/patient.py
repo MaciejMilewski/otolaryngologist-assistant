@@ -151,95 +151,112 @@ def patient_main():
 @patient_bp.route('/edit/<string:visit_type>/<int:record_id>', methods=['GET', 'POST'])
 @login_required
 def edit_visit(visit_type, record_id):
-    # Pobranie rekordu na podstawie typu potrzebnych danych: wizyty lub orzeczenia medyczne
-    if visit_type == 'visit':
-        record = Visit.query.get_or_404(record_id)
-        model_class = Visit
-    elif visit_type == 'medical_certificate':
-        record = MedicalCertificate.query.get_or_404(record_id)
-        model_class = MedicalCertificate
-    else:
-        flash('Nieprawidłowy typ rekordu.', 'danger')
-        return redirect(url_for('patient.patient_main'))
+    # Pobranie rekordu na podstawie typu danych
+    try:
+        if visit_type == 'visit':
+            record = Visit.query.get_or_404(record_id)
+            model_class = Visit
+        elif visit_type == 'medical_certificate':
+            record = MedicalCertificate.query.get_or_404(record_id)
+            model_class = MedicalCertificate
+        else:
+            flash('Nieprawidłowy typ rekordu.', 'danger')
+            return redirect(url_for('patient.patient_main'))
 
-    # Pobranie audiogramu dla wizyty, jeśli istnieje
-    audio_record = None
-    if visit_type == 'visit':
-        audio_record = Audiogram.query.filter_by(visit_id=record_id, audiogram_date=record.examination_date).first()
+        # Pobranie audiogramu dla wizyty, jeśli dotyczy
+        audio_record = Audiogram.query.filter_by(visit_id=record_id, audiogram_date=record.examination_date).first() if visit_type == 'visit' else None
 
-    if request.method == 'POST':
-        try:
-            # Skopiowanie istniejącego rekordu
-            new_record = model_class(**{column.name: getattr(record, column.name)
-                                        for column in model_class.__table__.columns if column.name != 'id'})
+        if request.method == 'POST':
+            # Skopiowanie istniejącego rekordu, pomijając `id`
+            new_record = model_class(**{
+                column.name: getattr(record, column.name)
+                for column in model_class.__table__.columns
+                if column.name != 'id'
+            })
 
-            # Aktualizacja danych dla nowego rekordu
+            # Aktualizacja danych w zależności od typu rekordu
+            form_data = request.form.to_dict()
             if visit_type == 'medical_certificate':
-                new_record.type = int(request.form.get('type', record.type))
-                new_record.info = request.form.get('info', record.info)
-                new_record.is_able_to_work = 'is_able_to_work' in request.form
-                selected_location = next(
-                    (item['name'] for item in place if item['id'] == request.form.get('location')),
+                new_record.type = int(form_data.get('type', record.type))
+                new_record.info = form_data.get('info', record.info)
+                new_record.is_able_to_work = 'is_able_to_work' in form_data
+                new_record.location = next(
+                    (item['name'] for item in place if item['id'] == form_data.get('location')),
                     record.location
                 )
-                new_record.location = selected_location
-                created_at = request.form.get('created_at')
+                created_at = form_data.get('created_at')
                 if created_at:
                     new_record.created_at = datetime.strptime(created_at, '%Y-%m-%d').date()
                 else:
-                    flash('Pole "Data utworzenia" jest wymagane.', 'danger')
+
                     return redirect(request.url)
 
             elif visit_type == 'visit':
-                new_record.location = request.form.get('location', record.location)
+                new_record_fields = [
+                    'location', 'examination_date', 'interview', 'general_info', 'examination', 'orl',
+                    'whisper_test', 'routine', 'diagnosis', 'nfz_info', 'recommendations'
+                ]
+                for field in new_record_fields:
+                    setattr(new_record, field, form_data.get(field, getattr(record, field)))
+
                 new_record.examination_date = datetime.strptime(
                     request.form.get('examination_date', record.examination_date), '%Y-%m-%d'
                 ).date()
-                new_record.interview = request.form.get('interview', record.interview)
-                new_record.general_info = request.form.get('general_info', record.general_info)
-                new_record.examination = request.form.get('examination', record.examination)
-                new_record.orl = request.form.get('orl', record.orl)
-                new_record.whisper_test = request.form.get('whisper_test', record.whisper_test)
-                new_record.routine = request.form.get('routine', record.routine)
-                new_record.diagnosis = request.form.get('diagnosis', record.diagnosis)
-                new_record.nfz_info = request.form.get('nfz_info', record.nfz_info)
-                new_record.recommendations = request.form.get('recommendations', record.recommendations)
 
-                # Aktualizacja audiogramu, jeśli istnieje
-                if audio_record:
-                    audio_record.audiogram_date = datetime.strptime(
-                        request.form.get('audiogram_date', audio_record.audiogram_date), '%Y-%m-%d'
-                    ).date()
-                    for freq in ['ul_250', 'ul_500', 'ul_1000', 'ul_2000', 'ul_3000', 'ul_4000', 'ul_6000', 'ul_8000',
-                                 'up_250', 'up_500', 'up_1000', 'up_2000', 'up_3000', 'up_4000', 'up_6000', 'up_8000']:
-                        setattr(audio_record, freq, request.form.get(freq, getattr(audio_record, freq)))
-
-            # Ustawienie starego rekordu jako nieaktywnego
+            # Oznaczenie starego rekordu jako nieaktywnego
             record.is_active = False
 
-            # Dodanie nowego rekordu do bazy
+            # Zapisanie zmian w bazie danych
             db.session.add(new_record)
             db.session.commit()
 
-            return redirect(url_for('patient.patient_main'))
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f'Błąd podczas zapisu: {str(e)}', {current_user.login})
-            return redirect(request.url)
+            # Obsługa audiogramu - stworzenie nowego rekordu na podstawie starego
+            # Jeśli istnieje stary rekord audiogramu
+            if audio_record:
+                new_audiogram = Audiogram(
+                    patient_id=audio_record.patient_id,
+                    visit_id=new_record.id,  # Powiąż z nową wizytą
+                    audiogram_date=audio_record.audiogram_date
+                )
 
-    return render_template('patient_visit_edit.html',
-                           visit_type=visit_type,
-                           record=record,
-                           audiogram=audio_record,
-                           typ_badan=typ_badan,
-                           place=place,
-                           current_user=current_user.login)
+                # Skopiuj wartości pól audiogramu
+                audiogram_fields = [
+                    'ul_250', 'ul_500', 'ul_1000', 'ul_2000', 'ul_3000', 'ul_4000', 'ul_6000', 'ul_8000',
+                    'up_250', 'up_500', 'up_1000', 'up_2000', 'up_3000', 'up_4000', 'up_6000', 'up_8000'
+                ]
+
+                for freq in audiogram_fields:
+                    setattr(new_audiogram,
+                            freq,
+                            int(form_data.get(freq, 0)))  # Skopiuj wartość z istniejącego rekordu albo 0
+
+                # Dodaj nowy audiogram do bazy
+                db.session.add(new_audiogram)
+                db.session.commit()
+
+            return redirect(url_for('patient.patient_main'))
+
+    except Exception as e:
+        db.session.rollback()
+        logging.error(f'EDIT VISIT SAVE ERROR: {str(e)} dla użytkownika: {current_user.login}')
+        return redirect(request.url)
+
+    # Renderowanie szablonu
+    return render_template(
+        'patient_visit_edit.html',
+        visit_type=visit_type,
+        record=record,
+        audiogram=audio_record,
+        typ_badan=typ_badan,
+        place=place,
+        current_user=current_user.login
+    )
+
 
 
 @patient_bp.route('/visit/deactivate/<int:visit_id>', methods=['POST'])
 @login_required
 def deactivate_visit(visit_id):
-    # Pobranie wizyty z tabeli
     visit = Visit.query.get_or_404(visit_id)
 
     # Sprawdź, czy użytkownik ma prawo edytować
@@ -256,7 +273,6 @@ def deactivate_visit(visit_id):
 @patient_bp.route('/certificate/deactivate/<int:record_id>', methods=['POST'])
 @login_required
 def deactivate_certificate(record_id):
-    # Pobranie orzeczenia z tabeli
     certificate = MedicalCertificate.query.get_or_404(record_id)
 
     # Sprawdzenie, czy użytkownik ma prawo do dezaktywacji
