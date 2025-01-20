@@ -217,11 +217,11 @@ def save_medical_certificate(data, user_id):
         # Zapisz orzeczenie
         certificate = MedicalCertificate(
             patient_id=patient.id,
-            user_id=user_id,
             created_at=date.today(),
             type=typ,
             info=additional_info,
             location=place,
+            user_id=user_id,
             is_able_to_work=zdolny,
             month=datetime.today().month,
             year=datetime.today().year

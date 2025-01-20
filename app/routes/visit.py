@@ -170,7 +170,7 @@ def get_ulice():
     voivodeship_code = request.form.get('wojewodztwo') or (request.get_json() or {}).get('wojewodztwo')
 
     if not voivodeship_code:
-        print(f"/get_ulice : Brak kodów województwa aby szukać ulic!")
+        logging.error(f"/get_ulice : Brak kodów województwa aby szukać ulic!")
         return jsonify({'ulice': []}), 400
 
     voivodeship_code = voivodeship_code.strip()
@@ -178,7 +178,7 @@ def get_ulice():
     city_selected = request.form.get('miejscowosc') or (request.get_json() or {}).get('miejscowosc')
 
     if not city_selected:
-        print("/get_ulice : Brak miejscowości aby szukać ulic!")
+        logging.error("/get_ulice : Brak miejscowości aby szukać ulic!")
         return jsonify({'ulice': []}), 400
 
     city_selected = city_selected.strip()
@@ -222,10 +222,14 @@ def zapis_wizyty_do_bazy():
     dane = request.form
     try:
         save_visit_to_db(dane, current_user.id)
+
+        flash("Zapisano pomyślnie dane wizyty w bazie danych!", "success")
         return redirect('/visit')
     except IntegrityError as e:
         logging.error(f"Database write error: {e}")
+        flash(f"Błąd zapisu bazy danych: {e}", "danger")
         return redirect('/visit')
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
+        flash(f"Nieoczekiwany błąd: {e}", "danger")
         return redirect('/visit')

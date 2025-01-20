@@ -605,39 +605,24 @@ def prepare_audiogram_data(dane):
     return None, {}
 
 
-def is_pesel_valid(pesel):
-    if len(pesel) != 11 or not pesel.isdigit():
-        return False
-
-    year = int(pesel[0:2])
-    month = int(pesel[2:4])
-    day = int(pesel[4:6])
-    control_sum = int(pesel[10])
-
-    if month < 1 or month > 12:
-        return False
-    day_in_month = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
-    if year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
-        day_in_month[2] = 29
-    if day < 1 or day > day_in_month[month]:
-        return False
-
-    weights = [1, 3, 7, 9, 1, 3, 7, 9, 1, 3, 1]
-    result_control_sum = sum(int(cyfra) * waga for cyfra, waga in zip(pesel[:10], weights)) % 10
-    if result_control_sum != 0:
-        result_control_sum = 10 - result_control_sum
-
-    return result_control_sum == control_sum
-
-
 def save_visit_to_db(data, user_id):
+    """
+    Zapisuje dane wizyty do bazy danych.
+
+    :param data: Dane przesłane z formularza
+    :param user_id: ID użytkownika wykonującego operację
+    :return: Obiekt zapisanej wizyty
+    :raises: IntegrityError, Exception
+    """
     try:
+        # Płeć na podstawie PESEL
         pesel = data.get("pesel")
-        if not pesel or len(pesel) != 11 or not is_pesel_valid(pesel):
+        if not pesel or len(pesel) != 11:
             raise ValueError("Nieprawidłowy PESEL.")
 
         gender = 'M' if int(pesel[10]) % 2 else 'K'
 
+        # Pobranie lub stworzenie pacjenta
         hidden_result_input = data.get("hiddenResultInput")
         if hidden_result_input:
             try:
@@ -685,6 +670,7 @@ def save_visit_to_db(data, user_id):
         db.session.add(new_visit)
         db.session.commit()
 
+        # Zapis audiogramu (jeśli są dane)
         if audiogram_date:
             new_audiogram = Audiogram(
                 patient_id=patient_id,

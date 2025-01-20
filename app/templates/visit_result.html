@@ -222,6 +222,7 @@
             </div>
             <div class="modal-body">
                 <div class="form-group">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
                     <label for="autocompleteSelect">Pacjenci</label>
                     <select id="autocompleteSelect" class="form-control select2"></select>
                 </div>

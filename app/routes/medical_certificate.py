@@ -28,12 +28,13 @@ medical_certificate_bp = Blueprint('medical_certificate', __name__)
 @login_required
 def medical_certificate_main():
     try:
-        voivvoivodeship_default = '22'  # Domyślne województwo - "POMORSKIE" (kod '22')
+        voivodeship_default = '22'  # Domyślne województwo - "POMORSKIE" (kod '22')
 
         if 'POMORSKIE' in parquet_data:
-            city_list = parquet_data["POMORSKIE"]['Nazwa'].tolist()
+            pomorskie_cities = parquet_data["POMORSKIE"]['Nazwa'].tolist()
         else:
-            city_list = []
+            pomorskie_cities = []
+            logging.error("Pomeranian Voivodeship missing in parquet_data?")
 
         default_city = "Pruszcz Gdański"
 
@@ -44,8 +45,8 @@ def medical_certificate_main():
                                typ=typ_badan,
                                place=place,
                                woj=region_data,
-                               woj_default=voivvoivodeship_default,
-                               cities=city_list,
+                               woj_default=voivodeship_default,
+                               cities=pomorskie_cities,
                                city_default=default_city,
                                streets=streets_list,
                                today=datetime.now().strftime('%Y-%m-%d'))
@@ -53,11 +54,12 @@ def medical_certificate_main():
         return abort(404)
 
 
-@login_required
 @medical_certificate_bp.route('/save', methods=['POST'])
+@login_required
 def save():
     try:
         form_data = request.form.to_dict()
+
         save_medical_certificate(form_data, current_user.id)
 
         return redirect(url_for('medical_certificate.medical_certificate_main'))
@@ -65,15 +67,16 @@ def save():
     except Exception as e:
         db.session.rollback()
         logging.error(f"Error when saving medical certificate: {e}")
-        return "Error when saving medical certificate.", 500
+        return "Wystąpił błąd podczas przetwarzania zapytania.", 500
 
 
 @medical_certificate_bp.route('/medical_certificate_pdf', methods=['POST'])
+@login_required
 def medical_certificate_pdf():
     try:
         data = request.form.to_dict()
 
-        save_medical_certificate(data)
+        save_medical_certificate(data, current_user.id)
 
         if data['typ'] == '11':
             pdf = pdf_orzeczenie_lekarskie(data)

@@ -41,18 +41,18 @@ def calculations():
             how_many = (weight_augmentin * 90.0 * 0.5 ) / 120.0
             dose_augmentin = f'{how_many:.1f} ml / 2 x dobę'
 
-        multiplier = multiplier_map['inputGroupSelect02'].get(request.form.get('inputGroupSelect02', 'default'), 100)
+        mnoznik = multiplier_map['inputGroupSelect02'].get(request.form.get('inputGroupSelect02', 'default'), 100)
         if weight_sumamed:
-            how_many = (weight_sumamed * 10.0 / multiplier) * 5
+            how_many = (weight_sumamed * 10.0 / mnoznik) * 5
             dose_sumamed = f'{how_many:.1f} ml / 1 x dobę'
 
         if weight_levoxa:
             dose_levoxa = '2 x 1 na dobę'
 
-        multiplier = multiplier_map['inputGroupSelect04'].get(request.form.get('inputGroupSelect04', 'default'), 250)
+        mnoznik = multiplier_map['inputGroupSelect04'].get(request.form.get('inputGroupSelect04', 'default'), 250)
         if weight_duracef:
             if float(weight_duracef) < 40.0:
-                how_many = ((weight_duracef * 25.0) / multiplier) * 2.5
+                how_many = ((weight_duracef * 25.0) / mnoznik) * 2.5
                 how_many_2 = how_many * 2
                 dose_duracef = f'{how_many:.1f}-{how_many_2:.1f} ml / 2 x dobę'
             if 40 <= weight_duracef <= 70:
@@ -60,10 +60,10 @@ def calculations():
             if weight_duracef > 70.0:
                 dose_duracef = '2 x 1 g'
 
-        multiplier = multiplier_map['inputGroupSelect05'].get(request.form.get('inputGroupSelect05', 'default'), 125)
+        mnoznik = multiplier_map['inputGroupSelect05'].get(request.form.get('inputGroupSelect05', 'default'), 125)
         if weight_zinnat:
             if float(weight_zinnat) < 40.0:
-                how_many = ((weight_zinnat * 15.0) / multiplier) * 2.5
+                how_many = ((weight_zinnat * 15.0) / mnoznik) * 2.5
                 dose_zinnat = f'{how_many:.1f} ml / 2 x dobę'
             if 40 <= weight_zinnat <= 70.0:
                 dose_zinnat = '2 x 250 mg'

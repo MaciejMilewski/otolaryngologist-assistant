@@ -64,6 +64,8 @@ W1 = {
       '31.42': 'Laryngoskopia i inne wziernikowanie tchawicy',
       '87.164': 'Rtg zatok nosa',
       '87.165': 'Rtg nosa',
+      '95.440': 'Endoskopia nosa i gardła (przy użyciu światłowodu)',
+      '95.411': 'Audiogram',
       '95.413': 'Badanie odruchu strzemiączkowego',
       '95.415': 'Tympanometria',
       '95.45': 'Test obrotowy',

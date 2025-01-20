@@ -18,6 +18,7 @@ patient_bp = Blueprint('patient', __name__)
 @patient_bp.route('/patient', methods=['GET', 'POST'])
 @login_required
 def patient_main():
+
     try:
         # Paginacja
         current_page = int(request.args.get('page', 1))
@@ -47,7 +48,7 @@ def patient_main():
             filters.append(Patient.surname.ilike(f"%{surname}%"))
             search_what_prefix += f"{surname} "
         if pesel:
-            filters.append(Patient.pesel == pesel)
+            filters.append(Patient.pesel.ilike(f"%{pesel}%"))
             search_what_prefix += f"{pesel} "
         if city:
             filters.append(Patient.city.ilike(f"%{city}%"))
@@ -57,9 +58,10 @@ def patient_main():
             search_what_prefix += f"{start_date} - {end_date} "
             joins_required = True
 
+        # Pobieranie pacjentów powiązanych z aktualnym użytkownikiem
         visit_query = (
             db.session.query(Patient.id)
-            .join(Visit, Visit.patient_id == Patient.id)
+            .join(Visit, Visit.patient_id == Patient.id)  # Jawne łączenie
             .filter(Visit.user_id == current_user.id, Visit.is_active == True)
         )
 
@@ -69,6 +71,7 @@ def patient_main():
             .filter(MedicalCertificate.user_id == current_user.id, MedicalCertificate.is_active == True)
         )
 
+        # Łączenie wyników z wizyt i certyfikatów
         patient_ids = visit_query.union(certificate_query).subquery()
 
         query = db.session.query(Patient).filter(Patient.id.in_(db.session.query(patient_ids)))
@@ -98,7 +101,7 @@ def patient_main():
 
             visits = visit_query.offset((visit_page - 1) * VISITS_PER_PAGE).limit(VISITS_PER_PAGE).all()
 
-            # Uzupełnienie wizyt o audiogramy
+            # Uzupełnienie wizyt o dane audiogramów
             for visit in visits:
                 visit.audiogram_data = (
                     db.session.query(Audiogram).filter_by(visit_id=visit.id).first()
@@ -115,7 +118,9 @@ def patient_main():
                 db.session.query(MedicalCertificate)
                 .filter_by(patient_id=patient.id, is_active=True)
             )
+
             total_certificates = certificate_query.count()
+
             certificate_total_pages = ceil(total_certificates / CERTIFICATES_PER_PAGE)
 
             patient.limited_medical_certificates = certificate_query.offset(
@@ -126,8 +131,6 @@ def patient_main():
             patient.certificate_has_prev = certificate_page > 1
             patient.certificate_has_next = certificate_page < certificate_total_pages
 
-
-        # Zwrot odpowiedzi
         return render_template(
             'patient.html',
             current_user=current_user.login,
@@ -148,7 +151,7 @@ def patient_main():
 @patient_bp.route('/edit/<string:visit_type>/<int:record_id>', methods=['GET', 'POST'])
 @login_required
 def edit_visit(visit_type, record_id):
-    # Pobranie rekordu na podstawie typu
+    # Pobranie rekordu na podstawie typu potrzebnych danych: wizyty lub orzeczenia medyczne
     if visit_type == 'visit':
         record = Visit.query.get_or_404(record_id)
         model_class = Visit
@@ -233,24 +236,15 @@ def edit_visit(visit_type, record_id):
                            current_user=current_user.login)
 
 
-@patient_bp.route('/visit/delete/<int:visit_id>', methods=['POST'])
-@login_required
-# Nie ma usuwania rekordów, tylko ich dezaktywacja is_active = False, czyli 0
-def delete_visit(visit_id):
-    visit = Visit.query.get_or_404(visit_id)
-    db.session.delete(visit)
-    db.session.commit()
-
-    return redirect(url_for('patient.patient_main'))
-
-
 @patient_bp.route('/visit/deactivate/<int:visit_id>', methods=['POST'])
 @login_required
 def deactivate_visit(visit_id):
+    # Pobranie wizyty z tabeli
     visit = Visit.query.get_or_404(visit_id)
 
     # Sprawdź, czy użytkownik ma prawo edytować
     if visit.user_id != current_user.id:
+        logging.error(f"Error in deactivate visit: {current_user.id} != {visit.user_id}")
         flash('Nie masz uprawnień do dezaktywacji tej wizyty.', 'danger')
         return redirect(url_for('patient.patient_main'))
 
@@ -263,11 +257,12 @@ def deactivate_visit(visit_id):
 @patient_bp.route('/certificate/deactivate/<int:record_id>', methods=['POST'])
 @login_required
 def deactivate_certificate(record_id):
-    # Pobranie orzeczenia z bazy danych
+    # Pobranie orzeczenia z tabeli
     certificate = MedicalCertificate.query.get_or_404(record_id)
 
     # Sprawdzenie, czy użytkownik ma prawo do dezaktywacji
     if certificate.user_id != current_user.id:
+        logging.error(f"Error in deactivate certificate: {current_user.id} != {certificate.user_id}")
         flash('Nie masz uprawnień do dezaktywacji tego orzeczenia.', 'danger')
         return redirect(url_for('patient.patient_main'))
 
