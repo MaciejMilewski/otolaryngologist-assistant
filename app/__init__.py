@@ -284,3 +284,45 @@ def search_streets_in_trie(prefix, sym):
         return street_list
     except KeyError:
         return []
+
+
+def list_all_cities_in_woj(woj):
+    """
+    Zwraca listę wszystkich miejscowości dla danego województwa z trie.
+    :param woj: Identyfikator województwa
+    :return: Lista miejscowości [{name: 'Nazwa', sym: 'Symbol'}]
+    """
+    prefix_key = f"{woj}:"
+    try:
+        results = city_trie.items(prefix=prefix_key)
+        city_list = [{'name': value['name'], 'sym': value['sym']} for _, value in results]
+
+        if not city_list:
+            print(f"Brak miejscowości w województwie: {woj}")
+            return []
+
+        return city_list
+    except KeyError:
+        print(f"Błąd: Województwo {woj} nie istnieje w trie.")
+        return []
+
+
+def list_all_streets_in_city(sym):
+    """
+    Zwraca listę wszystkich ulic dla danej miejscowości na podstawie symbolu miejscowości z trie.
+    :param sym: Symbol miejscowości
+    :return: Lista ulic [{name: 'Nazwa'}]
+    """
+    prefix_key = f"{sym}:"
+    try:
+        results = street_trie.items(prefix=prefix_key)
+        street_list = [{'name': value['name']} for _, value in results]
+
+        if not street_list:
+            print(f"Brak ulic w miejscowości o symbolu: {sym}")
+            return []
+
+        return street_list
+    except KeyError:
+        print(f"Błąd: Miejscowość o symbolu {sym} nie istnieje w trie.")
+        return []

@@ -7,7 +7,8 @@ from flask_login import login_required, current_user
 
 from jinja2 import TemplateNotFound
 
-from app import db, parquet_data, region_data, search_cities_in_trie, search_streets_in_trie
+from app import db, parquet_data, region_data, search_cities_in_trie, search_streets_in_trie, list_all_cities_in_woj, \
+    list_all_streets_in_city
 from app.models import Procedure, Patient
 from app.utils.const import place
 from app.utils.parquet_util import get_streets_from_memory
@@ -130,22 +131,28 @@ def autocomplete():
 @visit_bp.route('/get_miejscowosci', methods=['GET','POST'])
 def get_miejscowosci():
     try:
+        # data = request.get_json()
+        #
+        # prefix = data.get('q', '').lower()
+        # province_name = data.get('province_name', '')
+        #
+        # print("Province:", province_name)
+        # print("Prefix city:", prefix)
+        #
+        # if len(prefix) < 2:
+        #     return jsonify([])
+        #
+        # if not prefix or not province_name:
+        #     return jsonify([]), 400
+        #
+        # results = search_cities_in_trie(prefix, province_name)
+
         data = request.get_json()
+        province_name = data.get('wojewodztwo', '')
+        print("wojewodztwo", province_name)
+        results = list_all_cities_in_woj(province_name)
+        print("list_all_cities_in_woj", results)
 
-        prefix = data.get('q', '').lower()
-        province_name = data.get('province_name', '')
-
-        print("Province:", province_name)
-        print("Prefix city:", prefix)
-
-        if len(prefix) < 2:
-            return jsonify([])
-
-        if not prefix or not province_name:
-            return jsonify([]), 400
-
-        results = search_cities_in_trie(prefix, province_name)
-        print("Cities", results)
         return jsonify(results), 200
     except Exception as e:
         print("Error:", e)
@@ -155,21 +162,26 @@ def get_miejscowosci():
 @visit_bp.route('/get_ulice', methods=['GET','POST'])
 def get_ulice():
     try:
+        # data = request.get_json()
+        # prefix = data.get('q', '').strip().lower()
+        # sym = data.get('sym')
+        #
+        # print("Prefix street", prefix)
+        # print("sym", sym)
+        #
+        # if not prefix or len(prefix) < 3:
+        #     return jsonify([])  # Za mało znaków w zapytaniu
+        #
+        # if not prefix or not sym:
+        #     return jsonify([])
+        #
+        # results = search_streets_in_trie(prefix, sym)
+
         data = request.get_json()
-        prefix = data.get('q', '').strip().lower()
         sym = data.get('sym')
+        print("get_ulice sym=", sym)
+        results = list_all_streets_in_city(sym)
 
-        print("Prefix street", prefix)
-        print("sym", sym)
-
-        if not prefix or len(prefix) < 3:
-            return jsonify([])  # Za mało znaków w zapytaniu
-
-        if not prefix or not sym:
-            return jsonify([])
-
-        results = search_streets_in_trie(prefix, sym)
-        print("Streets", results)
         return jsonify(results)
     except ValueError:
         return jsonify([])

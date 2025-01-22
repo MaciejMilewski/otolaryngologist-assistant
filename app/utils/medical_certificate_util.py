@@ -184,18 +184,12 @@ def get_request_data(key):
 
 
 def save_medical_certificate(data, user_id):
-    """
-    Zapisuje pacjenta oraz orzeczenie lekarskie w bazie danych.
-
-    :param user_id:
-    :param data: Słownik zawierający dane formularza.
-    :return: Słownik z informacjami o pacjencie i orzeczeniu lub wyjątek w razie błędu.
-    """
     try:
         pesel = data.get('pesel')
         first_name = data.get('first_name')
         surname = data.get('surname')
         wojewodztwo = data.get('wojewodztwo')
+        print("save_medical_certificate city=", data.get('city_select'))
         city = data.get('city_select')
         street = data.get('street')
         home_number = data.get('home_numer')
