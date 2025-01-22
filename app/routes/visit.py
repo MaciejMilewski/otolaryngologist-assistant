@@ -7,7 +7,7 @@ from flask_login import login_required, current_user
 
 from jinja2 import TemplateNotFound
 
-from app import db, parquet_data, region_data
+from app import db, parquet_data, region_data, search_cities_in_trie, search_streets_in_trie
 from app.models import Procedure, Patient
 from app.utils.const import place
 from app.utils.parquet_util import get_streets_from_memory
@@ -129,68 +129,50 @@ def autocomplete():
 
 @visit_bp.route('/get_miejscowosci', methods=['GET','POST'])
 def get_miejscowosci():
-    """
-    Fetches a list of localities for a given voivodeship code and returns them as pairs of (index, name).
-
-    :return: A JSON object containing a list of localities.
-    """
-
-    # Obsługa JSON i form-urlencoded
-    if request.is_json:
+    try:
         data = request.get_json()
-        code_voivodeship = data.get('wojewodztwo')
-    else:
-        code_voivodeship = request.form.get('wojewodztwo')  # Pobieranie danych form-urlencoded
 
-    if not code_voivodeship:
-        return jsonify({"error": "Brak województwa"}), 400
+        prefix = data.get('q', '').lower()
+        province_name = data.get('province_name', '')
 
-    voivodeship_name = region_data.get(code_voivodeship, '')
+        print("Province:", province_name)
+        print("Prefix city:", prefix)
 
-    # Pobierz tylko kolumnę 'Nazwa' z danych dla wybranego województwa
-    if voivodeship_name in parquet_data:
-        cities_list = parquet_data[voivodeship_name]['Nazwa'].tolist()  # Wyciągnięcie tylko kolumny 'Nazwa'
-    else:
-        cities_list = []
+        if len(prefix) < 2:
+            return jsonify([])
 
-    # Zwróć listę miejscowości jako pary (index, nazwa)
-    indexed_cities = [(i, city_name) for i, city_name in enumerate(cities_list)]
+        if not prefix or not province_name:
+            return jsonify([]), 400
 
-    return jsonify({'miejscowosci': indexed_cities})
+        results = search_cities_in_trie(prefix, province_name)
+        print("Cities", results)
+        return jsonify(results), 200
+    except Exception as e:
+        print("Error:", e)
+        return jsonify([]), 500
 
 
 @visit_bp.route('/get_ulice', methods=['GET','POST'])
 def get_ulice():
-    """
-    Handles the '/get_ulice' route to fetch street names via AJAX based on provided province and locality codes.
-    :return: JSON response containing a list of street names and a status code. If the required province or locality
-     codes are missing, it returns a 400 status. If no streets are found for the locality, it returns an empty list with
-     a 200 status.
-    """
-    voivodeship_code = request.form.get('wojewodztwo') or (request.get_json() or {}).get('wojewodztwo')
+    try:
+        data = request.get_json()
+        prefix = data.get('q', '').strip().lower()
+        sym = data.get('sym')
 
-    if not voivodeship_code:
-        logging.error(f"/get_ulice : Brak kodów województwa aby szukać ulic!")
-        return jsonify({'ulice': []}), 400
+        print("Prefix street", prefix)
+        print("sym", sym)
 
-    voivodeship_code = voivodeship_code.strip()
+        if not prefix or len(prefix) < 3:
+            return jsonify([])  # Za mało znaków w zapytaniu
 
-    city_selected = request.form.get('miejscowosc') or (request.get_json() or {}).get('miejscowosc')
+        if not prefix or not sym:
+            return jsonify([])
 
-    if not city_selected:
-        logging.error("/get_ulice : Brak miejscowości aby szukać ulic!")
-        return jsonify({'ulice': []}), 400
-
-    city_selected = city_selected.strip()
-
-    voivodeship_name = region_data.get(voivodeship_code, '')
-
-    result = get_streets_from_memory(voivodeship_name, city_selected)
-
-    if result:
-        return jsonify({'ulice': result}), 200
-    else:
-        return jsonify({'ulice': []}), 200  # Zwracamy pustą listę ulic, ale status OK
+        results = search_streets_in_trie(prefix, sym)
+        print("Streets", results)
+        return jsonify(results)
+    except ValueError:
+        return jsonify([])
 
 
 @visit_bp.route('/drukuj', methods=['POST'])

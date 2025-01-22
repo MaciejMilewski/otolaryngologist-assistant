@@ -348,8 +348,6 @@
         $(document).ready(function () {
 
             const wojewodztwoSelect = $('#wojewodztwo');
-            const citySelect = $('#city_select');
-            const streetSelect = $('#street');
 
             // ### Funkcja pomocnicza ###
             function setSelect2OptionByText(selectElement, textValue) {
@@ -368,109 +366,6 @@
                         console.warn("Nie znaleziono opcji w select:", textValue, ' - ', selectElement.attr('id'));
                     }
                 }
-            }
-
-            // ### Pobieranie ulic ###
-            function updateStreets(selectedStreet = null) {
-                return new Promise((resolve, reject) => {
-                    const miejscowosc = citySelect.find(":selected").text();
-                    const wojewodztwo = wojewodztwoSelect.val();
-
-                    // Walidacja danych wejściowych
-                    if (!miejscowosc || !wojewodztwo) {
-                        console.error("Brak miejscowości lub województwa do pobrania ulic.");
-                        return reject("Nie wybrano miejscowości lub województwa.");
-                    }
-
-                    // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
-                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
-                    $.ajax({
-                        url: '/get_ulice',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({miejscowosc: miejscowosc, wojewodztwo: wojewodztwo}),
-                        headers: {
-                            'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
-                        },
-                        success: function (response) {
-                            streetSelect.empty();
-
-                            const fragment = document.createDocumentFragment(); // Fragment do optymalizacji DOM
-
-                            if (response.ulice && response.ulice.length > 0) {
-                                // Dodaj ulice
-                                response.ulice.forEach(street => {
-                                    fragment.appendChild(new Option(street, street));
-                                });
-
-                                streetSelect.append(fragment).trigger('change.select2');
-
-                                // Ustaw wybraną ulicę, jeśli podano
-                                if (selectedStreet) {
-                                    setSelect2OptionByText(streetSelect, selectedStreet);
-                                }
-                                resolve("Ulice zostały załadowane.");
-                            } else {
-                                console.warn("Brak ulic dla wybranej miejscowości.");
-                                streetSelect.append(new Option("Brak dostępnych ulic !", "", false, false)).trigger('change.select2');
-                            }
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            console.error("Błąd podczas pobierania ulic:", textStatus, errorThrown);
-                            streetSelect.empty().append(new Option("Błąd w pobieraniu danych", "", false, false));
-                            streetSelect.trigger('change.select2');
-                        }
-                    });
-                });
-            }
-
-            // ### Pobieranie miast ###
-            function loadCities(wojewodztwo) {
-                return new Promise((resolve, reject) => {
-                    if (!wojewodztwo) {
-                        return reject("Brak wybranego województwa.");
-                    }
-                    // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
-                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
-                    $.ajax({
-                        url: '/get_miejscowosci',
-                        type: 'POST',
-                        contentType: 'application/json',
-                        data: JSON.stringify({wojewodztwo: wojewodztwo}),
-                        headers: {
-                            'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
-                        },
-                        success: function (response) {
-
-                            // Resetuj pola miast i ulic
-                            citySelect.empty();
-                            streetSelect.empty();
-
-                            // Sprawdź, czy są miejscowości
-                            if (response.miejscowosci && response.miejscowosci.length > 0) {
-                                const fragment = document.createDocumentFragment();
-                                response.miejscowosci.forEach(city => {
-                                    // gdy Option(city[1], city[0]) to submit zwraca numer miasta zamiast nazwy !
-                                    const option = new Option(city[1], city[1]);
-                                    fragment.appendChild(option);
-                                });
-                                citySelect.append(fragment);
-                                // Wymuś odświeżenie Select2
-                                citySelect.trigger('change.select2');
-
-                                resolve(); // Rozwiązanie Promise
-
-                                // załaduj ulice
-                                updateStreets();
-                            } else {
-                                console.warn("Brak dostępnych miejscowości dla województwa:", wojewodztwo);
-                            }
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            console.error("Błąd podczas pobierania miejscowości:", textStatus, errorThrown);
-                        }
-                    });
-                });
             }
 
             // ### Inicjalizacja Select2 ###
@@ -493,6 +388,85 @@
                 });
 
                 wojewodztwoSelect.val('22').trigger('change.select2'); // Default: POMORSKIE
+
+                const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+                var sym = '';
+                $('#city_select').select2({
+                    placeholder: "Wpisz przynajmniej 3 litery...",
+                    minimumInputLength: 3,
+                    ajax: {
+                        url: '/get_miejscowosci',
+                        method: 'POST',
+                        dataType: 'json',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
+                        },
+                        data: function (params) {
+                            return JSON.stringify({
+                                q: params.term.toString(),
+                                province_name: $('#wojewodztwo').val(),
+                                street_name: $('#street').val()
+                            });
+                        },
+                        processResults: function (data) {
+                            $('#city_select').empty();
+                            $('#street').empty();
+
+                            if (Array.isArray(data) && data.length > 0) {
+                                return {
+                                    results: data.map(function (item) {
+                                        return {id: item.sym, text: item.name};
+                                    })
+                                };
+                            } else {
+                                return {results: []};
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            alert('Wystąpił błąd podczas wyszukiwania.');
+                        },
+                        cache: true
+                    },
+                    language: "pl"
+                }).on('select2:select', function (e) {
+                    // Pobierz wybrane sym
+                    sym = e.params.data.id;
+                    console.log("Selected sym", sym)
+                });
+
+                $('#street').select2({
+                    placeholder: "Wpisz przynajmniej 3 litery...",
+                    minimumInputLength: 3,
+                    ajax: {
+                        url: '/get_ulice',
+                        method: 'POST',
+                        dataType: 'json',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
+                        },
+                        data: function (params) {
+                            return JSON.stringify({
+                                q: params.term,
+                                sym: sym
+                            });
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data.map(function (item) {
+                                    return {id: item.name, text: item.name};
+                                })
+                            };
+                        },
+                        error: function (xhr, status, error) {
+                            alert('Wystąpił błąd podczas wyszukiwania ulic.');
+                        },
+                        cache: true
+                    },
+                    language: "pl"
+                });
+
             }
 
             // ### wypełnij select2 autocompleteSelect ###
@@ -546,22 +520,7 @@
 
             // ### Zdarzenia ###
             function bindEvents() {
-                wojewodztwoSelect.on('change', function () {
-                    const wojewodztwo = $(this).val();
-                    if (wojewodztwo) {
-                        loadCities(wojewodztwo);
-                    } else {
-                        console.error("Brak wybranego wojewodztwa!");
-                    }
-                });
-
-                citySelect.on('change', function () {
-                    const selectedCity = citySelect.find(":selected").text();
-                    if (selectedCity && selectedCity !== "0") {
-                        updateStreets();
-                    }
-                });
-
+                /*
                 $('#autocompleteSelect').on('select2:open', function () {
                     const select2Element = $(this).data('select2');
                     if (select2Element) {
@@ -574,6 +533,8 @@
                         }, 80); // Czas oczekiwania, aby Select2 zdążył się otworzyć
                     }
                 });
+
+                 */
 
                 $('#autocompleteSelect').on('select2:select', function () {
                     // Pobierz zapisane dane z wybranego elementu select2
@@ -603,22 +564,25 @@
                     $('#pesel').val(data.pesel);
                     $('#home_numer').val(data.new_home_number);
 
-                    const wojewodztwoSelect = $('#wojewodztwo');
-                    const citySelect = $('#city_select');
+                    console.log('Setting wojewodztwo:', data.new_woj);
+                    console.log('Setting city:', data.new_city);
+                    console.log('Setting street:', data.new_street);
 
-                    // 1. Ustaw województwo
-                    setSelect2OptionByText(wojewodztwoSelect, data.new_woj);
+                    $('#wojewodztwo').val(data.new_woj).trigger('change.select2');
+                    await new Promise(resolve => setTimeout(resolve, 60));
 
-                    // 2. Poczekaj na załadowanie miast i ustaw miasto
-                    await loadCities(data.new_woj);
+                    $('#city_select').val(data.new_city).trigger('change.select2');
+                    await new Promise(resolve => setTimeout(resolve, 60));
 
-                    setSelect2OptionByText(citySelect, data.new_city);
+                    $('#street').val(data.new_street).trigger('change.select2');
 
-                    // 3. Po ustawieniu poczekaj na załadowanie ulic i ustaw ulicę
-                    await updateStreets(data.new_street);
                 } catch (error) {
                     console.error("Błąd podczas transferu danych:", error);
                 }
+            }
+
+            function resetSelect2(selectElement) {
+                selectElement.val(null).trigger('change.select2');
             }
 
             // ### Autouzupełnianie ###
@@ -648,9 +612,6 @@
                 });
             }
 
-            setupAutocomplete('#surname', 'surname');
-            setupAutocomplete('#pesel', 'pesel');
-
             // Przesunięcie modala z wynikami na wierzch
             $('#autocompleteModal').on('show.bs.modal', function () {
                 // Pobierz obecny z-index modala rodzica (modalForm)
@@ -670,72 +631,6 @@
                 width: '100%'
             });
 
-            function populateAutocompleteModal(results) {
-                const autocompleteSelect = $('#autocompleteSelect');
-                const fragment = document.createDocumentFragment();
-
-                // Wyczyść istniejące opcje
-                autocompleteSelect.empty();
-
-                // Dodaj opis na belce startowej wyszukiwania
-                const defaultOption = new Option('Lista rozwijana z wynikami ...', '', false, false);
-                fragment.appendChild(defaultOption);
-
-                // Dodaj nowe wyniki jako opcje, jeśli wyniki są dostępne
-                if (results && results.length > 0) {
-                    results.forEach((result) => {
-                        // dodaj imię, nazwisko i pesel z 'result'
-                        const displayText = result[1] + ' ' + result[2] + ' ' + result[3];
-                        const newOption = new Option(displayText, result[0], false, false);
-                        $(newOption).data('fullData', result); // dodaj cały 'result'
-                        fragment.appendChild(newOption);
-                    });
-                } else {
-                    // Dodaj opcję informującą o braku wyników
-                    const noResultsOption = new Option('Brak wyników !', '', false, false);
-                    fragment.appendChild(noResultsOption);
-                }
-
-                // Przenieś fragment do Select2
-                autocompleteSelect.append(fragment);
-
-                // Inicjalizuj lub odśwież Select2
-                autocompleteSelect.select2({
-                    dropdownParent: $('#autocompleteModal'),
-                    width: '100%'
-                });
-                // Aktualizacja ukrytego pola z wynikami wyboru - 'id' pacjenta
-                autocompleteSelect
-                    .off('change')
-                    .on('change', function () {
-                        const selectedOption = $(this).find(':selected');
-                        const fullData = selectedOption.data('fullData');
-                        const hiddenInput = $('#hiddenResultInput');
-                        hiddenInput.val(fullData ? fullData[0] : '');
-                    });
-                // Otwórz modal
-                $('#autocompleteModal').modal('show');
-            }
-
-            $('#autocompleteSelect').on('select2:select', function () {
-                // Pobierz zapisane dane z wybranego elementu select2
-                const selectedData = $(this).find('option:selected').data('fullData');
-
-                // Zamknij modal
-                $('#autocompleteModal').modal('hide');
-
-                const data = {
-                    first_name: selectedData[1],
-                    surname: selectedData[2],
-                    pesel: selectedData[3],
-                    new_woj: selectedData[5],
-                    new_city: selectedData[6],
-                    new_street: selectedData[7],
-                    new_home_number: selectedData[8]
-                };
-                // Przenieś dane do pól
-                transferDataToInputs(data);
-            });
 
             // ### Inicjalizacja ###
             initializeSelect2();

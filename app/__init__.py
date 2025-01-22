@@ -1,9 +1,12 @@
+import csv
 import logging
 import os
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 import pandas as pd
+import pygtrie
 from dotenv import load_dotenv
 from flask import Flask, session, request, abort
 from flask_login import LoginManager
@@ -16,11 +19,14 @@ from zeep.wsse.username import UsernameToken
 import app
 from config import Config
 
+BASE_DIR = Path(__file__).resolve().parent
 db = SQLAlchemy()
 migrate = Migrate()
 login_manager = LoginManager()
 region_data = {}
 parquet_data = {}
+city_trie = pygtrie.CharTrie()
+street_trie = pygtrie.CharTrie()
 
 # Inicjalizacja zmiennych środowiskowych
 load_dotenv()
@@ -39,6 +45,7 @@ if WSDL_URL and WSDL_USERNAME and WSDL_PASSWORD:
 else:
     client_soap = None
     logging.error("Failed to create SOAP client due to missing credentials.")
+
 
 def setup_logging(app):
     # Rotacje do 5 plików po 3 MB wielkości
@@ -142,6 +149,8 @@ def create_app():
     global parquet_data
     parquet_data = load_parquet_files()
 
+    init_trie()
+
     @login_manager.user_loader
     def load_user(user_id):
         with app.app_context():
@@ -224,3 +233,54 @@ def load_parquet_files(directory='app/static/parquet', expected_file_count=16):
                         f"{missing_files_count} files are missing.")
 
     return data
+
+
+def init_trie():
+    file_path = BASE_DIR / 'static' / 'csv' / 'wynikowy_plik_warszawa.csv'
+    with file_path.open(mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            woj = row['WOJ']
+            sym = row['SYM']
+            nazwa_miejscowosci = row['NAZWA_MIEJSCOWOSCI']
+            nazwa_ulicy = row['NAZWA_ULICY']
+
+            # Dodaj miejscowości do trie
+            city_key = f"{woj}:{nazwa_miejscowosci.lower()}"
+            if city_key not in city_trie:
+                city_trie[city_key] = {'name': nazwa_miejscowosci, 'woj': woj, 'sym': sym}
+
+            # Dodaj ulice do trie
+            street_key = f"{sym}:{nazwa_ulicy.lower()}"
+            if street_key not in street_trie:
+                street_trie[street_key] = {'name': nazwa_ulicy, 'sym': sym}
+
+    print("Dane załadowane do trie.")
+
+
+def search_cities_in_trie(prefix, woj):
+    prefix_key = f"{woj}:{prefix.lower()}"
+    try:
+        results = city_trie.items(prefix=prefix_key)
+        city_list = [{'name': value['name'], 'sym': value['sym']} for _, value in results]
+
+        if not city_list:
+            return []
+
+        return city_list
+    except KeyError:
+        return []
+
+
+def search_streets_in_trie(prefix, sym):
+    prefix_key = f"{sym}:{prefix.lower()}"
+    try:
+        results = street_trie.items(prefix=prefix_key)
+        street_list = [{'name': value['name']} for _, value in results]
+
+        if not street_list:
+            []
+
+        return street_list
+    except KeyError:
+        return []
