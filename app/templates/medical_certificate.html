@@ -352,6 +352,7 @@
             const streetSelect = $('#street');
 
             // ### Funkcja pomocnicza ###
+            /*
             function setSelect2OptionByText(selectElement, textValue) {
                 // Sprawdź, czy element select ma id 'wojewodztwo'
                 if (selectElement.attr('id') === 'wojewodztwo') {
@@ -369,6 +370,23 @@
                     }
                 }
             }
+
+             */
+
+            function setSelect2OptionByText(selectElement, value) {
+                // Sprawdź, czy wartość istnieje w opcjach
+                if (!selectElement.find(`option[value="${value}"]`).length) {
+                    // Jeśli nie istnieje, dodaj ją jako nową opcję
+                    const newOption = new Option(value, value, true, true);
+                    {#console.log("selectElement", selectElement)#}
+                    {#console.log("value", value)#}
+                    selectElement.append(newOption);
+                }
+
+                // Ustaw wartość i odśwież Select2
+                selectElement.val(value).trigger('change.select2');
+            }
+
 
             // ### Pobieranie ulic ###
             function updateStreets(selectedStreet = null) {
@@ -406,11 +424,6 @@
                                 });
 
                                 streetSelect.append(fragment).trigger('change.select2');
-
-                                // Ustaw wybraną ulicę, jeśli podano
-                                if (selectedStreet) {
-                                    setSelect2OptionByText(streetSelect, selectedStreet);
-                                }
 
                                 resolve("Ulice zostały załadowane.");
                             } else {
@@ -452,8 +465,8 @@
                             citySelect.empty();
                             streetSelect.empty();
 
-                            console.log("Response length", response.length)
-                            console.log("Response", response)
+                            {#console.log("Response length", response.length)#}
+                            {#console.log("Response", response)#}
                             // Sprawdź, czy są miejscowości
                             if (response && response.length > 0) {
                                 const fragment = document.createDocumentFragment();
@@ -626,6 +639,8 @@
 
                     // 3. Po ustawieniu poczekaj na załadowanie ulic i ustaw ulicę
                     await updateStreets(data.new_street);
+
+                    setSelect2OptionByText(streetSelect, data.new_street);
                 } catch (error) {
                     console.error("Błąd podczas transferu danych:", error);
                 }
