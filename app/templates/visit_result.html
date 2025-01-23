@@ -430,82 +430,67 @@
         const citySelect = $('#city_select');
         const streetSelect = $('#street');
 
-        // ### Funkcja pomocnicza ###
-        function setSelect2OptionByText(selectElement, textValue) {
-            // Sprawdź, czy element select ma id 'wojewodztwo'
-            if (selectElement.attr('id') === 'wojewodztwo') {
-                // Jeśli tak, ustaw wartość na textValue
-                selectElement.val(textValue).trigger('change.select2');
-            } else {
-                // W przeciwnym razie wyszukaj opcję po tekście
-                const option = selectElement.find('option').filter(function () {
-                    return $(this).text().trim() === textValue;
-                });
-                if (option.length > 0) {
-                    selectElement.val(option.val()).trigger('change.select2');
-                } else {
-                    console.warn("Nie znaleziono opcji w select:", textValue, ' - ', selectElement.attr('id'));
-                }
+        function setSelect2OptionByText(selectElement, value) {
+            if (!selectElement.find(`option[value="${value}"]`).length) {
+                const newOption = new Option(value, value, true, true);
+                selectElement.append(newOption);
             }
+
+            selectElement.val(value).trigger('change.select2');
         }
 
         // ### Pobieranie ulic ###
         function updateStreets(selectedStreet = null) {
             return new Promise((resolve, reject) => {
-                const miejscowosc = citySelect.find(":selected").text();
-                const wojewodztwo = wojewodztwoSelect.val();
+                const miejscowosc = citySelect.find(":selected").text(); // Wybrana miejscowość
+                const sym = citySelect.find(":selected").data('sym');
 
-                // Walidacja danych wejściowych
-                if (!miejscowosc || !wojewodztwo) {
-                    console.error("Brak miejscowości lub województwa do pobrania ulic.");
-                    return reject("Nie wybrano miejscowości lub województwa.");
+                if (!miejscowosc || !sym) {
+                    console.error("Brak miejscowości lub symbolu miejscowości do pobrania ulic.");
+                    return reject("Nie wybrano miejscowości.");
                 }
-                // Wykonaj żądanie AJAX
-                // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
+
                 const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+
                 $.ajax({
-                    url: '/get_ulice',
+                    url: '/get_ulice', // Endpoint serwera
                     type: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify({miejscowosc: miejscowosc, wojewodztwo: wojewodztwo}),
+                    data: JSON.stringify({sym: sym}), // Przesyłanie symbolu miejscowości
                     headers: {
                         'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
                     },
                     success: function (response) {
-                        if (!response || !response.ulice) {
-                            console.error("Błąd:/get_ulice - Nieprawidłowa odpowiedź z serwera.", response);
-                            return;
-                        }
+                        // Resetuj Select2 dla ulic
                         streetSelect.empty();
 
                         const fragment = document.createDocumentFragment(); // Fragment do optymalizacji DOM
 
-                        if (response.ulice && response.ulice.length > 0) {
+                        if (Array.isArray(response) && response.length > 0) {
                             // Dodaj ulice
-                            response.ulice.forEach(street => {
-                                fragment.appendChild(new Option(street, street));
+                            response.forEach(street => {
+                                fragment.appendChild(new Option(street.name, street.name));
                             });
 
                             streetSelect.append(fragment).trigger('change.select2');
 
-                            // Ustaw wybraną ulicę, jeśli podano
-                            if (selectedStreet) {
-                                setSelect2OptionByText(streetSelect, selectedStreet);
-                            }
                             resolve("Ulice zostały załadowane.");
                         } else {
                             console.warn("Brak ulic dla wybranej miejscowości.");
-                            streetSelect.append(new Option("Brak dostępnych ulic !", "", false, false)).trigger('change.select2');
+                            streetSelect.append(new Option("Brak dostępnych ulic!", "", false, false)).trigger('change.select2');
+                            resolve("Brak ulic dla wybranej miejscowości.");
                         }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.error("Błąd podczas pobierania ulic:", textStatus, errorThrown);
                         streetSelect.empty().append(new Option("Błąd w pobieraniu danych", "", false, false));
                         streetSelect.trigger('change.select2');
+                        reject(errorThrown);
                     }
                 });
             });
         }
+
 
         // ### Pobieranie miast ###
         function loadCities(wojewodztwo) {
@@ -513,6 +498,7 @@
                 if (!wojewodztwo) {
                     return reject("Brak wybranego województwa.");
                 }
+                // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
                 const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
                 $.ajax({
                     url: '/get_miejscowosci',
@@ -523,21 +509,19 @@
                         'X-CSRFToken': csrfToken // Dodanie tokena CSRF do nagłówka
                     },
                     success: function (response) {
-                        if (!response) {
-                            console.error("Błąd: /get_miejscowosci - Nieprawidłowa odpowiedź z serwera.", response);
-                            return;
-                        }
 
                         // Resetuj pola miast i ulic
                         citySelect.empty();
                         streetSelect.empty();
 
+                        {#console.log("Response length", response.length)#}
+                        {#console.log("Response", response)#}
                         // Sprawdź, czy są miejscowości
-                        if (response.miejscowosci && response.miejscowosci.length > 0) {
+                        if (response && response.length > 0) {
                             const fragment = document.createDocumentFragment();
-                            response.miejscowosci.forEach(city => {
-                                // gdy Option(city[1], city[0]) to submit zwraca numer miasta zamiast nazwy !
-                                const option = new Option(city[1], city[1]);
+                            response.forEach(city => {
+                                const option = new Option(city.name, city.name);
+                                $(option).data('sym', city.sym);
                                 fragment.appendChild(option);
                             });
                             citySelect.append(fragment);
@@ -546,10 +530,13 @@
 
                             resolve(); // Rozwiązanie Promise
 
-                            // załaduj ulice
-                            updateStreets();
+                            // Załaduj ulice dla pierwszego miasta (opcjonalnie)
+                            if (response[0]) {
+                                updateStreets(response[0].sym);
+                            }
                         } else {
                             console.warn("Brak dostępnych miejscowości dla województwa:", wojewodztwo);
+                            reject("Brak dostępnych miejscowości.");
                         }
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
@@ -643,7 +630,9 @@
                 const selectedCity = citySelect.find(":selected").text();
                 if (selectedCity && selectedCity !== "0") {
                     updateStreets();
-                } else { console.log("error citySelect", selectedCity) }
+                } else {
+                    console.log("error citySelect", selectedCity)
+                }
             });
 
             $('#autocompleteSelect').on('select2:open', function () {
@@ -700,6 +689,8 @@
 
                 // 3. Po ustawieniu poczekaj na załadowanie ulic i ustaw ulicę
                 await updateStreets(data.new_street);
+
+                setSelect2OptionByText(streetSelect, data.new_street);
             } catch (error) {
                 console.error("Błąd podczas transferu danych:", error);
             }

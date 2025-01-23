@@ -351,39 +351,12 @@
             const citySelect = $('#city_select');
             const streetSelect = $('#street');
 
-            // ### Funkcja pomocnicza ###
-            /*
-            function setSelect2OptionByText(selectElement, textValue) {
-                // Sprawdź, czy element select ma id 'wojewodztwo'
-                if (selectElement.attr('id') === 'wojewodztwo') {
-                    // Jeśli tak, ustaw wartość na textValue
-                    selectElement.val(textValue).trigger('change.select2');
-                } else {
-                    // W przeciwnym razie wyszukaj opcję po tekście
-                    const option = selectElement.find('option').filter(function () {
-                        return $(this).text().trim() === textValue;
-                    });
-                    if (option.length > 0) {
-                        selectElement.val(option.val()).trigger('change.select2');
-                    } else {
-                        console.warn("Nie znaleziono opcji w select:", textValue, ' - ', selectElement.attr('id'));
-                    }
-                }
-            }
-
-             */
-
             function setSelect2OptionByText(selectElement, value) {
-                // Sprawdź, czy wartość istnieje w opcjach
                 if (!selectElement.find(`option[value="${value}"]`).length) {
-                    // Jeśli nie istnieje, dodaj ją jako nową opcję
                     const newOption = new Option(value, value, true, true);
-                    {#console.log("selectElement", selectElement)#}
-                    {#console.log("value", value)#}
                     selectElement.append(newOption);
                 }
 
-                // Ustaw wartość i odśwież Select2
                 selectElement.val(value).trigger('change.select2');
             }
 
@@ -392,15 +365,13 @@
             function updateStreets(selectedStreet = null) {
                 return new Promise((resolve, reject) => {
                     const miejscowosc = citySelect.find(":selected").text(); // Wybrana miejscowość
-                    const sym = citySelect.find(":selected").val(); // Symbol miejscowości
+                    const sym = citySelect.find(":selected").data('sym');
 
-                    // Walidacja danych wejściowych
                     if (!miejscowosc || !sym) {
                         console.error("Brak miejscowości lub symbolu miejscowości do pobrania ulic.");
                         return reject("Nie wybrano miejscowości.");
                     }
 
-                    // Pobierz token CSRF ze źródła (np. metatag, ukryty input w stronie itp.)
                     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
 
                     $.ajax({
@@ -471,7 +442,8 @@
                             if (response && response.length > 0) {
                                 const fragment = document.createDocumentFragment();
                                 response.forEach(city => {
-                                    const option = new Option(city.name, city.sym); // Użyj name jako tekst, sym jako wartość
+                                    const option = new Option(city.name, city.name);
+                                    $(option).data('sym', city.sym);
                                     fragment.appendChild(option);
                                 });
                                 citySelect.append(fragment);
